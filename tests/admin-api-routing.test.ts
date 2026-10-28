@@ -14,7 +14,7 @@ async function rules(origin:string){
 describe("enrutamiento administrativo Vercel / Render",()=>{
  it("mantiene las API del panel en el mismo origen que la sesión",async()=>{
   const rewrites=await rules("https://viagelato-api.onrender.com");
-  const sources=rewrites.beforeFiles.map(rule=>rule.source);
+  const sources=(rewrites.beforeFiles??[]).map(rule=>rule.source);
   expect(sources).not.toContain("/api/:path*");
   expect(sources.every(source=>!source.includes("/api/admin"))).toBe(true);
   expect(sources).toEqual(["/api/health","/api/checkout","/api/cron/:path*"]);
