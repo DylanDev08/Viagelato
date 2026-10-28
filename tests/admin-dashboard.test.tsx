@@ -119,7 +119,7 @@ describe("panel administrativo",()=>{
   const field=screen.getByLabelText("Nombre");
   await user.clear(field);await user.type(field,"Postres y helados");
   await user.click(screen.getByText("Editar la dirección de la categoría (opcional)"));
-  expect(screen.getByLabelText("Dirección de la categoría")).toHaveValue("postres-helados");
+  expect(screen.getByLabelText(/Dirección de la categoría/)).toHaveValue("postres-helados");
  });
  it("permite avanzar un pedido con un botón claro sin ejecutar pagos",async()=>{
   const user=userEvent.setup();
