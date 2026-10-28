@@ -1,0 +1,13 @@
+import type {Metadata} from "next";
+import Image from "next/image";
+import Link from "next/link";
+import {notFound} from "next/navigation";
+import {ArrowLeft,Box,PackageCheck,Snowflake,Truck} from "lucide-react";
+import {ProductPurchase} from "@/components/product-purchase";
+import {SiteShell} from "@/components/site-shell";
+import {getProductBySlug} from "@/lib/site";
+import {ars} from "@/lib/types";
+
+export const dynamic="force-dynamic";
+export async function generateMetadata({params}:{params:Promise<{slug:string}>}):Promise<Metadata>{const {slug}=await params;const {product}=await getProductBySlug(slug);return product?{title:product.name,description:product.description}:{title:"Producto no encontrado"};}
+export default async function ProductPage({params}:{params:Promise<{slug:string}>}){const {slug}=await params;const {settings,product,categories,demo}=await getProductBySlug(slug);if(!product)notFound();const category=categories.find(item=>item.id===product.category_id);return <SiteShell settings={settings}><main className="product-page shell"><Link className="back-link" href="/productos"><ArrowLeft/>Volver al catálogo</Link><div className="product-detail"><div className="detail-art">{product.image_url?<Image src={product.image_url} alt={product.name} fill sizes="(max-width: 800px) 100vw, 50vw" unoptimized/>:<div className="product-placeholder large"><Box/><span>Imagen del producto a cargar</span></div>}{demo&&<span className="demo-pill">DEMO</span>}</div><div className="detail-copy"><p className="kicker">{category?.name??"PRODUCTO"}</p><h1>{product.name}</h1><p className="detail-description">{product.description}</p>{product.presentation&&<p className="detail-meta"><span>Presentación</span><strong>{product.presentation}</strong></p>}{product.sku&&<p className="detail-meta"><span>Referencia</span><strong>{product.sku}</strong></p>}<p className="detail-price">{ars(Number(product.price))}</p><p className={`availability ${product.stock>0?"available":"unavailable"}`}>{product.stock>0?"Disponible para solicitar":"Sin stock"}</p><ProductPurchase product={product}/></div></div><div className="detail-benefits"><div><Snowflake/><span><strong>Producto congelado</strong>Conservar según indicaciones del fabricante.</span></div><div><Truck/><span><strong>Entrega coordinada</strong>Confirmamos zona y día antes del despacho.</span></div><div><PackageCheck/><span><strong>Compra confirmada</strong>Stock y total se validan de forma manual.</span></div></div></main></SiteShell>}

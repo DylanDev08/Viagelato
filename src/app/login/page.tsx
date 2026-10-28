@@ -1,0 +1,6 @@
+"use client";
+import {FormEvent,useState} from "react";
+import Link from "next/link";
+import {useRouter} from "next/navigation";
+import {browserDb} from "@/lib/browser";
+export default function Login(){const[email,setEmail]=useState("");const[password,setPassword]=useState("");const[error,setError]=useState("");const[busy,setBusy]=useState(false);const router=useRouter();async function submit(e:FormEvent){e.preventDefault();setBusy(true);setError("");try{const {error}=await browserDb().auth.signInWithPassword({email,password});if(error)throw error;router.push("/admin");router.refresh();}catch(err){setError(err instanceof Error?err.message:"Error de acceso");}finally{setBusy(false)}}return <main className="auth-shell"><form className="panel auth-panel" onSubmit={submit}><h1>Acceso administrador</h1><p>Ingresá con la cuenta autorizada de Supabase.</p><label>Email<input type="email" value={email} onChange={e=>setEmail(e.target.value)} required/></label><label>Contraseña<input type="password" value={password} onChange={e=>setPassword(e.target.value)} required/></label>{error&&<p className="error">{error}</p>}<button disabled={busy} className="btn primary full">{busy?"Ingresando...":"Ingresar"}</button><Link href="/">← Volver a la tienda</Link></form></main>}

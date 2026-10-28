@@ -1,0 +1,8 @@
+import type {Metadata} from "next";
+import {PackageCheck,Snowflake,Truck} from "lucide-react";
+import {SiteShell} from "@/components/site-shell";
+import {getStore} from "@/lib/site";
+
+export const dynamic="force-dynamic";
+export const metadata:Metadata={title:"Nosotros",description:"Conocé la propuesta de distribución y logística de Viagelato."};
+export default async function AboutPage(){const {settings}=await getStore();return <SiteShell settings={settings}><main className="page-main"><section className="page-hero shell"><p className="kicker">LA EMPRESA</p><h1>El frío no se improvisa.</h1><p>{settings.description}</p></section><section className="shell editorial-grid"><div><p className="kicker">NUESTRA PROPUESTA</p><h2>Una operación simple, directa y coordinada.</h2></div><div className="prose"><p>Viagelato trabaja en la distribución de alimentos congelados con foco en la atención comercial y el cuidado del producto durante la operación.</p><p>La disponibilidad, los precios, las zonas y los días de entrega se confirman antes de cerrar cada pedido. Así, cada compra parte de información validada y de un acuerdo claro.</p></div></section><section className="values shell"><article><Snowflake/><span>01</span><h3>Cadena de frío</h3><p>El producto requiere conservación y manipulación según las indicaciones de cada fabricante.</p></article><article><Truck/><span>02</span><h3>Logística coordinada</h3><p>La cobertura se organiza por zonas y días confirmados con el cliente.</p></article><article><PackageCheck/><span>03</span><h3>Atención directa</h3><p>Cada pedido queda sujeto a validación de stock, total y modalidad de entrega.</p></article></section></main></SiteShell>}

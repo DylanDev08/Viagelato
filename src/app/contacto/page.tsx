@@ -1,0 +1,8 @@
+import type {Metadata} from "next";
+import {Instagram,MessageCircle,Phone} from "lucide-react";
+import {SiteShell} from "@/components/site-shell";
+import {getStore} from "@/lib/site";
+
+export const dynamic="force-dynamic";
+export const metadata:Metadata={title:"Contacto",description:"Canales de contacto comercial de Viagelato."};
+export default async function ContactPage(){const {settings}=await getStore();const phone=`tel:${settings.phone.replace(/\D/g,"")}`;return <SiteShell settings={settings}><main className="contact-page"><section className="shell contact-grid"><div><p className="kicker">CONTACTO</p><h1>¿Qué necesitás<br/>mantener en frío?</h1><p>Consultanos por productos, cobertura y condiciones de entrega. Respondemos por nuestros canales comerciales.</p></div><div className="contact-options"><a href={phone}><Phone/><span><small>TELÉFONO</small><strong>{settings.phone}</strong></span></a>{settings.instagram&&<a href={settings.instagram} target="_blank" rel="noreferrer"><Instagram/><span><small>INSTAGRAM</small><strong>@distribuidorviagelato</strong></span></a>}{settings.whatsapp?<a href={`https://wa.me/${settings.whatsapp.replace(/\D/g,"")}`} target="_blank" rel="noreferrer"><MessageCircle/><span><small>WHATSAPP</small><strong>Iniciar consulta</strong></span></a>:<div className="contact-pending"><MessageCircle/><span><small>WHATSAPP</small><strong>Canal a configurar</strong></span></div>}</div></section><section className="shell contact-note"><span>IMPORTANTE</span><p>Para agilizar la respuesta, indicá tu localidad, los productos que buscás y una cantidad aproximada. No se considera confirmado ningún pedido hasta recibir la validación comercial.</p></section></main></SiteShell>}

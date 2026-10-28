@@ -1,0 +1,14 @@
+[
+  {
+    "duplicado": "4248180c-d8ca-4c9c-abbb-36fa1f4ef1b8.jpg",
+    "conservar": "Copia de 4248180c-d8ca-4c9c-abbb-36fa1f4ef1b8.jpg",
+    "sha256": "c52ba78e3c962059863c74d46de5f0995453499e640a578f86e5c644b70e15a8",
+    "mismo_contenido": true
+  },
+  {
+    "duplicado": "Carita-FR-AM.jpg",
+    "conservar": "Copia de Carita-FR-AM.jpg",
+    "sha256": "2e9c39d530a79a0335ad8e0830c193976d3cd530252cb91ebc025479f44c77fc",
+    "mismo_contenido": true
+  }
+]

@@ -1,0 +1,7 @@
+import {NextResponse} from "next/server";
+import {adminOrError,bannerSchema} from "@/lib/admin";
+import {privilegedDb} from "@/lib/supabase";
+export async function POST(req:Request){const auth=await adminOrError();if(auth)return auth;const p=bannerSchema.safeParse(await req.json());if(!p.success)return NextResponse.json({error:"Banner inválido"},{status:400});const {data,error}=await privilegedDb().from("banners").insert({...p.data,image_url:p.data.image_url||null}).select().single();return error?NextResponse.json({error:error.message},{status:400}):NextResponse.json(data);}
+export async function DELETE(req:Request){const auth=await adminOrError();if(auth)return auth;const {id}=await req.json();if(typeof id!=="string")return NextResponse.json({error:"ID inválido"},{status:400});const {error}=await privilegedDb().from("banners").delete().eq("id",id);return error?NextResponse.json({error:error.message},{status:400}):NextResponse.json({ok:true});}
+
+export async function PATCH(req:Request){const auth=await adminOrError();if(auth)return auth;const {id,...payload}=await req.json();if(typeof id!=="string")return NextResponse.json({error:"ID inválido"},{status:400});const parsed=bannerSchema.safeParse(payload);if(!parsed.success)return NextResponse.json({error:"Banner inválido"},{status:400});const {data,error}=await privilegedDb().from("banners").update({...parsed.data,image_url:parsed.data.image_url||null}).eq("id",id).select().single();return error?NextResponse.json({error:error.message},{status:400}):NextResponse.json(data);}

@@ -1,0 +1,71 @@
+{
+  "project": "Viagelato S.A. — E-Commerce",
+  "kind": "business_requirements_not_code",
+  "verified_at": "2026-10-27",
+  "brand": {
+    "commercial_name": "Viagelato",
+    "legal_name": "Viagelato Sociedad Anónima",
+    "sector": "Logística y distribución",
+    "colors": [
+      "#000000",
+      "#FFFFFF",
+      "#757575"
+    ],
+    "logo_status": "captura recibida; solicitar archivo original PNG/SVG",
+    "phone": "1140962202",
+    "whatsapp": "pendiente confirmar que este número tiene WhatsApp",
+    "instagram": "https://www.instagram.com/distribuidorviagelato/",
+    "address": null,
+    "email": null
+  },
+  "payments": {
+    "provider": null,
+    "supported": [
+      "transferencia_bancaria",
+      "pago_en_el_momento"
+    ],
+    "bank_alias": null,
+    "bank_account": null,
+    "bank_holder": null,
+    "on_delivery_methods": [
+      "pendiente confirmar efectivo o transferencia"
+    ],
+    "transfer_receipt": "opcional, sujeto a revisión manual",
+    "payment_confirmation": "solo intervención de administrador"
+  },
+  "shipping": {
+    "source": "Información del comercio recibida 27/10/2026",
+    "free_from_ars": 60000,
+    "eligible_zones": [
+      "Lomas de Zamora",
+      "Lanús",
+      "Banfield",
+      "Avellaneda",
+      "Valentín Alsina",
+      "Don Bosco",
+      "Wilde"
+    ],
+    "under_threshold_fee": null,
+    "delivery_days": null,
+    "capital_federal": "a_consultar; no cotizar ni prometer envío gratis",
+    "pickup": "pendiente de confirmar",
+    "out_of_coverage": "consulta manual"
+  },
+  "catalog": {
+    "drive_folder": "https://drive.google.com/drive/folders/1xycIRdWZ9vEwbv3I0KGsjG2dgRRJiS2b",
+    "image_files_detected": 50,
+    "verified_products": 0,
+    "initial_product_target": 30,
+    "products_without_price_should_be_published": false,
+    "prices_status": "no recibido",
+    "stock_status": "no recibido",
+    "asset_manifest": "Viagelato_fotos_drive.csv"
+  },
+  "deployment_gates": [
+    "confirmar 30 productos y precios y stock",
+    "confirmar tarifas bajo ARS 60000 o bloquear casos",
+    "configurar datos para transferencia",
+    "probar flujos de pedidos y reserva/estado stock",
+    "revisar política de devoluciones y privacidad"
+  ]
+}

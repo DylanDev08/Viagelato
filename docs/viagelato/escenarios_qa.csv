@@ -1,0 +1,26 @@
+﻿ID,Módulo,Escenario,Resultado esperado,Prioridad
+CAT-01,Catálogo,Sin precio recibido,Producto permanece oculto y no permite checkout,Bloqueante
+CAT-02,Catálogo,Imagen genérica o ambigua,No se crea SKU a partir de foto sin confirmar,Alta
+CAT-03,Catálogo,Dos fotos de un mismo producto,Permite asociar galería sin duplicar SKU,Alta
+CAT-04,Catálogo,Producto inactivo,No aparece en tienda ni puede comprarse,Bloqueante
+CAT-05,Catálogo,Producto sin stock,No se agrega al carrito,Bloqueante
+STK-01,Stock,Dos pedidos simultáneos agotan última unidad,Solo uno reserva; sin stock negativo,Bloqueante
+STK-02,Stock,Pedido cancelado,Stock vuelve una sola vez,Bloqueante
+STK-03,Stock,Cancelación repetida,No duplica devolución de unidades,Bloqueante
+STK-04,Stock,Pago transferencia sin aprobar,Pago sigue pendiente; stock según política de reserva,Bloqueante
+SHI-01,Envíos,"Lanús, total $60.000",Envío gratuito,Bloqueante
+SHI-02,Envíos,"Wilde, total $59.999 y sin tarifa configurada",No calcula $0 ni confirma pedido sin tarifa,Bloqueante
+SHI-03,Envíos,"Capital Federal, total $100.000","Solicita consulta, sin prometer envío gratis",Bloqueante
+SHI-04,Envíos,Fuera de cobertura,No promete entrega; ofrece consulta,Alta
+SHI-05,Envíos,Días de entrega no confirmados,No muestra fecha inventada,Alta
+CHK-01,Checkout,Cliente cambia precio desde navegador,El total se recalcula en servidor,Bloqueante
+CHK-02,Checkout,Doble clic en confirmar compra,No genera dos pedidos idénticos por reintento,Bloqueante
+CHK-03,Checkout,Cliente envía datos inválidos,Validación servidor y error entendible,Bloqueante
+PAY-01,Pago manual,Cliente sube comprobante,No se marca pagado automáticamente,Bloqueante
+PAY-02,Pago manual,Admin marca pago confirmado,Registra estado y auditoría,Alta
+SEC-01,Seguridad,Cliente visita /admin sin login,Acceso denegado,Bloqueante
+SEC-02,Seguridad,Cliente llama a API administrativa,Acceso denegado por backend,Bloqueante
+SEC-03,Seguridad,Comprobante cargado,Accesible solo al personal autorizado,Bloqueante
+UI-01,UX,Pantalla móvil 360px,"Carrito, checkout y navegación sin desbordes",Alta
+UI-02,UX,Admin elige 'Ver como cliente',Ve tienda sin acciones de admin,Media
+LEGA-01,Legales,Páginas de privacidad y arrepentimiento,"Enlaces visibles, contenido revisado antes de publicar",Bloqueante
