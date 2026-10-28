@@ -1,14 +1,14 @@
 "use client";
-
 import Link from "next/link";
 import {MessageCircle,ShoppingBag} from "lucide-react";
 import {useCart} from "./cart";
+import {whatsappHref} from "@/lib/whatsapp";
 
 export function FloatingActions({whatsapp}:{whatsapp:string}){
  const {count}=useCart();
- const contact=whatsapp?`https://wa.me/${whatsapp.replace(/\D/g,"")}`:"/contacto";
- return <div className="floating-actions">
-  <a className="float-contact" href={contact} target={whatsapp?"_blank":undefined} rel={whatsapp?"noreferrer":undefined} aria-label={whatsapp?"Consultar por WhatsApp":"Ir a contacto"}><MessageCircle/><span>Consultar</span></a>
-  <Link className="float-cart" href="/carrito" aria-label={`Ver carrito, ${count} productos`}><ShoppingBag/><b>{count}</b></Link>
+ const href=whatsappHref(whatsapp);
+ return <div className="floating-actions" aria-label="Accesos rápidos">
+  {href?<a className="float-contact float-whatsapp" href={href} target="_blank" rel="noopener noreferrer" aria-label="Hablar con Viagelato por WhatsApp"><MessageCircle aria-hidden="true"/><span>Consultar por WhatsApp</span></a>:<Link className="float-contact" href="/contacto" aria-label="Ir a los medios de contacto de Viagelato"><MessageCircle aria-hidden="true"/><span>Contacto</span></Link>}
+  <Link className="float-cart" href="/carrito" aria-label={`Ver carrito, ${count} productos`}><ShoppingBag aria-hidden="true"/><b>{count}</b></Link>
  </div>;
 }

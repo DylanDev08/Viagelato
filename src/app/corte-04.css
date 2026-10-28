@@ -1,0 +1,50 @@
+/* Corte 04: identidad monocromática, fotografías originales siempre a color. */
+:root {
+ --paper: #f6f6f5;
+ --ice: #eeeeee;
+ --blue: #b4b4b4;
+ --border: #dedede;
+}
+.hero-v2 { background: #f7f7f6; }
+.hero-visual.product-composition { background: linear-gradient(135deg,#f0f0ee 0%,#dbdbd8 100%); }
+.hero-visual.product-composition::before,
+.hero-visual.product-composition::after { border-color: rgb(0 0 0 / 8%); }
+.temperature-card { box-shadow: 0 16px 45px rgb(0 0 0 / 9%); }
+.demo-strip { background: #ededed; color: #242424; }
+.story-number { color: #bdbdbd; }
+.zone-list b, .contact-options svg { color: #c8c8c8; }
+.site-footer { background: #f0f0ef; }
+.footer-bottom { border-color: #d4d4d4; color: #555; }
+.float-cart b { background: white; border: 1px solid #111; color: #111; }
+.catalog-result-count { margin: -8px 0 20px; color: #555; font-size: 13px; }
+.provisional-count { color: #555; font-size: 13px; }
+.category-tabs button,
+.catalog-buy button { transition: background-color .15s ease, color .15s ease, border-color .15s ease; }
+.category-tabs button:hover:not(.active) { background: #f0f0f0; border-color: #777; }
+.site-header a:focus-visible,
+.site-footer a:focus-visible,
+.final-cta a:focus-visible,
+.catalog-toolbar :is(input,select):focus-visible,
+.category-tabs button:focus-visible,
+.empty-catalog button:focus-visible,
+.checkout-page :is(input,textarea,select,button,a):focus-visible,
+.contact-options a:focus-visible {
+ outline: 3px solid #111;
+ outline-offset: 3px;
+}
+.home-provisional-grid img,
+.provisional-card img,
+.catalog-art img,
+.detail-art img,
+.hero-product img { filter: none; }
+@media (max-width:640px) {
+ .hero-facts strong { font-size: 22px; }
+ .hero-facts span { max-width: none; font-size: 12px; }
+ .hero-copy h1 { overflow-wrap: anywhere; }
+ .page-hero h1, .final-cta h2 { overflow-wrap: anywhere; }
+ .catalog-result-count { margin-top: 0; }
+ .category-tabs { scrollbar-width: thin; }
+}
+@media (prefers-reduced-motion:reduce){
+ .category-tabs button,.catalog-buy button { transition: none; }
+}

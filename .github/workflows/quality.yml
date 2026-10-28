@@ -1,0 +1,44 @@
+name: Viagelato quality checks
+
+on:
+  pull_request:
+    paths:
+      - 'src/**'
+      - 'tests/**'
+      - 'package.json'
+      - 'package-lock.json'
+      - '.github/workflows/quality.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: viagelato-quality-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  quality:
+    name: Test, lint, types and build
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      ENABLE_CHECKOUT: 'false'
+      ENABLE_INDEXING: 'false'
+      NEXT_PUBLIC_SITE_URL: http://localhost:3000
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Install locked dependencies
+        run: npm ci
+      - name: Run unit and component tests
+        run: npm test
+      - name: Lint source
+        run: npm run lint
+      - name: TypeScript
+        run: npm run typecheck
+      - name: Production build (offline checkout)
+        run: npm run build

@@ -5,7 +5,7 @@ export type ProvisionalAsset={
  name:string;
  category:string;
  image:string;
- role:"producto_candidato"|"material_marca";
+ role:"producto_candidato"|"material_de_marca";
  status:"requiere_revision_comercial";
  note:string;
 };
@@ -17,9 +17,12 @@ export const PROVISIONAL_ASSETS=(manifest as ManifestRow[]).map((row):Provisiona
  name:row.nombre_provisorio,
  category:row.categoria_tentativa,
  image:row.archivo_web,
- role:row.rol==="material_marca"?"material_marca":"producto_candidato",
+ role:row.rol==="material_de_marca"?"material_de_marca":"producto_candidato",
  status:"requiere_revision_comercial",
  note:row.nota,
 }));
 
-export const PROVISIONAL_CATEGORIES=[...new Set(PROVISIONAL_ASSETS.map(asset=>asset.category))].sort();
+const DUPLICATE_ASSET_IDS=new Set([12]);
+export const PROVISIONAL_PRODUCT_ASSETS=PROVISIONAL_ASSETS.filter(asset=>asset.role==="producto_candidato"&&!DUPLICATE_ASSET_IDS.has(asset.id));
+export const PROVISIONAL_BRAND_ASSETS=PROVISIONAL_ASSETS.filter(asset=>asset.role==="material_de_marca");
+export const PROVISIONAL_CATEGORIES=[...new Set(PROVISIONAL_PRODUCT_ASSETS.map(asset=>asset.category))].sort();

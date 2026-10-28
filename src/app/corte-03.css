@@ -1,0 +1,145 @@
+.hero-visual.product-composition {
+  background: #ecebe7;
+  isolation: isolate;
+}
+
+.site-header {
+  z-index: 60;
+}
+
+.mobile-nav {
+  z-index: 61;
+}
+
+.mobile-nav.is-open {
+  max-height: 420px;
+  box-shadow: 0 18px 32px rgb(0 0 0 / 12%);
+}
+
+.hero-visual.custom-hero > img {
+  object-fit: cover;
+}
+
+.hero-visual.custom-hero::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, transparent 50%, rgb(0 0 0 / 26%));
+}
+
+.hero-product {
+  position: absolute;
+}
+
+.hero-product img {
+  object-fit: contain;
+  filter: none;
+}
+
+.hero-product-1 {
+  inset: 5% 12% 22% 8%;
+  transform: rotate(-5deg);
+}
+
+.hero-product-2 {
+  width: 43%;
+  height: 59%;
+  right: -3%;
+  bottom: 4%;
+  transform: rotate(7deg);
+  z-index: 1;
+}
+
+.hero-product-3 {
+  width: 36%;
+  height: 44%;
+  left: -3%;
+  bottom: -2%;
+  transform: rotate(-8deg);
+  z-index: 1;
+}
+
+.temperature-card {
+  z-index: 3;
+}
+
+.home-provisional-grid img,
+.provisional-card img {
+  filter: none;
+  object-fit: contain;
+}
+
+.provisional-toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: end;
+  gap: 24px;
+}
+
+.prelaunch-note {
+  display: inline-flex;
+  width: auto;
+  padding: 10px 14px;
+  margin-top: 16px;
+  border: 1px solid #bdbdbd;
+  color: #333 !important;
+  font-size: 12px !important;
+}
+
+.catalog-card :is(a, button):focus-visible,
+.provisional-controls :is(input, select, button):focus-visible,
+.hero-cta a:focus-visible,
+.floating-actions a:focus-visible {
+  outline: 3px solid #111;
+  outline-offset: 3px;
+}
+
+.catalog-buy button.added {
+  background: #333;
+}
+
+.catalog-buy button:disabled,
+.purchase-row button:disabled {
+  cursor: not-allowed;
+  opacity: .45;
+}
+
+.remove-cart {
+  width: fit-content;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: #555;
+  font-size: 11px;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+@media (max-width: 960px) {
+  .hero-product-1 { inset: 2% 15% 17%; }
+  .hero-product-2 { width: 39%; height: 58%; }
+  .hero-product-3 { width: 34%; height: 43%; }
+}
+
+@media (max-width: 640px) {
+  .hero-copy h1 { font-size: clamp(42px, 13vw, 54px); }
+  .hero-visual { min-height: 390px; }
+  .hero-product-1 { inset: 4% 10% 21%; }
+  .temperature-card { padding: 17px 18px; }
+  .provisional-toolbar { display: grid; gap: 8px; }
+  .provisional-toolbar .catalog-sort { width: 100%; }
+  .provisional-grid { grid-template-columns: 1fr; }
+  .provisional-image { height: min(90vw, 410px); }
+  .float-contact,
+  .float-cart { width: 50px; height: 50px; }
+  .floating-actions { bottom: max(14px, env(safe-area-inset-bottom)); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    scroll-behavior: auto !important;
+    transition-duration: .01ms !important;
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+  }
+}

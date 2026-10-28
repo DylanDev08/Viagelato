@@ -3,26 +3,19 @@ import { createClient } from "@supabase/supabase-js";
 import { createServerClient, type CookieOptions } from "@supabase/ssr";
 import { cookies } from "next/headers";
 
-const url = () => process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const key = () => process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!;
-
-/** Reject example placeholders so that copying .env.example leaves demo mode intact. */
-export function connected() {
- const rawUrl=process.env.NEXT_PUBLIC_SUPABASE_URL?.trim();
- const publishable=process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY?.trim();
- const secret=process.env.SUPABASE_SERVICE_ROLE_KEY?.trim();
- if(!rawUrl||!publishable||!secret) return false;
- try {
-  const parsed=new URL(rawUrl);
-  if(parsed.protocol!=="https:"||!/^[a-z0-9-]+\.supabase\.co$/.test(parsed.hostname)) return false;
-  if(parsed.hostname.startsWith("tu-proyecto.")||parsed.hostname.startsWith("your-project.")) return false;
-  if(!publishable.startsWith("sb_publishable_") && !publishable.startsWith("eyJ")) return false;
-  if(publishable.includes("...")||publishable.length<24) return false;
-  if(secret.startsWith("TU_CLAVE")||secret.startsWith("YOUR_")||secret.includes("...")||secret.length<24) return false;
-  return true;
- } catch { return false; }
-}
-
+const url=()=>process.env.NEXT_PUBLIC_SUPABASE_URL!;
+const key=()=>process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!;
+const placeholder=(value:string|undefined)=>!value || /tu-proyecto|your-project|tu_clave|generar_|\.\.\./i.test(value);
+export const connected=()=>{
+ const endpoint=url();
+ const publishable=key();
+ const serviceRole=process.env.SUPABASE_SERVICE_ROLE_KEY;
+ if(!serviceRole||placeholder(endpoint)||placeholder(publishable)||placeholder(serviceRole)) return false;
+ try{
+  const host=new URL(endpoint).hostname;
+  return host.endsWith(".supabase.co") && (publishable.startsWith("sb_publishable_")||publishable.startsWith("eyJ")) && serviceRole.length>=32;
+ }catch{return false;}
+};
 export function publicDb(){return createClient(url(),key(),{auth:{persistSession:false}});}
 /** Sólo servidor. Jamás importarlo desde componentes 'use client'. */
 export function privilegedDb(){return createClient(url(),process.env.SUPABASE_SERVICE_ROLE_KEY!,{auth:{persistSession:false,autoRefreshToken:false}});}
