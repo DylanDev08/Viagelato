@@ -166,7 +166,7 @@ export const DEFAULT_SETTINGS: Settings = {
   description:
     "Logística y distribución de productos alimenticios congelados, con atención comercial y entregas coordinadas por zona.",
   logo_url: null,
-  whatsapp: "",
+  whatsapp: "+5491140962202",
   phone: "11 4096-2202",
   instagram: "https://www.instagram.com/distribuidorviagelato/",
   address: "Ubicación a confirmar",

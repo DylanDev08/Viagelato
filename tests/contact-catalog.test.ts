@@ -14,6 +14,11 @@ describe("contactos de Viagelato",()=>{
   expect(link).toContain("https://wa.me/5491112345678?text=");
   expect(decodeURIComponent(link??"")).toContain("Alfajor helado");
  });
+ it("toma el WhatsApp comercial oficial de Viagelato en configuraciones por defecto",()=>{
+  expect(DEFAULT_SETTINGS.whatsapp).toBe("+5491140962202");
+  const href=whatsappHref(DEFAULT_SETTINGS.whatsapp);
+  expect(href).toContain("https://wa.me/5491140962202?text=");
+ });
  it("no inventa número de WhatsApp ni permite dominios falsos",()=>{
   expect(whatsappHref("")).toBeNull();
   expect(whatsappHref("11 4096-2202")).toBeNull();
