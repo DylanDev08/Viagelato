@@ -117,6 +117,6 @@ describe("panel administrativo",()=>{
   await user.click(screen.getByRole("button",{name:"Productos"}));
   expect(screen.getByText("Agregá tu primer producto.")).toBeInTheDocument();
   await user.click(screen.getByRole("button",{name:"Pedidos"}));
-  expect(screen.getByText("No hay pedidos todavía.")).toBeInTheDocument();
+  expect(screen.getByText(/No hay pedidos todavía/)).toBeInTheDocument();
  });
 });
