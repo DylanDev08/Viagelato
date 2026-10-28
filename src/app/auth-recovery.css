@@ -1,0 +1,10 @@
+/* Recuperación de cuenta: mismo lenguaje visual que el login administrativo. */
+.auth-recovery-panel .auth-help {margin:0;text-align:right;font-size:13px}
+.auth-help a {text-decoration:underline;text-underline-offset:4px}
+.auth-recovery-form{display:grid;gap:18px}
+.auth-recovery-form label{display:grid;gap:8px}
+.auth-recovery-form input{width:100%}
+.auth-success{padding:16px;border:1px solid #d5d5d5;background:#f6f6f6;color:#171717;margin:16px 0}
+.auth-success p{margin-bottom:0;font-size:14px}
+.auth-recovery-panel > a:last-child{display:inline-block;margin-top:18px}
+.auth-recovery-panel :is(a,button,input):focus-visible,.auth-help a:focus-visible{outline:3px solid #111;outline-offset:3px}
