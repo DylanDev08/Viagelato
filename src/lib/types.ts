@@ -172,9 +172,9 @@ export const DEFAULT_SETTINGS: Settings = {
   address: "Ubicación a confirmar",
   maps_url: "",
   contact_email: "",
-  hero_title: "Frío bien distribuido. Productos que llegan mejor.",
+  hero_title: "Helados y congelados, directo a tu negocio.",
   hero_subtitle:
-    "Helados y alimentos congelados con logística coordinada para comercios y hogares de zona sur.",
+    "Distribución en Zona Sur de Buenos Aires, con entregas coordinadas y atención personalizada.",
   hero_image_url: null,
   returns_policy: "Política de cambios y devoluciones sujeta a validación comercial y jurídica.",
   privacy_policy: "Política de privacidad sujeta a validación comercial y jurídica.",

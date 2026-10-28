@@ -1,10 +1,10 @@
 import type {Metadata} from "next";
-import {AlertTriangle} from "lucide-react";
 import {ProvisionalCatalog} from "@/components/provisional-catalog";
+import {CatalogBrowser} from "@/components/catalog-browser";
 import {SiteShell} from "@/components/site-shell";
 import {getStore} from "@/lib/site";
-import {PROVISIONAL_ASSETS} from "@/lib/provisional-catalog";
+import {PROVISIONAL_PRODUCT_ASSETS} from "@/lib/provisional-catalog";
 
 export const dynamic="force-dynamic";
-export const metadata:Metadata={title:"Catálogo en preparación",description:"Material visual provisional de Viagelato, pendiente de validación comercial."};
-export default async function ProvisionalCatalogPage(){const {settings}=await getStore();return <SiteShell settings={settings}><main className="page-main"><section className="page-hero shell"><p className="kicker">CATÁLOGO EN PREPARACIÓN</p><h1>48 imágenes.<br/>Cero datos inventados.</h1><p>Integramos todo el material recibido para revisarlo. Estas imágenes todavía no representan productos publicados y no se pueden comprar.</p><div className="catalog-warning"><AlertTriangle/><span><strong>Revisión comercial pendiente.</strong> Faltan confirmar nombre, presentación, SKU, precio y stock de cada producto.</span></div></section><section className="shell provisional-section"><ProvisionalCatalog assets={PROVISIONAL_ASSETS}/></section></main></SiteShell>}
+export const metadata:Metadata={title:"Catálogo",description:"Catálogo de helados y congelados distribuidos por Viagelato."};
+export default async function CatalogPage(){const {settings,products,categories}=await getStore();const published=products.length>0;return <SiteShell settings={settings}><main className="page-main"><section className="page-hero shell"><p className="kicker">CATÁLOGO</p><h1>{published?<>Productos para<br/>tu negocio.</>:<>Muy pronto,<br/>nuestro catálogo.</>}</h1><p>{published?"Consultá presentaciones, precios y disponibilidad actual.":"Estamos validando presentaciones, precios y disponibilidad. Mientras tanto, podés conocer las líneas de productos que estamos preparando."}</p>{published?null:<p className="prelaunch-note">Tienda en preparación. Los pedidos todavía no están habilitados.</p>}</section><section className="shell catalog-page">{published?<CatalogBrowser products={products} categories={categories}/>:<ProvisionalCatalog assets={PROVISIONAL_PRODUCT_ASSETS}/>}</section></main></SiteShell>}

@@ -3,24 +3,6 @@
   --blue: #c7c7c7;
 }
 
-.hero-visual img,
-.provisional-card img {
-  filter: grayscale(100%);
-  transition: filter 180ms ease, transform 180ms ease;
-}
-
-.hero-visual:hover img,
-.provisional-card:hover img {
-  filter: grayscale(15%);
-}
-
 .site-brand img {
   object-fit: contain;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .hero-visual img,
-  .provisional-card img {
-    transition: none;
-  }
 }

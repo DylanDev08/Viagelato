@@ -4,6 +4,7 @@ import "./globals.css";
 import "./storefront.css";
 import "./provisional.css";
 import "./monochrome.css";
+import "./corte-03.css";
 
 const siteUrl=process.env.NEXT_PUBLIC_SITE_URL;
 const indexingEnabled=process.env.ENABLE_INDEXING==="true";
