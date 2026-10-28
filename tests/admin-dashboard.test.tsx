@@ -50,7 +50,7 @@ describe("panel administrativo",()=>{
   expect(screen.getByText(/Tenés cambios sin guardar/)).toBeInTheDocument();
   confirm.mockReturnValue(true);
   await user.click(screen.getByRole("button",{name:"Categorías"}));
-  expect(screen.getByRole("heading",{name:"Categorías"})).toBeInTheDocument();
+  expect(screen.getByRole("heading",{name:"Categorías",level:1})).toBeInTheDocument();
   await user.click(screen.getByRole("button",{name:"Productos"}));
   expect(screen.getByLabelText("Nombre del producto")).toHaveValue("");
  });
