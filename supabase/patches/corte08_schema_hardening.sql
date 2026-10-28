@@ -9,7 +9,7 @@ alter table public.products add constraint publish_only_complete_products
   commercially_verified = true and price > 0
   and nullif(btrim(sku),'') is not null
   and nullif(btrim(image_url),'') is not null
-  and (left(image_url,9)='/catalogo/' or left(image_url,8)='https://')
+  and (left(image_url,10)='/catalogo/' or left(image_url,8)='https://')
   and length(btrim(description)) >= 20
  )) not valid;
 alter table public.products validate constraint publish_only_complete_products;
