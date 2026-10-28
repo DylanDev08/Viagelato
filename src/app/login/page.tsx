@@ -35,6 +35,7 @@ export default function Login(){
   <p>Ingresá con una cuenta autorizada de Supabase para administrar Viagelato.</p>
   <label>Email<input type="email" autoComplete="username" value={email} onChange={e=>setEmail(e.target.value)} required/></label>
   <label>Contraseña<input type="password" autoComplete="current-password" value={password} onChange={e=>setPassword(e.target.value)} required/></label>
+  <p className="auth-help"><Link href="/recuperar-acceso">¿Olvidaste tu contraseña? Recuperar acceso</Link></p>
   {error&&<p className="error" role="alert">{error}</p>}
   <button disabled={busy} className="btn primary full">{busy?"Verificando acceso…":"Ingresar"}</button>
   <Link href="/">← Volver a la tienda</Link>
