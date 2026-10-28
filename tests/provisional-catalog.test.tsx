@@ -11,6 +11,10 @@ const assets:ProvisionalAsset[]=[
 
 describe("catálogo provisional",()=>{
  it("no ofrece compra ni publica datos comerciales",()=>{render(<ProvisionalCatalog assets={assets}/>);expect(screen.getAllByText("Información comercial pendiente")).toHaveLength(2);expect(screen.queryByRole("button",{name:/comprar|agregar/i})).not.toBeInTheDocument();});
+ it("cada producto provisorio tiene una ficha para consultar, sin habilitar compra",()=>{
+  render(<ProvisionalCatalog assets={assets}/>);
+  expect(screen.getByRole("link",{name:"Ver ficha de Chocolate"})).toHaveAttribute("href","/catalogo/vista/1");
+ });
  it("encuentra nombres aunque el usuario escriba con acentos",async()=>{
   const user=userEvent.setup();
   render(<ProvisionalCatalog assets={[{...assets[0],name:"Limón helado"}]}/>);

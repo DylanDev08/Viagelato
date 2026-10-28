@@ -49,3 +49,7 @@
 @media(max-width:960px){.provisional-detail-grid{grid-template-columns:1fr}.provisional-detail-image{min-height:450px}.contact-channel-panel{padding:28px}}
 @media(max-width:640px){.contact-whatsapp-cta{padding:20px 18px}.contact-channel-panel{padding:22px}.provisional-detail-page{padding-block:26px 75px}.provisional-detail-image{min-height:330px}.provisional-detail-image img{padding:18px}.provisional-detail-copy{padding-top:0}.provisional-detail-copy .primary-action{width:100%;justify-content:center}.provisional-card-body{padding:13px}.float-contact.float-whatsapp{width:54px;min-height:54px;padding:0}.float-contact.float-whatsapp span{display:none}}
 @media(prefers-reduced-motion:reduce){.float-contact.float-whatsapp,.contact-whatsapp-cta,.whatsapp-action,.provisional-image img{transition:none!important;transform:none!important}}
+
+.catalog-description{font-size:12px;line-height:1.55;color:#666;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;margin:12px 0}
+.catalog-view-detail{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:800;text-decoration:underline;text-underline-offset:4px;margin:6px 0 13px}
+.catalog-view-detail:hover{color:#555}

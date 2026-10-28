@@ -23,6 +23,8 @@ export function ProductCard({product}:{product:Product}){
    <p className={`availability ${product.stock>0?"available":"unavailable"}`}>{product.stock>0?"Disponible":"Sin stock"}</p>
    <Link href={`/productos/${product.slug}`}><h3>{product.name}</h3></Link>
    {product.presentation&&<p className="presentation">{product.presentation}</p>}
+   {product.description?.trim()&&<p className="catalog-description">{product.description}</p>}
+   <Link className="catalog-view-detail" href={`/productos/${product.slug}`}>Ver descripción y detalles <ArrowUpRight size={16}/></Link>
    <div className="catalog-buy"><strong>{ars(Number(product.price))}</strong><button type="button" className={added?"added":""} disabled={remaining<=0} onClick={addProduct} aria-label={remaining<=0?`Se alcanzó el stock disponible de ${product.name}`:added?`${product.name} agregado al carrito`:`Agregar ${product.name} al carrito`}>{added?<Check/>:<Plus/>}</button></div><span className="sr-only" aria-live="polite">{added?`${product.name} agregado al carrito`:""}</span>
   </div>
  </article>;
