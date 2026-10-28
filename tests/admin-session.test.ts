@@ -13,7 +13,7 @@ describe("sesión administrativa",()=>{
   expect(r.headers.get("cache-control")).toBe("no-store");
  });
  it("niega acceso cuando no hay sesión o autorización",async()=>{
-  vi.mocked(assertAdmin).mockImplementation(async()=>{throw new Error("No autorizado");});
+  vi.mocked(assertAdmin).mockResolvedValue(null as unknown as Awaited<ReturnType<typeof assertAdmin>>);
   const r=await GET();
   expect(r.status).toBe(401);
   expect(await r.json()).toEqual({authorized:false});
