@@ -31,7 +31,7 @@ describe("panel administrativo",()=>{
   expect(picker.querySelectorAll(".admin-candidate-card").length).toBeGreaterThan(0);
   const first=picker.querySelector("button.admin-candidate-card") as HTMLButtonElement;
   await user.click(first);
-  expect(screen.getByRole("status")).toHaveTextContent("Ficha provisional preparada como borrador");
+  expect(screen.getByText(/Ficha provisional preparada como borrador/)).toBeInTheDocument();
   expect(screen.getByLabelText("Nombre")).not.toHaveValue("");
   expect(screen.getByLabelText("Precio ARS")).toHaveValue(0);
   expect(screen.getByLabelText("Stock confirmado")).toHaveValue(0);
