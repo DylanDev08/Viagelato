@@ -16,7 +16,7 @@ const two="00000000-0000-4000-8000-800000000002";
 describe("clave de idempotencia del checkout",()=>{
  it("calcula una huella SHA-256 sin guardar el cuerpo del pedido",async()=>{
   const body=JSON.stringify({name:"Cliente de prueba",items:[{id:1,quantity:1}]});
-  const fingerprint=await checkoutRequestFingerprint(body,webcrypto);
+  const fingerprint=await checkoutRequestFingerprint(body,{subtle:webcrypto.subtle as unknown as SubtleCrypto});
   expect(fingerprint).toBe(createHash("sha256").update(body).digest("hex"));
   const store=memoryStorage();
   getOrCreateCheckoutKey(fingerprint,store,()=>one);
