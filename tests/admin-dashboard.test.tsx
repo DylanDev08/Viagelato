@@ -21,6 +21,22 @@ describe("panel administrativo",()=>{
   await user.click(screen.getByRole("button",{name:"Limpiar filtros"}));
   expect(screen.getByText("Helado de limón")).toBeInTheDocument();
  });
+ it("permite elegir un candidato sin publicar ni completar datos ficticios",async()=>{
+  const user=userEvent.setup();
+  render(<AdminDashboard initialProducts={[]} initialCategories={[]} initialOrders={[]} initialZones={[]} initialSettings={DEFAULT_SETTINGS} initialBanners={[]}/>);
+  await user.click(screen.getByRole("button",{name:"Productos"}));
+  await user.click(screen.getByRole("button",{name:"Elegir imagen del catálogo provisional"}));
+  expect(screen.getByRole("region",{name:"Imágenes candidatas"})).toBeInTheDocument();
+  const picker=screen.getByRole("region",{name:"Imágenes candidatas"});
+  expect(picker.querySelectorAll(".admin-candidate-card").length).toBeGreaterThan(0);
+  const first=picker.querySelector("button.admin-candidate-card") as HTMLButtonElement;
+  await user.click(first);
+  expect(screen.getByText(/Ficha provisional preparada como borrador/)).toBeInTheDocument();
+  expect(screen.getByLabelText("Nombre")).not.toHaveValue("");
+  expect(screen.getByLabelText("Precio ARS")).toHaveValue(0);
+  expect(screen.getByLabelText("Stock confirmado")).toHaveValue(0);
+  expect(screen.getByLabelText("Publicar producto")).not.toBeChecked();
+ });
  it("muestra estadísticas y estados vacíos navegables",async()=>{
   const user=userEvent.setup();
   render(<AdminDashboard initialProducts={[]} initialCategories={[]} initialOrders={[]} initialZones={[]} initialSettings={DEFAULT_SETTINGS} initialBanners={[]}/>);

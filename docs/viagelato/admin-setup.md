@@ -12,7 +12,7 @@ Este procedimiento es exclusivo del proyecto Supabase `mxopaakzlmjbnrwolpgh` (`V
 ## 2. Crear una cuenta real en Auth
 
 Desde el [dashboard de Auth del proyecto](https://supabase.com/dashboard/project/mxopaakzlmjbnrwolpgh/auth/users), entrar a **Users → Add user**.
-Crear la cuenta con un correo autorizado, una contraseña privada robusta y el flujo de confirmación correspondiente. No compartir la contraseña por chat.
+Usar **Send invitation** para el correo del administrador designado (`dylansalcedo333@gmail.com`). La invitación permite configurar una contraseña nueva y robusta desde un enlace privado recibido por email. Evitar reutilizar contraseñas compartidas en conversaciones y no incluir contraseñas en GitHub.
 
 Tomar únicamente el `UUID` del nuevo usuario. No confundirlo con el ID de organización o proyecto.
 
@@ -55,3 +55,17 @@ Para probar un **dominio preview concreto** sin acceso a producción, se puede a
 Las pruebas unitarias y de CI no reemplazan una verificación de login y CRUD reales. Cuando Vercel permita desplegar la rama probada, sincronizar la versión de Render antes de las pruebas end-to-end.
 
 Nunca enviar claves privadas, credenciales de usuarios o datos bancarios en issues, pruebas ni documentación.
+
+
+## 7. Flujo de carga del catálogo provisional
+
+En **Administración → Productos**, abrir **Elegir imagen del catálogo provisional**. Buscar el producto y seleccionar **Usar en borrador**. El formulario toma exclusivamente el nombre provisorio y la foto disponible en `public/catalogo`.
+
+- SKU, precio, presentación, descripción y stock permanecen sin confirmar.
+- La publicación permanece desactivada hasta cumplir las validaciones comerciales.
+- Guardar cada ficha como borrador. Se admite cualquier cantidad de borradores sin SKU; la API convierte los SKU vacíos a `NULL` para evitar conflictos de unicidad.
+- Las imágenes de marca no aparecen en el selector.
+- Las categorías se vinculan automáticamente solo cuando existe una categoría con nombre coincidente; de otro modo se elige manualmente una real.
+- Los datos actuales del catálogo son candidatos, no un inventario confirmado.
+
+Para probar guardado, iniciar sesión con una cuenta real incluida en `admin_users` y comprobar el producto resultante en Supabase. No usar la cuenta del público ni credenciales inventadas.

@@ -2,42 +2,53 @@ import type {Metadata} from "next";
 import Image from "next/image";
 import Link from "next/link";
 import {notFound} from "next/navigation";
-import {ArrowLeft,ArrowUpRight,MessageCircle,PackageSearch} from "lucide-react";
+import {ArrowLeft,ArrowUpRight,ImageOff,MessageCircle,PackageSearch} from "lucide-react";
 import {SiteShell} from "@/components/site-shell";
 import {getStore} from "@/lib/site";
 import {PROVISIONAL_PRODUCT_ASSETS} from "@/lib/provisional-catalog";
+import {CATALOG_SOURCE_LABEL,findCatalogPriceItem} from "@/lib/catalog-prices";
+import {ars} from "@/lib/types";
 import {productWhatsappMessage,whatsappHref} from "@/lib/whatsapp";
 
 export const dynamic="force-dynamic";
 type Props={params:Promise<{id:string}>};
-const findAsset=(raw:string)=>{
+function lookup(raw:string){
  if(!/^[1-9]\d{0,5}$/.test(raw))return null;
- return PROVISIONAL_PRODUCT_ASSETS.find(asset=>asset.id===Number(raw))??null;
-};
-export async function generateMetadata({params}:Props):Promise<Metadata>{
- const asset=findAsset((await params).id);
- return asset?{title:`${asset.name} | Catálogo en preparación`,description:`Conocé la imagen y categoría provisionales de ${asset.name}. Confirmá los datos comerciales con Viagelato.`,robots:{index:false,follow:false}}:{title:"Producto no encontrado",robots:{index:false,follow:false}};
+ const id=Number(raw);
+ return {priced:findCatalogPriceItem(id),asset:PROVISIONAL_PRODUCT_ASSETS.find(item=>item.id===id)??null};
 }
-export default async function ProvisionalProductDetail({params}:Props){
- const asset=findAsset((await params).id);
- if(!asset)notFound();
+export async function generateMetadata({params}:Props):Promise<Metadata>{
+ const found=lookup((await params).id);
+ if(!found||(!found.priced&&!found.asset))return {title:"Producto no encontrado",robots:{index:false,follow:false}};
+ const item=found.priced??found.asset!;
+ return {title:`${item.name} | Viagelato`,description:found.priced?.description??`Consultá por ${item.name} en Viagelato.`,robots:{index:false,follow:false}};
+}
+export default async function ProductPreviewPage({params}:Props){
+ const found=lookup((await params).id);
+ if(!found||(!found.priced&&!found.asset))notFound();
+ const item=found.priced??found.asset!;
+ const priced=found.priced;
  const {settings}=await getStore();
- const whatsapp=whatsappHref(settings.whatsapp,productWhatsappMessage(asset.name));
+ const whatsapp=whatsappHref(settings.whatsapp,productWhatsappMessage(priced?`${priced.name} (${priced.presentation}) — ${ars(priced.price)}`:item.name));
  return <SiteShell settings={settings}><main className="shell provisional-detail-page">
   <Link className="back-link" href="/catalogo"><ArrowLeft/> Volver al catálogo</Link>
   <div className="provisional-detail-grid">
-   <div className="provisional-detail-image"><Image src={asset.image} alt={asset.name} fill priority sizes="(max-width: 900px) 100vw, 50vw"/></div>
+   <div className="provisional-detail-image">
+    {item.image?<Image src={item.image} alt={item.name} fill priority sizes="(max-width: 900px) 100vw,50vw"/>:<div className="priced-detail-no-image"><ImageOff size={42} aria-hidden="true"/><p>Fotografía pendiente</p></div>}
+   </div>
    <div className="provisional-detail-copy">
-    <p className="kicker">{asset.category}</p>
-    <h1>{asset.name}</h1>
-    <span className="detail-review-label"><PackageSearch size={17} aria-hidden="true"/> Ficha informativa en preparación</span>
-    <h2>Acerca de este producto</h2>
-    <p>Esta imagen forma parte del catálogo que Viagelato está preparando. El nombre y la categoría son provisionales y están sujetos a confirmación con el proveedor.</p>
-    <p>Estamos verificando la descripción comercial, la presentación, el precio y la disponibilidad antes de habilitar ventas.</p>
-    <div className="provisional-detail-facts"><div><span>Categoría orientativa</span><strong>{asset.category}</strong></div><div><span>Precio y stock</span><strong>A confirmar</strong></div></div>
-    {whatsapp?<a className="primary-action whatsapp-action" href={whatsapp} target="_blank" rel="noopener noreferrer"><MessageCircle/> Consultar este producto <ArrowUpRight/></a>:
+    <p className="kicker">{item.category}</p><h1>{item.name}</h1>
+    <span className="detail-review-label"><PackageSearch size={17} aria-hidden="true"/> {priced?"Precio por presentación · Stock a confirmar":"Ficha informativa en preparación"}</span>
+    {priced?<><div className="priced-detail-price"><small>PRECIO FINAL POR PRESENTACIÓN</small><strong>{ars(priced.price)}</strong><span>{priced.presentation}</span></div>
+      <h2>Descripción del producto</h2><p>{priced.description}</p>
+      {priced.imageStatus==="referencial"&&<p className="priced-reference-note">La fotografía es una imagen general de referencia aportada junto con la planilla. Confirmá la presentación antes de comprar.</p>}
+      <div className="provisional-detail-facts"><div><span>Presentación</span><strong>{priced.presentation}</strong></div><div><span>Disponibilidad</span><strong>Consultar por WhatsApp</strong></div></div>
+      <p className="hint">{CATALOG_SOURCE_LABEL}</p>
+     </>:<><h2>Acerca de este producto</h2><p>Esta imagen pertenece al catálogo preliminar de Viagelato. Su precio y presentación no figuran asociados en la última planilla.</p>
+      <div className="provisional-detail-facts"><div><span>Categoría orientativa</span><strong>{item.category}</strong></div><div><span>Precio y stock</span><strong>A confirmar</strong></div></div></>}
+    {whatsapp?<a className="primary-action whatsapp-action" href={whatsapp} target="_blank" rel="noopener noreferrer"><MessageCircle/> Consultar por WhatsApp <ArrowUpRight/></a>:
      <Link className="primary-action" href="/contacto"><MessageCircle/> Consultar disponibilidad <ArrowUpRight/></Link>}
-    <p className="hint">La consulta no genera una compra ni reserva mercadería.</p>
+    <p className="hint">Esta consulta no genera automáticamente un pedido ni reserva mercadería.</p>
    </div>
   </div>
  </main></SiteShell>;
