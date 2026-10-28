@@ -59,3 +59,8 @@
 .admin-draft-preview small{letter-spacing:.04em}
 .admin-editor-guide{max-width:52ch}
 .admin-main .notification{scroll-margin-top:24px}
+
+/* Corte 11: jerarquía sin sumar pantallas. */
+.admin-main .status-pill{white-space:nowrap}
+.admin-list-row .btn.tiny{white-space:nowrap}
+.admin-main .panel>.hint{margin-top:-8px;margin-bottom:18px}

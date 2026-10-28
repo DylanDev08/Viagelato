@@ -1,8 +1,37 @@
 import {NextResponse} from "next/server";
+import {z} from "zod";
 import {adminOrError,bannerSchema} from "@/lib/admin";
 import {privilegedDb} from "@/lib/supabase";
 
-const failed=()=>NextResponse.json({error:"No se pudo guardar el banner"},{status:400});
-export async function POST(req:Request){const auth=await adminOrError(req);if(auth)return auth;const p=bannerSchema.safeParse(await req.json().catch(()=>null));if(!p.success)return NextResponse.json({error:"Banner inválido"},{status:400});const {data,error}=await privilegedDb().from("banners").insert({...p.data,image_url:p.data.image_url||null}).select().single();return error?failed():NextResponse.json(data);}
-export async function DELETE(req:Request){const auth=await adminOrError(req);if(auth)return auth;const {id}=(await req.json().catch(()=>({}))) as {id?:unknown};if(typeof id!=="string")return NextResponse.json({error:"ID inválido"},{status:400});const {error}=await privilegedDb().from("banners").delete().eq("id",id);return error?failed():NextResponse.json({ok:true});}
-export async function PATCH(req:Request){const auth=await adminOrError(req);if(auth)return auth;const body=await req.json().catch(()=>null);if(!body)return NextResponse.json({error:"Solicitud inválida"},{status:400});const {id,...payload}=body;if(typeof id!=="string")return NextResponse.json({error:"ID inválido"},{status:400});const parsed=bannerSchema.safeParse(payload);if(!parsed.success)return NextResponse.json({error:"Banner inválido"},{status:400});const {data,error}=await privilegedDb().from("banners").update({...parsed.data,image_url:parsed.data.image_url||null}).eq("id",id).select().single();return error?failed():NextResponse.json(data);}
+const idSchema=z.uuid();
+const failed=()=>NextResponse.json({error:"No se pudo guardar el banner. Revisá los datos e intentá nuevamente."},{status:400});
+const invalidId=()=>NextResponse.json({error:"El identificador del banner no es válido"},{status:400});
+const missing=()=>NextResponse.json({error:"Este banner ya no existe. Actualizá la página."},{status:404});
+export async function POST(req:Request){
+ const auth=await adminOrError(req);if(auth)return auth;
+ const parsed=bannerSchema.safeParse(await req.json().catch(()=>null));
+ if(!parsed.success)return NextResponse.json({error:"Revisá los datos del banner",issues:parsed.error.issues},{status:400});
+ const {data,error}=await privilegedDb().from("banners").insert({...parsed.data,image_url:parsed.data.image_url||null}).select().single();
+ return error?failed():NextResponse.json(data);
+}
+export async function PATCH(req:Request){
+ const auth=await adminOrError(req);if(auth)return auth;
+ const body=await req.json().catch(()=>null);
+ const id=idSchema.safeParse(body?.id);
+ if(!id.success)return invalidId();
+ const payload={...body};delete payload.id;
+ const parsed=bannerSchema.safeParse(payload);
+ if(!parsed.success)return NextResponse.json({error:"Revisá los datos del banner",issues:parsed.error.issues},{status:400});
+ const {data,error}=await privilegedDb().from("banners").update({...parsed.data,image_url:parsed.data.image_url||null}).eq("id",id.data).select().maybeSingle();
+ if(error)return failed();
+ return data?NextResponse.json(data):missing();
+}
+export async function DELETE(req:Request){
+ const auth=await adminOrError(req);if(auth)return auth;
+ const body=await req.json().catch(()=>null);
+ const id=idSchema.safeParse(body?.id);
+ if(!id.success)return invalidId();
+ const {data,error}=await privilegedDb().from("banners").delete().eq("id",id.data).select("id").maybeSingle();
+ if(error)return failed();
+ return data?NextResponse.json({ok:true}):missing();
+}
