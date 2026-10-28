@@ -109,6 +109,41 @@ describe("panel administrativo",()=>{
    expect(screen.queryByText("Tenés cambios sin guardar en esta ficha.")).not.toBeInTheDocument();
   }finally{vi.unstubAllGlobals();}
  });
+
+ it("mantiene el enlace de una categoría al corregir su nombre",async()=>{
+  const user=userEvent.setup();
+  const category={id:"00000000-0000-4000-8000-000000000017",name:"Postres helados",slug:"postres-helados"};
+  render(<AdminDashboard initialProducts={[]} initialCategories={[category]} initialOrders={[]} initialZones={[]} initialSettings={DEFAULT_SETTINGS} initialBanners={[]}/>);
+  await user.click(screen.getByRole("button",{name:"Categorías"}));
+  await user.click(screen.getByRole("button",{name:"Editar"}));
+  const field=screen.getByLabelText("Nombre");
+  await user.clear(field);await user.type(field,"Postres y helados");
+  await user.click(screen.getByText("Editar la dirección de la categoría (opcional)"));
+  expect(screen.getByLabelText("Dirección de la categoría")).toHaveValue("postres-helados");
+ });
+ it("permite avanzar un pedido con un botón claro sin ejecutar pagos",async()=>{
+  const user=userEvent.setup();
+  const id="00000000-0000-4000-8000-000000000018";
+  const order={
+   id,customer_name:"Ana",customer_email:"ana@example.com",customer_phone:"1122334455",
+   address:"",shipping_method:"pickup",shipping_cost:0,total:3000,status:"new",
+   payment_status:"pending" as const,payment_method:"on_delivery" as const,
+   created_at:"2026-10-28T12:00:00Z",order_items:[]
+  };
+  const fetchMock=vi.fn().mockResolvedValue({ok:true,json:async()=>({updated:true})});
+  vi.stubGlobal("fetch",fetchMock);
+  try{
+   render(<AdminDashboard initialProducts={[]} initialCategories={[]} initialOrders={[order]} initialZones={[]} initialSettings={DEFAULT_SETTINGS} initialBanners={[]}/>);
+   await user.click(screen.getByRole("button",{name:"Pedidos"}));
+   expect(screen.getByText("Nuevo")).toBeInTheDocument();
+   await user.click(screen.getByRole("button",{name:"Preparar pedido"}));
+   await screen.findByText("Estado del pedido actualizado");
+   expect(fetchMock).toHaveBeenCalledOnce();
+   const [url,options]=fetchMock.mock.calls[0];
+   expect(url).toBe("/api/admin/orders");
+   expect(JSON.parse(options.body)).toEqual({id,action:"set_status",status:"preparing"});
+  }finally{vi.unstubAllGlobals();}
+ });
  it("muestra estadísticas y estados vacíos navegables",async()=>{
   const user=userEvent.setup();
   render(<AdminDashboard initialProducts={[]} initialCategories={[]} initialOrders={[]} initialZones={[]} initialSettings={DEFAULT_SETTINGS} initialBanners={[]}/>);
