@@ -11,5 +11,12 @@ const assets:ProvisionalAsset[]=[
 
 describe("catálogo provisional",()=>{
  it("no ofrece compra ni publica datos comerciales",()=>{render(<ProvisionalCatalog assets={assets}/>);expect(screen.getAllByText("Información comercial pendiente")).toHaveLength(2);expect(screen.queryByRole("button",{name:/comprar|agregar/i})).not.toBeInTheDocument();});
+ it("encuentra nombres aunque el usuario escriba con acentos",async()=>{
+  const user=userEvent.setup();
+  render(<ProvisionalCatalog assets={[{...assets[0],name:"Limón helado"}]}/>);
+  await user.type(screen.getByPlaceholderText("Buscar productos"),"limon");
+  expect(screen.getByText("Limón helado")).toBeInTheDocument();
+  expect(screen.getByText("1 resultado")).toBeInTheDocument();
+ });
  it("filtra y recupera el estado vacío",async()=>{const user=userEvent.setup();render(<ProvisionalCatalog assets={assets}/>);await user.type(screen.getByPlaceholderText("Buscar productos"),"inexistente");expect(screen.getByText("No hay coincidencias.")).toBeInTheDocument();await user.click(screen.getByRole("button",{name:"Limpiar filtros"}));expect(screen.getByText("Chocolate")).toBeInTheDocument();});
 });

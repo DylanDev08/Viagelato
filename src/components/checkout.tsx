@@ -6,6 +6,7 @@ import {useMemo,useRef,useState} from "react";
 import {FloatingActions} from "./floating-actions";
 import {Footer,Header} from "./storefront";
 import {useCart} from "./cart";
+import {clearCheckoutKey,checkoutRequestFingerprint,getOrCreateCheckoutKey} from "@/lib/checkout-idempotency";
 import {ars,type Product,type Settings,type ShippingZone} from "@/lib/types";
 
 type Created={order_id:string;total:number;payment_method:"transfer"|"on_delivery";bank:null|{bank_alias:string;bank_cbu:string;bank_holder:string}};
@@ -31,12 +32,25 @@ export function Checkout({products,zones,settings,demo,checkoutEnabled}:{product
 
  async function buy(event:React.FormEvent){
   event.preventDefault();if(busyRef.current)return;busyRef.current=true;setBusy(true);setError("");
-  const storageKey="viagelato-checkout-idempotency:v1";
   try{
-   let idempotency=sessionStorage.getItem(storageKey);if(!idempotency){idempotency=crypto.randomUUID();sessionStorage.setItem(storageKey,idempotency);}
-   const response=await fetch("/api/checkout",{method:"POST",headers:{"Content-Type":"application/json","Idempotency-Key":idempotency},body:JSON.stringify({customer_name:name,customer_email:email,customer_phone:phone,address,postal_code:postalCode,shipping_method:method,shipping_zone_id:method==="shipping"?zone:null,payment_method:paymentMethod,items:lines.map(line=>({product_id:line.product.id,quantity:line.quantity}))})});
+   const payload={
+    customer_name:name,customer_email:email,customer_phone:phone,
+    address,postal_code:postalCode,shipping_method:method,
+    shipping_zone_id:method==="shipping"?zone:null,payment_method:paymentMethod,
+    items:lines.map(line=>({product_id:line.product.id,quantity:line.quantity})),
+   };
+   // La huella no conserva datos del comprador en sessionStorage.
+   // Reintentos de la misma solicitud reutilizan clave; cualquier cambio genera otra.
+   const body=JSON.stringify(payload);
+   const fingerprint=await checkoutRequestFingerprint(body);
+   const idempotency=getOrCreateCheckoutKey(fingerprint,sessionStorage,()=>crypto.randomUUID());
+   const response=await fetch("/api/checkout",{
+    method:"POST",
+    headers:{"Content-Type":"application/json","Idempotency-Key":idempotency},
+    body,
+   });
    const data=await response.json().catch(()=>({error:"El servidor devolvió una respuesta inválida"}));if(!response.ok)throw new Error(data.error||"No se pudo registrar el pedido");if(!data.order_id)throw new Error("El servidor no devolvió el número de pedido");
-   sessionStorage.removeItem(storageKey);setCreated({order_id:data.order_id,total:Number(data.total),payment_method:paymentMethod,bank:data.bank??null});clear();
+   clearCheckoutKey(sessionStorage);setCreated({order_id:data.order_id,total:Number(data.total),payment_method:paymentMethod,bank:data.bank??null});clear();
   }catch(reason){setError(reason instanceof Error?reason.message:"Ocurrió un error");}finally{busyRef.current=false;setBusy(false);}
  }
 
