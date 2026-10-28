@@ -1,8 +1,10 @@
-import {privilegedDb} from "@/lib/supabase";
+import {assertAdmin,privilegedDb} from "@/lib/supabase";
+import {redirect} from "next/navigation";
 import {AdminDashboard} from "@/components/admin-dashboard";
 import {DEFAULT_SETTINGS,type Product,type Category,type Order,type ShippingZone,type Settings,type Banner} from "@/lib/types";
 
 export default async function AdminPage(){
+ try{await assertAdmin();}catch{redirect("/login");}
  const db=privilegedDb();
  const [products,categories,orders,zones,site,payment,banners]=await Promise.all([
   db.from("products").select("*").order("created_at",{ascending:false}),

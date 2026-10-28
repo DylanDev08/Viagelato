@@ -9,7 +9,7 @@ const formats={
 } as const;
 
 export async function POST(request:Request){
- const auth=await adminOrError();if(auth)return auth;
+ const auth=await adminOrError(request);if(auth)return auth;
  const form=await request.formData();const file=form.get("file");
  if(!(file instanceof File))return NextResponse.json({error:"Falta archivo"},{status:400});
  const format=formats[file.type as keyof typeof formats];

@@ -5,7 +5,17 @@ import { cookies } from "next/headers";
 
 const url=()=>process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const key=()=>process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!;
-export const connected=()=>Boolean(url() && key() && process.env.SUPABASE_SERVICE_ROLE_KEY);
+const placeholder=(value:string|undefined)=>!value || /tu-proyecto|your-project|tu_clave|generar_|\.\.\./i.test(value);
+export const connected=()=>{
+ const endpoint=url();
+ const publishable=key();
+ const serviceRole=process.env.SUPABASE_SERVICE_ROLE_KEY;
+ if(!serviceRole||placeholder(endpoint)||placeholder(publishable)||placeholder(serviceRole)) return false;
+ try{
+  const host=new URL(endpoint).hostname;
+  return host.endsWith(".supabase.co") && (publishable.startsWith("sb_publishable_")||publishable.startsWith("eyJ")) && serviceRole.length>=32;
+ }catch{return false;}
+};
 export function publicDb(){return createClient(url(),key(),{auth:{persistSession:false}});}
 /** Sólo servidor. Jamás importarlo desde componentes 'use client'. */
 export function privilegedDb(){return createClient(url(),process.env.SUPABASE_SERVICE_ROLE_KEY!,{auth:{persistSession:false,autoRefreshToken:false}});}
