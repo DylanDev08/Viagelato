@@ -3,7 +3,7 @@ export type ProductForPublication={
  sku?:string|null;
  price:number;
  image_url?:string|null;
- commercially_verified:boolean;
+ commercially_verified?:boolean;
 };
 export function publicationMissingFields(value:ProductForPublication):string[]{
  const missing:string[]=[];
