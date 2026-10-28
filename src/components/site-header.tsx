@@ -17,11 +17,12 @@ const links=[
 export function SiteHeader({settings}:{settings:Settings}){
  const [open,setOpen]=useState(false);
  const {count}=useCart();
+ // Archivo extraído del logo enviado por el cliente; sustituible desde el admin.
+ const logo=settings.logo_url||"/viagelato-logo.png";
  return <header className="site-header">
   <div className="shell header-row">
    <Link className="site-brand" href="/" aria-label={`${settings.name}, inicio`} onClick={()=>setOpen(false)}>
-    {settings.logo_url?<Image src={settings.logo_url} alt="" width={42} height={42} unoptimized/>:<span className="brand-seal">V</span>}
-    <span><strong>VIAGELATO</strong><small>LOGÍSTICA &amp; DISTRIBUCIÓN</small></span>
+    <Image src={logo} alt="Viagelato S.A. · Logística y distribución" width={126} height={68} style={{objectFit:"contain"}} unoptimized/>
    </Link>
    <nav className="desktop-nav" aria-label="Navegación principal">
     {links.map(link=><Link key={link.href} href={link.href}>{link.label}</Link>)}
