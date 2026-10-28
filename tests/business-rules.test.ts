@@ -13,6 +13,15 @@ describe("reglas del checkout",()=>{
 });
 
 describe("reglas administrativas",()=>{
+ it("exige foto cuando un producto quiere publicarse",()=>{
+  const product={name:"Balde 5 litros",slug:"balde-5-litros",description:"Balde de helado, presentación de cinco litros.",price:12000,stock:3,image_url:"",category_id:null,sku:"BAL-5",presentation:"5 L",featured:false,commercially_verified:true,active:true};
+  const result=productSchema.safeParse(product);
+  expect(result.success).toBe(false);
+  if(!result.success)expect(result.error.issues[0]?.message).toContain("imagen");
+  expect(productSchema.safeParse({...product,image_url:"/catalogo/balde.webp"}).success).toBe(true);
+  expect(productSchema.safeParse({...product,image_url:"/catalogo/balde.webp",description:""}).success).toBe(false);
+  expect(productSchema.safeParse({...product,image_url:"ftp://example.com/photo.png"}).success).toBe(false);
+ });
  it("impide publicar productos comerciales incompletos",()=>expect(productSchema.safeParse({name:"Producto",slug:"producto",description:"",price:0,stock:1,image_url:"",category_id:null,sku:"",presentation:"",featured:false,commercially_verified:false,active:true}).success).toBe(false));
  it("impide activar zonas sin tarifa confirmada",()=>expect(zoneSchema.safeParse({name:"Zona Sur",postal_codes:[],cost:null,free_shipping_eligible:false,ready:false,active:true}).success).toBe(false));
  it("rechaza enlaces inseguros en banners",()=>expect(bannerSchema.safeParse({title:"Banner",subtitle:"",image_url:"",href:"javascript:alert(1)",active:true,sort_order:0}).success).toBe(false));

@@ -2,7 +2,7 @@
 import {createContext,useContext,useEffect,useMemo,useState} from "react";
 import type {CartLine} from "@/lib/types";
 
-type CartContext={items:CartLine[];count:number;add:(id:string,quantity?:number)=>void;setQuantity:(id:string,n:number)=>void;clear:()=>void};
+type CartContext={items:CartLine[];count:number;add:(id:string,quantity?:number,maxStock?:number)=>void;setQuantity:(id:string,n:number)=>void;clear:()=>void};
 const ctx=createContext<CartContext|null>(null);
 const CART_KEY="viagelato-cart:v1";
 const LEGACY_CART_KEY="dist-cart";
@@ -18,7 +18,7 @@ export function CartProvider({children}:{children:React.ReactNode}){
  const [items,setItems]=useState<CartLine[]>([]);const [ready,setReady]=useState(false);
  useEffect(()=>{const timer=window.setTimeout(()=>{setItems(current=>current.length?current:readCart());setReady(true);},0);return()=>window.clearTimeout(timer);},[]);
  useEffect(()=>{if(ready)saveCart(items);},[items,ready]);
- const value=useMemo(()=>({items,count:items.reduce((s,i)=>s+i.quantity,0),add:(id:string,quantity=1)=>setItems(prev=>{const amount=Math.max(1,Math.min(quantity,99));const x=prev.find(i=>i.id===id);return x?prev.map(i=>i.id===id?{...i,quantity:Math.min(i.quantity+amount,99)}:i):[...prev,{id,quantity:amount}];}),setQuantity:(id:string,n:number)=>setItems(prev=>n<=0?prev.filter(i=>i.id!==id):prev.map(i=>i.id===id?{...i,quantity:Math.min(n,99)}:i)),clear:()=>setItems([])}),[items]);
+ const value=useMemo(()=>({items,count:items.reduce((s,i)=>s+i.quantity,0),add:(id:string,quantity=1,maxStock=99)=>setItems(prev=>{const limit=Number.isFinite(maxStock)?Math.max(0,Math.min(Math.floor(maxStock),99)):0;if(!limit||!Number.isFinite(quantity))return prev;const amount=Math.max(1,Math.min(Math.floor(quantity),limit));const x=prev.find(i=>i.id===id);return x?prev.map(i=>i.id===id?{...i,quantity:Math.min(i.quantity+amount,limit)}:i):[...prev,{id,quantity:amount}];}),setQuantity:(id:string,n:number)=>setItems(prev=>n<=0?prev.filter(i=>i.id!==id):prev.map(i=>i.id===id?{...i,quantity:Math.min(n,99)}:i)),clear:()=>setItems([])}),[items]);
  return <ctx.Provider value={value}>{children}</ctx.Provider>;
 }
 export function useCart(){const value=useContext(ctx);if(!value)throw new Error("CartProvider requerido");return value;}

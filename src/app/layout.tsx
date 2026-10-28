@@ -5,6 +5,9 @@ import "./storefront.css";
 import "./provisional.css";
 import "./monochrome.css";
 import "./corte-03.css";
+import "./corte-04.css";
+import "./admin-corte04.css";
+import "./contact-catalog-corte06.css";
 
 const siteUrl=process.env.NEXT_PUBLIC_SITE_URL;
 const indexingEnabled=process.env.ENABLE_INDEXING==="true";
