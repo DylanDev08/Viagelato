@@ -36,3 +36,31 @@
 .admin-draft-preview strong{overflow-wrap:anywhere;font-size:14px}
 .admin-draft-preview span{font-size:12px;color:#555}
 @media(max-width:640px){.admin-candidate-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.admin-draft-art{width:90px;height:90px}}
+
+/* Corte 09: formularios claros y prevención de pérdidas accidentales. */
+.admin-editor-guide,.admin-list-guide{font-size:13px;color:#565656;line-height:1.55;margin:0 0 18px}
+.admin-unsaved{background:#f3f3f3;border-left:3px solid #333;padding:10px 13px;margin:8px 0 18px;font-weight:700;font-size:13px;color:#303030}
+.admin-advanced{border:1px solid #ddd;border-radius:9px;padding:12px 14px;margin:12px 0 19px;background:#fafafa}
+.admin-advanced>summary{font-size:12px;font-weight:800;cursor:pointer}
+.admin-advanced>label{margin-top:15px}
+.admin-advanced small,.admin-photo-upload small,.admin-main form label>small{font-size:11px;font-weight:400;color:#666;line-height:1.5}
+.admin-photo-upload{padding:18px;background:#f8f8f8;border:1px solid #ddd;margin:14px 0 18px;border-radius:10px}
+.admin-photo-upload>p{display:grid;gap:4px;margin:0 0 10px}
+.admin-photo-upload .upload-label{display:inline-flex}
+.admin-photo-upload .admin-advanced{background:#fff;margin-bottom:0}
+.admin-list-heading{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.admin-list-heading h2{margin-bottom:0}
+.admin-list-guide{margin-top:12px}
+.admin-item-state{display:inline-flex;margin-top:8px;font-size:11px;font-weight:800;padding:5px 10px;border-radius:20px;background:#eee;border:1px solid #ddd;color:#333}
+.admin-item-state.live{background:#141414;color:white;border-color:#141414}
+@media(max-width:640px){.admin-list-heading{align-items:flex-start;flex-direction:column}.admin-list-heading button{width:100%}.admin-photo-upload{padding:12px}}
+
+/* Corte 10: estados y acciones legibles para usuarios no técnicos. */
+.admin-draft-preview small{letter-spacing:.04em}
+.admin-editor-guide{max-width:52ch}
+.admin-main .notification{scroll-margin-top:24px}
+
+/* Corte 11: jerarquía sin sumar pantallas. */
+.admin-main .status-pill{white-space:nowrap}
+.admin-list-row .btn.tiny{white-space:nowrap}
+.admin-main .panel>.hint{margin-top:-8px;margin-bottom:18px}

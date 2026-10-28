@@ -15,7 +15,19 @@ export default async function AdminPage(){
   db.from("payment_settings").select("*").eq("id",true).single(),
   db.from("banners").select("*").order("sort_order"),
  ]);
- if(products.error||categories.error||orders.error||zones.error||site.error||payment.error||banners.error)throw new Error("No se pudo cargar el panel. Revisá las tablas y el esquema SQL.");
+ const failures=[
+  ["products",products.error],["categories",categories.error],["orders",orders.error],
+  ["shipping_zones",zones.error],["site_settings",site.error],
+  ["payment_settings",payment.error],["banners",banners.error],
+ ].filter((entry)=>entry[1]!==null);
+ if(failures.length){
+  // Diagnóstico solo en el servidor; nunca mostrar consultas o datos privados al cliente.
+  console.error("Viagelato admin data load failed",failures.map(([table,error])=>({
+   table,code:typeof error==="object"&&error&&"code" in error?error.code:undefined,
+   message:typeof error==="object"&&error&&"message" in error?error.message:undefined,
+  })));
+  throw new Error("No se pudieron cargar los datos del administrador.");
+ }
  const settings={...DEFAULT_SETTINGS,...site.data,...payment.data} as Settings;
  return <AdminDashboard initialProducts={products.data as Product[]} initialCategories={categories.data as Category[]} initialOrders={orders.data as Order[]} initialZones={zones.data as ShippingZone[]} initialSettings={settings} initialBanners={banners.data as Banner[]}/>;
 }

@@ -3,13 +3,13 @@ import {adminOrError,settingsSchema} from "@/lib/admin";
 import {privilegedDb} from "@/lib/supabase";
 
 export async function PUT(request:Request){
- const auth=await adminOrError(request);if(auth)return auth;
- const parsed=settingsSchema.safeParse(await request.json().catch(()=>null));if(!parsed.success)return NextResponse.json({error:"Configuración inválida",issues:parsed.error.issues},{status:400});
- const {bank_alias,bank_cbu,bank_holder,...publicSettings}=parsed.data;const db=privilegedDb();
- const [site,payment]=await Promise.all([
-  db.from("site_settings").update({...publicSettings,logo_url:publicSettings.logo_url||null,hero_image_url:publicSettings.hero_image_url||null}).eq("id",true).select().single(),
-  db.from("payment_settings").update({bank_alias,bank_cbu,bank_holder}).eq("id",true).select().single(),
- ]);
- if(site.error||payment.error)return NextResponse.json({error:"No se pudo guardar la configuración"},{status:400});
- return NextResponse.json({...site.data,...payment.data});
+ const auth=await adminOrError(request);
+ if(auth)return auth;
+ const parsed=settingsSchema.safeParse(await request.json().catch(()=>null));
+ if(!parsed.success)return NextResponse.json({error:"Configuración inválida",issues:parsed.error.issues},{status:400});
+ // La función SQL actualiza site_settings y payment_settings en UNA transacción:
+ // o se guardan ambas filas o no se guarda ninguna.
+ const {data,error}=await privilegedDb().rpc("admin_save_store_settings",{p_data:parsed.data});
+ if(error || !data)return NextResponse.json({error:"No se pudo guardar la configuración completa. No se aplicaron cambios parciales."},{status:400});
+ return NextResponse.json(data,{headers:{"Cache-Control":"no-store"}});
 }
