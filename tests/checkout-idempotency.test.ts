@@ -35,9 +35,9 @@ describe("clave de idempotencia del checkout",()=>{
   store.setItem(CHECKOUT_KEY_STORAGE,"texto inválido");
   expect(getOrCreateCheckoutKey("c".repeat(64),store,()=>one)).toBe(one);
   const disabled={
-   getItem:(_key:string):string|null=>{throw new Error("blocked");},
-   setItem:(_key:string,_value:string):void=>{throw new Error("blocked");},
-   removeItem:(_key:string):void=>{throw new Error("blocked");},
+   getItem:():string|null=>{throw new Error("blocked");},
+   setItem:():void=>{throw new Error("blocked");},
+   removeItem:():void=>{throw new Error("blocked");},
   };
   expect(getOrCreateCheckoutKey("d".repeat(64),disabled,()=>two)).toBe(two);
   expect(()=>clearCheckoutKey(disabled)).not.toThrow();
