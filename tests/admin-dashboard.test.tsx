@@ -32,15 +32,43 @@ describe("panel administrativo",()=>{
   const first=picker.querySelector("button.admin-candidate-card") as HTMLButtonElement;
   await user.click(first);
   expect(screen.getByText(/Ficha provisional preparada como borrador/)).toBeInTheDocument();
-  expect(screen.getByLabelText("Nombre")).not.toHaveValue("");
-  expect(screen.getByLabelText("Precio ARS")).toHaveValue(0);
-  expect(screen.getByLabelText("Stock confirmado")).toHaveValue(0);
-  expect(screen.getByLabelText("Publicar producto")).not.toBeChecked();
+  expect(screen.getByLabelText("Nombre del producto")).not.toHaveValue("");
+  expect(screen.getByLabelText("Precio de venta (ARS)")).toHaveValue(0);
+  expect(screen.getByLabelText("Unidades disponibles")).toHaveValue(0);
+  expect(screen.getByLabelText("Mostrar este producto en la tienda")).not.toBeChecked();
+ });
+
+ it("protege una ficha de producto sin guardar antes de cambiar de módulo",async()=>{
+  const user=userEvent.setup();
+  const confirm=vi.spyOn(window,"confirm").mockReturnValue(false);
+  render(<AdminDashboard initialProducts={[]} initialCategories={[]} initialOrders={[]} initialZones={[]} initialSettings={DEFAULT_SETTINGS} initialBanners={[]}/>);
+  await user.click(screen.getByRole("button",{name:"Productos"}));
+  await user.type(screen.getByLabelText("Nombre del producto"),"Chocolate");
+  expect(screen.getByText(/Tenés cambios sin guardar/)).toBeInTheDocument();
+  await user.click(screen.getByRole("button",{name:"Categorías"}));
+  expect(confirm).toHaveBeenCalledOnce();
+  expect(screen.getByText(/Tenés cambios sin guardar/)).toBeInTheDocument();
+  confirm.mockReturnValue(true);
+  await user.click(screen.getByRole("button",{name:"Categorías"}));
+  expect(screen.getByRole("heading",{name:"Categorías"})).toBeInTheDocument();
+  await user.click(screen.getByRole("button",{name:"Productos"}));
+  expect(screen.getByLabelText("Nombre del producto")).toHaveValue("");
+ });
+ it("avisa antes de perder cambios en la configuración",async()=>{
+  const user=userEvent.setup();
+  const confirm=vi.spyOn(window,"confirm").mockReturnValue(false);
+  render(<AdminDashboard initialProducts={[]} initialCategories={[]} initialOrders={[]} initialZones={[]} initialSettings={DEFAULT_SETTINGS} initialBanners={[]}/>);
+  await user.click(screen.getByRole("button",{name:"Configuración"}));
+  await user.type(screen.getByLabelText("Nombre comercial")," Nuevo");
+  expect(screen.getByText(/Hay cambios en la configuración/)).toBeInTheDocument();
+  await user.click(screen.getByRole("button",{name:"Productos"}));
+  expect(confirm).toHaveBeenCalledOnce();
+  expect(screen.getByText(/Hay cambios en la configuración/)).toBeInTheDocument();
  });
  it("muestra estadísticas y estados vacíos navegables",async()=>{
   const user=userEvent.setup();
   render(<AdminDashboard initialProducts={[]} initialCategories={[]} initialOrders={[]} initialZones={[]} initialSettings={DEFAULT_SETTINGS} initialBanners={[]}/>);
-  expect(screen.getByText("Bienvenido a tu tienda")).toBeInTheDocument();
+  expect(screen.getByText("Tu tienda, en un solo lugar")).toBeInTheDocument();
   expect(screen.getAllByText("0").length).toBeGreaterThanOrEqual(4);
   await user.click(screen.getByRole("button",{name:"Productos"}));
   expect(screen.getByText("Agregá tu primer producto.")).toBeInTheDocument();
