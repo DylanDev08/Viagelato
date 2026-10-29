@@ -5,7 +5,7 @@ import {notFound} from "next/navigation";
 import {ArrowLeft,ImageOff} from "lucide-react";
 import {SiteShell} from "@/components/site-shell";
 import {PricedAddToCart} from "@/components/priced-add-to-cart";
-import {getStore} from "@/lib/site";
+import {getStore,getPublishedCatalog} from "@/lib/site";
 import {findCatalogPriceItemByPath} from "@/lib/catalog-prices";
 import {ars} from "@/lib/types";
 
@@ -19,9 +19,12 @@ export async function generateMetadata({params}:Props):Promise<Metadata>{
  return {title:`${item.name} | Viagelato`,description:item.description,robots:{index:false,follow:false}};
 }
 export default async function ProductPage({params}:Props){
- const item=lookup((await params).id);
+ const sourceItem=lookup((await params).id);
+ if(!sourceItem)notFound();
+ const [store,catalogItems]=await Promise.all([getStore(),getPublishedCatalog()]);
+ const item=catalogItems.find(candidate=>candidate.sourceRow===sourceItem.sourceRow);
  if(!item)notFound();
- const {settings}=await getStore();
+ const {settings}=store;
  return <SiteShell settings={settings}><main className="shell provisional-detail-page">
   <Link className="back-link" href="/catalogo"><ArrowLeft/> Volver al catálogo</Link>
   <div className="provisional-detail-grid">
