@@ -2,13 +2,12 @@ import type {Metadata} from "next";
 import Image from "next/image";
 import Link from "next/link";
 import {notFound} from "next/navigation";
-import {ArrowLeft,ArrowUpRight,ImageOff,MessageCircle} from "lucide-react";
+import {ArrowLeft,ImageOff} from "lucide-react";
 import {SiteShell} from "@/components/site-shell";
 import {PricedAddToCart} from "@/components/priced-add-to-cart";
 import {getStore} from "@/lib/site";
-import {CATALOG_SOURCE_LABEL,findCatalogPriceItemByPath} from "@/lib/catalog-prices";
+import {findCatalogPriceItemByPath} from "@/lib/catalog-prices";
 import {ars} from "@/lib/types";
-import {productWhatsappMessage,whatsappHref} from "@/lib/whatsapp";
 
 export const dynamic="force-dynamic";
 type Props={params:Promise<{id:string}>};
@@ -23,7 +22,6 @@ export default async function ProductPage({params}:Props){
  const item=lookup((await params).id);
  if(!item)notFound();
  const {settings}=await getStore();
- const whatsapp=whatsappHref(settings.whatsapp,productWhatsappMessage(`${item.name} (${item.presentation}) — ${ars(item.price)}`));
  return <SiteShell settings={settings}><main className="shell provisional-detail-page">
   <Link className="back-link" href="/catalogo"><ArrowLeft/> Volver al catálogo</Link>
   <div className="provisional-detail-grid">
@@ -34,11 +32,9 @@ export default async function ProductPage({params}:Props){
     <p className="kicker">{item.category}</p><h1>{item.name}</h1>
     <div className="priced-detail-price"><small>PRECIO FINAL POR PRESENTACIÓN</small><strong>{ars(item.price)}</strong><span>{item.presentation}</span></div>
     <h2>Descripción del producto</h2><p>{item.description}</p>
-    <div className="provisional-detail-facts"><div><span>Presentación</span><strong>{item.presentation}</strong></div><div><span>Disponibilidad</span><strong>Confirmamos por WhatsApp</strong></div></div>
-    <p className="hint">{CATALOG_SOURCE_LABEL}</p>
-    <PricedAddToCart item={item}/>
-    {whatsapp?<a className="primary-action whatsapp-action" href={whatsapp} target="_blank" rel="noopener noreferrer"><MessageCircle/> Consultar por WhatsApp <ArrowUpRight/></a>:<Link className="primary-action" href="/contacto"><MessageCircle/> Consultar disponibilidad <ArrowUpRight/></Link>}
-    <p className="hint">La consulta no genera un pedido ni reserva mercadería. La disponibilidad y el envío se confirman antes de la transferencia.</p>
+    <div className="provisional-detail-facts"><div><span>Presentación</span><strong>{item.presentation}</strong></div><div><span>Disponibilidad</span><strong>Se confirma al realizar el pedido</strong></div></div>
+    <PricedAddToCart item={item} detail/>
+    <p className="hint detail-purchase-disclaimer">El pedido se envía desde el carrito. Viagelato confirmará stock, costo de envío y pago antes de cerrar la compra.</p>
    </div>
   </div>
  </main></SiteShell>;
