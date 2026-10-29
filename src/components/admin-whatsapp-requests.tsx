@@ -18,9 +18,12 @@ function nextAction(request:WhatsAppRequest){
 }
 function money(value:string){return /^\d+(?:\.\d{1,2})?$/.test(value.trim())?Number(value):NaN;}
 type Operation={id:string;action:string;[key:string]:string|number|boolean};
-function RequestCard({request}:{request:WhatsAppRequest}){
+function RequestCard({request,freeShippingThreshold}:{request:WhatsAppRequest;freeShippingThreshold:number}){
  const router=useRouter();
- const [shipping,setShipping]=useState(request.shipping_method==="pickup"?"0":request.shipping_cost===null?"":String(Number(request.shipping_cost)));
+ const freeShipping=request.shipping_method==="shipping"&&
+  ["Lomas de Zamora","Lanús","Banfield","Avellaneda","Valentín Alsina","Don Bosco","Wilde"].includes(request.locality)&&
+  Number(request.subtotal)>=freeShippingThreshold;
+ const [shipping,setShipping]=useState(request.shipping_method==="pickup"||freeShipping?"0":request.shipping_cost===null?"":String(Number(request.shipping_cost)));
  const [stock,setStock]=useState(request.stock_confirmed);
  const [paymentAmount,setPaymentAmount]=useState("");
  const [bankReference,setBankReference]=useState("");
@@ -53,7 +56,7 @@ function RequestCard({request}:{request:WhatsAppRequest}){
  }
  async function saveTerms(event:FormEvent<HTMLFormElement>){
   event.preventDefault();
-  const cost=money(shipping);
+  const cost=freeShipping?0:money(shipping);
   if(!stock){setError("Marcá disponibilidad comprobada antes de continuar.");return;}
   if(!Number.isFinite(cost)||cost<0||cost>10000000){setError("Ingresá un costo válido de envío. Usá 0 únicamente si fue acordado sin cargo.");return;}
   if(request.shipping_method==="pickup"&&cost!==0){setError("Para retiro, el costo de envío debe ser 0.");return;}
@@ -102,8 +105,8 @@ function RequestCard({request}:{request:WhatsAppRequest}){
    <label className="inline-check"><input type="checkbox" checked={stock} onChange={event=>setStock(event.target.checked)} disabled={busy}/> Verifiqué que hay stock disponible para este pedido.</label>
    <label>Costo de envío acordado (ARS)
     <input type="number" inputMode="decimal" min="0" max="10000000" step="0.01" value={shipping}
-     onChange={event=>setShipping(event.target.value)} disabled={busy} required/>
-    <small>Ingresá 0 solo si confirmaste que el envío es sin cargo. Para retiro, siempre 0.</small>
+     onChange={event=>setShipping(event.target.value)} disabled={busy||freeShipping} required/>
+    <small>{freeShipping?`Envío gratuito por superar ${ars(freeShippingThreshold)} en zona elegible. Se aplica $0 sin cargos adicionales.`:"Ingresá 0 solo si confirmaste que el envío es sin cargo. Para retiro, siempre 0."}</small>
    </label>
    <button type="submit" className="btn tiny" disabled={busy||!stock||!shipping.trim()}>Guardar stock y envío</button>
   </form>:null}
@@ -134,7 +137,7 @@ function RequestCard({request}:{request:WhatsAppRequest}){
   {notice?<p role="status" className="hint">{notice}</p>:null}
  </article>;
 }
-export function WhatsAppRequests({requests}:{requests:WhatsAppRequest[]}){
+export function WhatsAppRequests({requests,freeShippingThreshold=60000}:{requests:WhatsAppRequest[];freeShippingThreshold?:number}){
  const [status,setStatus]=useState("all");
  const [search,setSearch]=useState("");
  const visible=useMemo(()=>requests.filter(request=>{
@@ -152,7 +155,7 @@ export function WhatsAppRequests({requests}:{requests:WhatsAppRequest[]}){
    </select></label>
   </div>
   <p className="hint" aria-live="polite">{visible.length} de {requests.length} solicitudes recientes</p>
-  <div className="whatsapp-request-list">{visible.map(request=><RequestCard key={request.id} request={request}/>)}</div>
+  <div className="whatsapp-request-list">{visible.map(request=><RequestCard key={request.id} request={request} freeShippingThreshold={freeShippingThreshold}/>)}</div>
   {!visible.length?<p className="hint">Todavía no hay solicitudes con ese filtro. Las nuevas aparecerán cuando un cliente prepare el mensaje hacia WhatsApp.</p>:null}
  </section>;
 }
