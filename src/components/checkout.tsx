@@ -7,7 +7,7 @@ import {useCart} from "./cart";
 import {SiteShell} from "./site-shell";
 import {ars,DELIVERY_AREAS,type Product,type Settings,type ShippingZone} from "@/lib/types";
 import {PRICED_CART_PRODUCTS} from "@/lib/whatsapp-cart";
-import {checkoutRequestFingerprint,getOrCreateCheckoutKey} from "@/lib/checkout-idempotency";
+import {checkoutRequestFingerprint,getOrCreateCheckoutKey,clearCheckoutKey} from "@/lib/checkout-idempotency";
 
 type DisplayItem={
  id:string;name:string;sku?:string|null;presentation?:string|null;
@@ -61,7 +61,10 @@ export function Checkout({products,settings}:{products:Product[];zones:ShippingZ
     body
    });
    const data=await res.json().catch(()=>({error:"El servidor devolvió una respuesta inválida"}));
-   if(!res.ok)throw new Error(data.error||"No se pudo guardar la solicitud");
+   if(!res.ok){
+    if(data.code==="REQUEST_ALREADY_HANDLED")clearCheckoutKey(sessionStorage);
+    throw new Error(data.error||"No se pudo guardar la solicitud");
+   }
    if(typeof data.reference!=="string"||typeof data.whatsapp_url!=="string"||!data.whatsapp_url.startsWith("https://wa.me/")||!data.whatsapp_url.includes("?text="))throw new Error("El enlace de WhatsApp no está disponible");
    setPrepared({reference:data.reference,url:data.whatsapp_url});
    // Se guarda solo la preparación del mensaje. No se afirma que se envió ni se cobró.
