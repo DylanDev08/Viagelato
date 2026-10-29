@@ -5,7 +5,7 @@ export const catalogCartId=(row:number)=>`catalog-price-${row}`;
 
 export const PRICED_CART_PRODUCTS=CATALOG_PRICE_ITEMS.map(item=>({
  id:catalogCartId(item.sourceRow),name:item.name,sku:item.sku,
- presentation:item.presentation,price:item.price,image_url:item.image,stock:null as number|null,
+ presentation:item.presentation,price:item.price,image_url:item.image,stock:null,
 })) satisfies Array<{id:string;name:string;sku:string;presentation:string;price:number;image_url:string|null;stock:null}>;
 
 export type WhatsAppCartLine={name:string;sku?:string|null;presentation?:string|null;price:number;quantity:number};
