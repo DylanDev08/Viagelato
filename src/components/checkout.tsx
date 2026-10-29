@@ -6,17 +6,17 @@ import Link from "next/link";
 import {useMemo,useState} from "react";
 import {useCart} from "./cart";
 import {SiteShell} from "./site-shell";
-import {ars,DELIVERY_AREAS,type Product,type Settings,type ShippingZone} from "@/lib/types";
+import {ars,DELIVERY_AREAS,type PublicProduct,type Settings,type ShippingZone} from "@/lib/types";
 import {catalogCartId} from "@/lib/whatsapp-cart";
 import {CATALOG_PRICE_ITEMS,type CatalogPriceItem} from "@/lib/catalog-prices";
 import {checkoutRequestFingerprint,getOrCreateCheckoutKey,clearCheckoutKey} from "@/lib/checkout-idempotency";
 
 type DisplayItem={
  id:string;name:string;sku?:string|null;presentation?:string|null;
- price:number;image_url:string|null;stock:number|null;
+ price:number;image_url:string|null;
 };
 
-export function Checkout({products,settings,catalogItems=CATALOG_PRICE_ITEMS}:{products:Product[];zones:ShippingZone[];settings:Settings;demo:boolean;checkoutEnabled:boolean;catalogItems?:CatalogPriceItem[]}){
+export function Checkout({products,settings,catalogItems=CATALOG_PRICE_ITEMS}:{products:PublicProduct[];zones:ShippingZone[];settings:Settings;demo:boolean;checkoutEnabled:boolean;catalogItems?:CatalogPriceItem[]}){
  const {items,setQuantity,clear}=useCart();
  const [fullName,setFullName]=useState("");
  const [selectedLocality,setSelectedLocality]=useState("");
@@ -29,8 +29,8 @@ export function Checkout({products,settings,catalogItems=CATALOG_PRICE_ITEMS}:{p
  const [busy,setBusy]=useState(false);
  const [prepared,setPrepared]=useState<{reference:string;url:string}|null>(null);
  const productMap=useMemo(()=>new Map<string,DisplayItem>([
-  ...products.map(product=>[product.id,{id:product.id,name:product.name,sku:product.sku,presentation:product.presentation,price:Number(product.price),image_url:product.image_url,stock:product.stock}] as const),
-  ...catalogItems.map(product=>[catalogCartId(product.sourceRow),{id:catalogCartId(product.sourceRow),name:product.name,sku:product.sku,presentation:product.presentation,price:product.price,image_url:product.image,stock:null}] as const),
+  ...products.map(product=>[product.id,{id:product.id,name:product.name,sku:product.sku,presentation:product.presentation,price:Number(product.price),image_url:product.image_url}] as const),
+  ...catalogItems.map(product=>[catalogCartId(product.sourceRow),{id:catalogCartId(product.sourceRow),name:product.name,sku:product.sku,presentation:product.presentation,price:product.price,image_url:product.image}] as const),
  ]),[products,catalogItems]);
  const lines=useMemo(()=>items.flatMap(item=>{
   const product=productMap.get(item.id);

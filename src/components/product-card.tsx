@@ -5,9 +5,9 @@ import Link from "next/link";
 import {ArrowUpRight,Box,Check,Plus} from "lucide-react";
 import {useState} from "react";
 import {useCart} from "./cart";
-import {ars,type Product} from "@/lib/types";
+import {ars,type PublicProduct} from "@/lib/types";
 
-export function ProductCard({product}:{product:Product}){
+export function ProductCard({product}:{product:PublicProduct}){
  const {add,items}=useCart();
  const inCart=items.find(item=>item.id===product.id)?.quantity??0;
  const remaining=Math.max(0,99-inCart);

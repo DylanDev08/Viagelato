@@ -106,6 +106,20 @@ describe("registrar referencia WhatsApp",()=>{
   expect((await POST(make({...payload,items:[{id:"catalog-price-47",quantity:1}]}))).status).toBe(400);
   expect(insert).not.toHaveBeenCalled();
  });
+ it("rechaza mutaciones sin Origin y configuración incompleta del limitador",async()=>{
+  const noOrigin=new Request("https://viagelato.vercel.app/api/whatsapp-request",{
+   method:"POST",headers:{"Content-Type":"application/json","Idempotency-Key":key},body:JSON.stringify(payload)
+  });
+  expect((await POST(noOrigin)).status).toBe(403);
+  delete process.env.CHECKOUT_RATE_LIMIT_SALT;
+  expect((await POST(make())).status).toBe(503);
+  expect(insert).not.toHaveBeenCalled();
+ });
+ it("corta cuerpos demasiado grandes antes de consultar la base",async()=>{
+  const response=await POST(make({...payload,notes:"x".repeat(17_000)}));
+  expect(response.status).toBe(413);
+  expect(insert).not.toHaveBeenCalled();
+ });
  it("no registra si la base está sin conectar",async()=>{
   vi.mocked(connected).mockReturnValue(false);
   expect((await POST(make())).status).toBe(503);

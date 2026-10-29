@@ -4,9 +4,9 @@ import Link from "next/link";
 import {Check,Minus,Plus,ShoppingBag} from "lucide-react";
 import {useState} from "react";
 import {useCart} from "./cart";
-import type {Product} from "@/lib/types";
+import type {PublicProduct} from "@/lib/types";
 
-export function ProductPurchase({product}:{product:Product}){
+export function ProductPurchase({product}:{product:PublicProduct}){
  const [quantity,setQuantity]=useState(1);
  const [added,setAdded]=useState(false);
  const {add,items}=useCart();
