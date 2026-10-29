@@ -1,4 +1,7 @@
 /* Viagelato mobile first refinements: loaded last to preserve desktop design. */
+/* The mobile cart label must not overflow the 54px desktop floating button. */
+.float-cart span { display: none; }
+
 @media (max-width: 960px) {
   .shell { width: min(100% - 36px, 1240px); }
   .hero-grid, .provisional-detail-grid, .checkout-grid, .contact-grid,
