@@ -6,7 +6,7 @@ Rama: `codex/estabilizacion-seo-seguridad-20261029`
 
 Base auditada: `main` en `62bd965`
 
-PR: se completa al publicar la rama.
+PR: https://github.com/DylanDev08/Viagelato/pull/24
 
 ## Alcance y resultado
 
