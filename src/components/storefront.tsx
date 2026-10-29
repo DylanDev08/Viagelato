@@ -3,8 +3,8 @@ import Link from "next/link";
 import {ArrowDownRight,ArrowRight,MapPin,MessageCircle,PackageCheck,Snowflake,Truck} from "lucide-react";
 import {ProductCard} from "./product-card";
 import {PricedCatalog} from "./priced-catalog";
-import {CATALOG_PRICE_ITEMS} from "@/lib/catalog-prices";
-import {categoryCatalogHref,STORE_CATALOG_GROUPS,storefrontSamples} from "@/lib/catalog-groups";
+import {CATALOG_PRICE_ITEMS,type CatalogPriceItem} from "@/lib/catalog-prices";
+import {categoryCatalogHref,groupCatalogByType,storefrontSamples} from "@/lib/catalog-groups";
 import {SiteShell} from "./site-shell";
 export {SiteHeader as Header} from "./site-header";
 export {SiteFooter as Footer} from "./site-footer";
@@ -18,10 +18,11 @@ const HERO_PRODUCTS=[
  {src:"/catalogo/cono-tu-dl.webp",alt:"Cono helado de dulce de leche"},
 ] as const;
 
-export function Storefront({settings,products,banners,demo}:{settings:Settings;products:Product[];categories:Category[];banners:Banner[];demo:boolean}){
+export function Storefront({settings,products,banners,demo,catalogItems=CATALOG_PRICE_ITEMS}:{settings:Settings;products:Product[];categories:Category[];banners:Banner[];demo:boolean;catalogItems?:CatalogPriceItem[]}){
  const featured=products.filter(product=>product.featured).slice(0,4);
  const visible=featured.length?featured:products.slice(0,4);
- const pricedPreview=storefrontSamples(CATALOG_PRICE_ITEMS,4);
+ const pricedPreview=storefrontSamples(catalogItems,4);
+ const catalogGroups=groupCatalogByType(catalogItems);
  const whatsapp=whatsappHref(settings.whatsapp);
  return <SiteShell settings={settings}><main>
   {demo?<div className="demo-strip">TIENDA EN PREPARACIÓN · Los pedidos permanecen deshabilitados hasta completar la configuración comercial.</div>:null}
@@ -31,8 +32,8 @@ export function Storefront({settings,products,banners,demo}:{settings:Settings;p
   <section className="home-catalog shell" aria-label="Explorar productos por tipo">
    <div className="section-title"><div><p className="kicker">CATÁLOGO</p><h2>Encontrá lo que<br/>necesitás.</h2></div><p>Explorá cada tipo de producto. El catálogo completo está organizado en grupos para elegir más rápido.</p></div>
    <div className="home-type-grid">
-    {STORE_CATALOG_GROUPS.map(group=><Link href={categoryCatalogHref(group.name)} key={group.name} className="home-type-card">
-     <span className="home-type-photo">{group.image?<Image src={group.image} alt="" fill sizes="(max-width:640px) 44vw, (max-width:960px) 30vw, 17vw"/>:null}</span>
+    {catalogGroups.map(group=><Link href={categoryCatalogHref(group.name)} key={group.name} className="home-type-card">
+     <span className="home-type-photo">{group.image?<Image src={group.image} alt="" fill sizes="(max-width:640px) 44vw, (max-width:960px) 30vw, 17vw" unoptimized/>:null}</span>
      <span className="home-type-info"><strong>{group.name}</strong><small>{group.count} presentaciones</small><ArrowRight size={18} aria-hidden="true"/></span>
     </Link>)}
    </div>

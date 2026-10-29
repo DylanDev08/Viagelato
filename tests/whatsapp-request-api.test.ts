@@ -17,11 +17,13 @@ describe("registrar referencia WhatsApp",()=>{
  const rpc=vi.fn(async()=>({data:true,error:null}));
  const insert=vi.fn();
  const priorRead=vi.fn(async():Promise<{data:Record<string,unknown>|null;error:null}>=>({data:null,error:null}));
+ const catalogRead=vi.fn(async()=>({data:[{slug:"excel-fila-2",name:"Palitos de agua",sku:"VIA-CAT-2",presentation:"Caja x24",price:21900}],error:null}));
  beforeEach(()=>{
   vi.clearAllMocks();vi.mocked(connected).mockReturnValue(true);
   process.env.SUPABASE_SERVICE_ROLE_KEY="abcdefghijklmnopqrstuvwxyz0123456789SERVICE";
   process.env.CHECKOUT_RATE_LIMIT_SALT="test-only-salt";
   priorRead.mockResolvedValue({data:null,error:null});
+  catalogRead.mockResolvedValue({data:[{slug:"excel-fila-2",name:"Palitos de agua",sku:"VIA-CAT-2",presentation:"Caja x24",price:21900}],error:null});
   insert.mockImplementation((input:Record<string,unknown>)=>{
    const record={...input,id,status:"draft"};
    return {select:()=>({maybeSingle:async()=>({data:record,error:null})})};
@@ -31,6 +33,7 @@ describe("registrar referencia WhatsApp",()=>{
    from:vi.fn((table:string)=>{
     if(table==="site_settings")return {select:()=>({eq:()=>({single:async()=>({data:{whatsapp:"+5491140962202",free_shipping_threshold:60000,pickup_enabled:false},error:null})})})};
     if(table==="whatsapp_order_requests")return {select:()=>({eq:()=>({maybeSingle:priorRead})}),upsert:insert};
+    if(table==="products")return {select:()=>({eq:()=>({in:catalogRead})})};
     throw Error("Tabla inesperada: "+table);
    })
   } as unknown as ReturnType<typeof privilegedDb>);
@@ -45,6 +48,19 @@ describe("registrar referencia WhatsApp",()=>{
   expect(data.status).toBe("draft");
   expect(insert).toHaveBeenCalledWith(expect.objectContaining({subtotal:43800,customer_name:"Ana Gomez"}),expect.objectContaining({ignoreDuplicates:true}));
   expect(rpc).toHaveBeenCalledWith("consume_checkout_attempt",expect.objectContaining({p_limit:8}));
+ });
+ it("toma el precio del servidor, aunque la planilla histórica sea diferente",async()=>{
+  catalogRead.mockResolvedValue({data:[{slug:"excel-fila-2",name:"Palitos de agua",sku:"VIA-CAT-2",presentation:"Caja x24",price:32500}],error:null});
+  const res=await POST(make());
+  expect(res.status).toBe(201);
+  expect((await res.json()).subtotal).toBe(65000);
+  expect(insert).toHaveBeenCalledWith(expect.objectContaining({subtotal:65000}),expect.anything());
+ });
+ it("rechaza un producto oculto y no escribe solicitudes",async()=>{
+  catalogRead.mockResolvedValue({data:[],error:null});
+  const res=await POST(make());
+  expect(res.status).toBe(409);
+  expect(insert).not.toHaveBeenCalled();
  });
  it("reintentar una solicitud existente usa su fotografía comercial original aunque cambie el catálogo",async()=>{
   const oldSnapshot={

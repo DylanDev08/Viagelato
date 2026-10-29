@@ -19,6 +19,7 @@ export type Product = {
   presentation?: string | null;
   featured?: boolean;
   commercially_verified?: boolean;
+  catalog_visible?: boolean;
   created_at?: string;
 };
 

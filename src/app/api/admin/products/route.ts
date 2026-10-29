@@ -36,7 +36,7 @@ export async function DELETE(req:Request){
  const body=await req.json().catch(()=>null);
  const parsedId=uuid.safeParse(body?.id);
  if(!parsedId.success)return invalidId();
- const {data,error}=await privilegedDb().from("products").update({active:false}).eq("id",parsedId.data).select("id").maybeSingle();
+ const {data,error}=await privilegedDb().from("products").update({active:false,catalog_visible:false}).eq("id",parsedId.data).select("id").maybeSingle();
  if(error)return failed(error.code);
  if(!data)return NextResponse.json({error:"Producto inexistente"},{status:404});
  return NextResponse.json({ok:true});
