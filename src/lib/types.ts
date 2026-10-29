@@ -86,6 +86,21 @@ export type Order = {
   order_items?: { product_name: string; unit_price: number; quantity: number }[];
 };
 
+export type WhatsAppRequest={
+ id:string;
+ customer_name:string;
+ locality:string;
+ address:string;
+ notes:string;
+ shipping_method:"shipping"|"pickup";
+ items:{id:string;name:string;sku?:string|null;presentation?:string|null;price:number;quantity:number}[];
+ subtotal:number;
+ status:"draft"|"contacted"|"confirmed"|"preparing"|"shipped"|"delivered"|"cancelled";
+ payment_status:"pending"|"paid";
+ created_at:string;
+ updated_at:string;
+};
+
 export type CartLine = { id: string; quantity: number };
 
 const DEMO_CATEGORY_IDS = {

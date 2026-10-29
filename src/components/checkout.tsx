@@ -6,8 +6,8 @@ import {useMemo,useState} from "react";
 import {useCart} from "./cart";
 import {SiteShell} from "./site-shell";
 import {ars,DELIVERY_AREAS,type Product,type Settings,type ShippingZone} from "@/lib/types";
-import {PRICED_CART_PRODUCTS,whatsappCartMessage} from "@/lib/whatsapp-cart";
-import {whatsappHref} from "@/lib/whatsapp";
+import {PRICED_CART_PRODUCTS} from "@/lib/whatsapp-cart";
+import {checkoutRequestFingerprint,getOrCreateCheckoutKey} from "@/lib/checkout-idempotency";
 
 type DisplayItem={
  id:string;name:string;sku?:string|null;presentation?:string|null;
@@ -22,6 +22,8 @@ export function Checkout({products,settings}:{products:Product[];zones:ShippingZ
  const [notes,setNotes]=useState("");
  const [delivery,setDelivery]=useState<"shipping"|"pickup">("shipping");
  const [error,setError]=useState("");
+ const [busy,setBusy]=useState(false);
+ const [prepared,setPrepared]=useState<{reference:string;url:string}|null>(null);
  const productMap=useMemo(()=>new Map<string,DisplayItem>([
   ...products.map(product=>[product.id,{id:product.id,name:product.name,sku:product.sku,presentation:product.presentation,price:Number(product.price),image_url:product.image_url,stock:product.stock}] as const),
   ...PRICED_CART_PRODUCTS.map(product=>[product.id,product] as const),
@@ -34,34 +36,45 @@ export function Checkout({products,settings}:{products:Product[];zones:ShippingZ
  const subtotal=lines.reduce((sum,line)=>sum+Number(line.product.price)*line.quantity,0);
  const missing=items.length-lines.length;
  const eligible=DELIVERY_AREAS.some(area=>area===locality);
- const canRequest=lines.length>0&&fullName.trim().length>=2&&locality.trim().length>=2;
+ const canRequest=lines.length>0&&lines.length<=30&&fullName.trim().length>=2&&locality.trim().length>=2;
  const promo=delivery==="shipping"&&eligible&&subtotal>=Number(settings.free_shipping_threshold);
 
- function sendRequest(event:React.FormEvent<HTMLFormElement>){
+ async function sendRequest(event:React.FormEvent<HTMLFormElement>){
   event.preventDefault();
+  if(busy)return;
   setError("");
-  if(!canRequest)return setError("Completá nombre y localidad antes de continuar.");
+  setPrepared(null);
+  if(!canRequest)return setError("Completá nombre y localidad, con un máximo de 30 productos diferentes.");
+  setBusy(true);
   try{
-   const message=whatsappCartMessage(lines.map(({product,quantity})=>({
-    name:product.name,sku:product.sku,presentation:product.presentation,
-    price:Number(product.price),quantity
-   })),{
-    name:fullName,locality,address,notes,shippingMethod:delivery,
-    freeShippingThreshold:Number(settings.free_shipping_threshold)
+   const payload={
+    customer_name:fullName,locality,address:delivery==="shipping"?address:"",notes,
+    shipping_method:delivery,
+    items:lines.map(({product,quantity})=>({id:product.id,quantity})),
+   };
+   const body=JSON.stringify(payload);
+   const hash=await checkoutRequestFingerprint(body);
+   const key=getOrCreateCheckoutKey(hash,sessionStorage,()=>crypto.randomUUID());
+   const res=await fetch("/api/whatsapp-request",{
+    method:"POST",
+    headers:{"Content-Type":"application/json","Idempotency-Key":key},
+    body
    });
-   const url=whatsappHref(settings.whatsapp,message);
-   // Un wa.link sin parámetros no transporta el detalle. Nunca enviamos un pedido vacío.
-   if(!url||!url.includes("?text="))return setError("Configurá un número de WhatsApp internacional válido en el panel para enviar el detalle del pedido.");
-   window.location.assign(url);
+   const data=await res.json().catch(()=>({error:"El servidor devolvió una respuesta inválida"}));
+   if(!res.ok)throw new Error(data.error||"No se pudo guardar la solicitud");
+   if(typeof data.reference!=="string"||typeof data.whatsapp_url!=="string"||!data.whatsapp_url.startsWith("https://wa.me/")||!data.whatsapp_url.includes("?text="))throw new Error("El enlace de WhatsApp no está disponible");
+   setPrepared({reference:data.reference,url:data.whatsapp_url});
+   // Se guarda solo la preparación del mensaje. No se afirma que se envió ni se cobró.
+   window.location.assign(data.whatsapp_url);
   }catch(reason){
-   setError(reason instanceof Error?reason.message:"No se pudo preparar el mensaje.");
-  }
+   setError(reason instanceof Error?reason.message:"No se pudo registrar la solicitud.");
+  }finally{setBusy(false);}
  }
 
  return <SiteShell settings={settings}><main className="container checkout-page">
   <Link href="/catalogo">← Volver al catálogo</Link>
   <h1>Tu carrito</h1>
-  <p className="hint">Elegí las cantidades de cada caja o presentación. El pago y la entrega se coordinan por WhatsApp; la web no cobra ni genera pedidos automáticos.</p>
+  <p className="hint">Elegí las cantidades de cada caja o presentación. Al finalizar se guarda una referencia de solicitud, y coordinás el pago y la entrega por WhatsApp. No se cobra ni se reserva stock desde la web.</p>
   <div className="checkout-grid">
    <div>
     <section className="panel" aria-label="Productos seleccionados">
@@ -98,7 +111,7 @@ export function Checkout({products,settings}:{products:Product[];zones:ShippingZ
    </div>
    <form className="panel" onSubmit={sendRequest}>
     <h2>Finalizar por WhatsApp</h2>
-    <p className="hint">Completá estos datos para enviarle a Viagelato el resumen del carrito. No se guardan en una orden online ni se realiza ningún cobro en esta página.</p>
+    <p className="hint">Completá estos datos para preparar tu solicitud. Guardaremos nombre, localidad, productos y datos de entrega para que Viagelato pueda hacer seguimiento. Abrir WhatsApp no confirma el pedido ni el pago.</p>
     <label>Nombre y apellido<input required minLength={2} maxLength={120} autoComplete="name" value={fullName} onChange={e=>setFullName(e.target.value)}/></label>
     <label>Localidad<select required value={locality} onChange={e=>setLocality(e.target.value)}>
      <option value="">Elegí tu localidad</option>
@@ -113,7 +126,9 @@ export function Checkout({products,settings}:{products:Product[];zones:ShippingZ
      <p>{promo?`Tu subtotal supera ${ars(settings.free_shipping_threshold)} en una localidad elegible. Solicitaremos la promoción de envío gratuito, sujeta a confirmación.`:"Te confirmamos el costo de entrega y la disponibilidad antes de solicitar la transferencia."}</p>
     </div>
     {error?<p className="error" role="alert">{error}</p>:null}
-    <button type="submit" className="btn primary full" disabled={!canRequest}>Enviar pedido por WhatsApp</button>
+    {lines.length>30?<p role="alert" className="error">Máximo 30 productos diferentes por solicitud. Quitá algunos para continuar.</p>:null}
+    <button type="submit" className="btn primary full" disabled={!canRequest||busy}>{busy?"Preparando solicitud…":"Continuar pedido por WhatsApp"}</button>
+    {prepared?<p role="status">Solicitud {prepared.reference} preparada. <a href={prepared.url} rel="noopener noreferrer">Abrir WhatsApp para enviar el mensaje</a>. Si no lo enviás, seguirá pendiente de contacto.</p>:null}
     <p className="hint">WhatsApp se abrirá con el mensaje listo para revisar y enviar. El carrito permanece guardado hasta que vos decidas vaciarlo.</p>
    </form>
   </div>
