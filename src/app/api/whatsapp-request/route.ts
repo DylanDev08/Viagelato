@@ -2,7 +2,7 @@ import {createHash,createHmac} from "node:crypto";
 import {NextResponse} from "next/server";
 import {z} from "zod";
 import {connected,privilegedDb} from "@/lib/supabase";
-import {CATALOG_PRICE_ITEMS} from "@/lib/catalog-prices";
+import {getPublishedCatalog} from "@/lib/site";
 import {whatsappCartMessage,type WhatsAppCartLine} from "@/lib/whatsapp-cart";
 import {normalizeWhatsAppRequest,whatsappRequestSchema,whatsappRequestReference} from "@/lib/whatsapp-request-rules";
 import {whatsappHref} from "@/lib/whatsapp";
@@ -83,7 +83,9 @@ export async function POST(request:Request){
   if(prior.request_fingerprint!==hash)return reply("Esta solicitud cambió. Revisá el carrito e intentá otra vez.",409);
   return preparedResponse(prior as RequestSnapshot,settings,false);
  }
- const source=new Map<string,{name:string;sku:string;presentation:string;price:number}>(CATALOG_PRICE_ITEMS.map(item=>[`catalog-price-${item.sourceRow}`,{
+ let catalog;
+ try{catalog=await getPublishedCatalog();}catch{return reply("No pudimos validar los precios actuales. Volvé a intentarlo.",503);}
+ const source=new Map<string,{name:string;sku:string;presentation:string;price:number}>(catalog.map(item=>[`catalog-price-${item.sourceRow}`,{
   name:item.name,sku:item.sku,presentation:item.presentation,price:item.price
  }] as const));
  const ids=input.items.filter(item=>!source.has(item.id)).map(item=>item.id);
