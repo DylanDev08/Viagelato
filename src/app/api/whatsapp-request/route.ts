@@ -117,6 +117,8 @@ export async function POST(request:Request){
  const safeLines=lines.filter(line=>line!==null);
  const subtotal=safeLines.reduce((sum,line)=>sum+line.price*line.quantity,0);
  if(!Number.isFinite(subtotal)||subtotal<=0||subtotal>1e9)return reply("El subtotal no es válido",400);
+ if(input.expected_subtotal!==undefined&&Math.abs(input.expected_subtotal-subtotal)>0.01)
+  return reply("Los precios cambiaron. Actualizá el carrito para revisarlos antes de enviar el pedido.",409);
  const insert={idempotency_key:key.data,request_fingerprint:hash,customer_name:input.customer_name,
   locality:input.locality,address:input.address,notes:input.notes,shipping_method:input.shipping_method,
   items:safeLines,subtotal};
