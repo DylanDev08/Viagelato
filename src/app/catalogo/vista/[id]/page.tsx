@@ -34,10 +34,10 @@ export default async function ProductPage({params}:Props){
    <div className="provisional-detail-copy">
     <p className="kicker">{item.category}</p><h1>{item.name}</h1>
     <div className="priced-detail-price"><small>PRECIO FINAL POR PRESENTACIÓN</small><strong>{ars(item.price)}</strong><span>{item.presentation}</span></div>
-    <h2>Descripción del producto</h2><p>{item.description}</p>
-    <div className="provisional-detail-facts"><div><span>Presentación</span><strong>{item.presentation}</strong></div><div><span>Disponibilidad</span><strong>Se confirma al realizar el pedido</strong></div></div>
     <PricedAddToCart item={item} detail/>
-    <p className="hint detail-purchase-disclaimer">El pedido se envía desde el carrito. Viagelato confirmará stock, costo de envío y pago antes de cerrar la compra.</p>
+    <p className="hint detail-purchase-disclaimer">Agregá productos al carrito y finalizá el pedido completo por WhatsApp. Antes de cerrar la compra confirmamos stock y entrega.</p>
+    <section className="product-description-section" aria-label="Información del producto"><h2>Descripción del producto</h2><p>{item.description}</p>
+    <div className="provisional-detail-facts"><div><span>Presentación</span><strong>{item.presentation}</strong></div><div><span>Disponibilidad</span><strong>Se confirma al realizar el pedido</strong></div></div></section>
    </div>
   </div>
  </main></SiteShell>;
