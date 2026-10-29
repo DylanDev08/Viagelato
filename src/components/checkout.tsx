@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import {ArrowLeft,ArrowRight,MessageCircle,Minus,Plus,ShoppingBag,Trash2,Truck} from "lucide-react";
 import Link from "next/link";
 import {useMemo,useState} from "react";
 import {useCart} from "./cart";
@@ -74,34 +75,32 @@ export function Checkout({products,settings}:{products:Product[];zones:ShippingZ
   }finally{setBusy(false);}
  }
 
- return <SiteShell settings={settings}><main className="container checkout-page">
-  <Link href="/catalogo">← Volver al catálogo</Link>
-  <h1>Tu carrito</h1>
-  <p className="hint">Elegí las cantidades de cada caja o presentación. Al finalizar se guarda una referencia de solicitud, y coordinás el pago y la entrega por WhatsApp. No se cobra ni se reserva stock desde la web.</p>
-  <div className="checkout-grid">
+ return <SiteShell settings={settings}><main className="shell checkout-page checkout-refresh">
+  <div className="cart-page-heading"><Link className="cart-back-link" href="/catalogo"><ArrowLeft size={17}/> Seguir comprando</Link><p className="kicker">TU SELECCIÓN</p><h1>Mi carrito<span className="cart-count-heading">{count}</span></h1><p>Revisá tus productos, ajustá las cantidades y enviá tu consulta por WhatsApp. <strong>No tenés que pagar en la web.</strong></p></div>
+  <div className="checkout-grid refined-cart-grid">
    <div>
-    <section className="panel" aria-label="Productos seleccionados">
-     <h2>Productos</h2>
+    <section className="panel cart-products-panel" aria-label="Productos seleccionados">
+     <div className="cart-panel-heading"><div><p className="kicker">PASO 01</p><h2>Productos seleccionados</h2></div><span>{count} {count===1?"unidad":"unidades"}</span></div>
      {missing>0?<p className="hint" role="status">Algunos artículos guardados ya no están en el catálogo. No se incluirán en la solicitud.</p>:null}
-     {!lines.length?<div><p>Tu carrito está vacío.</p><Link className="text-link" href="/catalogo">Explorar productos →</Link></div>:lines.map(({product,quantity})=><article className="cart-item" key={product.id}>
-      <div className="mini-art">{product.image_url?<Image src={product.image_url} alt={product.name} fill sizes="56px" unoptimized/>:""}</div>
+     {!lines.length?<div className="cart-empty"><ShoppingBag size={32} aria-hidden="true"/><h3>Tu carrito está esperando productos.</h3><p>Elegí helados y congelados del catálogo para preparar tu consulta.</p><Link className="primary-action" href="/catalogo">Explorar catálogo <ArrowRight size={18}/></Link></div>:lines.map(({product,quantity})=><article className="cart-item cart-line" key={product.id}>
+      <div className="mini-art cart-line-art">{product.image_url?<Image src={product.image_url} alt={product.name} fill sizes="(max-width:640px) 74px, 96px" unoptimized/>:<ShoppingBag size={24} aria-hidden="true"/>}</div>
       <div className="cart-meta">
        <strong>{product.name}</strong>
-       <small>{product.presentation??"Por presentación"} · {ars(Number(product.price))}</small>
+       <small>{product.presentation??"Por presentación"}</small><strong className="cart-unit-price">{ars(Number(product.price))} <span>/ presentación</span></strong>
        {product.sku?<small>SKU: {product.sku}</small>:null}
-       <small>Stock a confirmar por WhatsApp</small>
-       <button className="remove-cart" type="button" onClick={()=>setQuantity(product.id,0)}>Eliminar</button>
+       <small className="cart-stock-notice">Disponibilidad a confirmar</small>
       </div>
       <div className="qty">
-       <button type="button" disabled={quantity<=1} onClick={()=>setQuantity(product.id,quantity-1)} aria-label={`Quitar una presentación de ${product.name}`}>−</button>
+       <button type="button" disabled={quantity<=1} onClick={()=>setQuantity(product.id,quantity-1)} aria-label={`Quitar una presentación de ${product.name}`}><Minus size={16}/></button>
        <span aria-label={`${quantity} presentaciones`}>{quantity}</span>
-       <button type="button" disabled={quantity>=99} onClick={()=>setQuantity(product.id,quantity+1)} aria-label={`Agregar una presentación de ${product.name}`}>+</button>
+       <button type="button" disabled={quantity>=99} onClick={()=>setQuantity(product.id,quantity+1)} aria-label={`Agregar una presentación de ${product.name}`}><Plus size={16}/></button>
       </div>
+      <div className="cart-line-actions"><strong>{ars(Number(product.price)*quantity)}</strong><button className="remove-cart" type="button" onClick={()=>setQuantity(product.id,0)} aria-label={`Eliminar ${product.name} del carrito`}><Trash2 size={15}/> Quitar</button></div>
      </article>)}
-     {lines.length?<div className="cart-checkout-tools"><Link href="/catalogo" className="text-link">Seguir agregando productos</Link><button type="button" className="remove-cart" onClick={clear}>Vaciar carrito</button></div>:null}
+     {lines.length?<div className="cart-checkout-tools"><Link href="/catalogo" className="text-link">Seguir agregando productos</Link><button type="button" className="remove-cart" onClick={clear}><Trash2 size={15}/> Vaciar carrito</button></div>:null}
     </section>
-    <section className="panel" aria-label="Resumen de pedido">
-     <h2>Resumen</h2>
+    <section className="panel cart-summary-panel" aria-label="Resumen de pedido">
+     <h2>Resumen de tu selección</h2>
      <div className="totals">
       <p><span>Presentaciones</span><strong>{count}</strong></p>
       <p><span>Subtotal de productos</span><strong>{ars(subtotal)}</strong></p>
@@ -112,8 +111,8 @@ export function Checkout({products,settings}:{products:Product[];zones:ShippingZ
      <p className="hint">Los precios corresponden a cajas, baldes o envases completos. No se reserva mercadería hasta que Viagelato confirme tu solicitud.</p>
     </section>
    </div>
-   <form className="panel" onSubmit={sendRequest}>
-    <h2>Finalizar por WhatsApp</h2>
+   <form className="panel cart-form-panel" onSubmit={sendRequest}>
+    <div className="cart-form-heading"><p className="kicker">PASO 02</p><MessageCircle size={22} aria-hidden="true"/><h2>Coordinar por WhatsApp</h2></div>
     <p className="hint">Completá estos datos para preparar tu solicitud. Guardaremos nombre, localidad, productos y datos de entrega para que Viagelato pueda hacer seguimiento. Abrir WhatsApp no confirma el pedido ni el pago.</p>
     <label>Nombre y apellido<input required minLength={2} maxLength={120} autoComplete="name" value={fullName} onChange={e=>setFullName(e.target.value)}/></label>
     <label>Localidad<select required value={locality} onChange={e=>setLocality(e.target.value)}>
@@ -130,9 +129,9 @@ export function Checkout({products,settings}:{products:Product[];zones:ShippingZ
     </div>
     {error?<p className="error" role="alert">{error}</p>:null}
     {lines.length>30?<p role="alert" className="error">Máximo 30 productos diferentes por solicitud. Quitá algunos para continuar.</p>:null}
-    <button type="submit" className="btn primary full" disabled={!canRequest||busy}>{busy?"Preparando solicitud…":"Continuar pedido por WhatsApp"}</button>
+    <button type="submit" className="btn primary full cart-submit" disabled={!canRequest||busy}>{busy?"Preparando solicitud…":<>Continuar por WhatsApp <ArrowRight size={18}/></>}</button>
     {prepared?<p role="status">Solicitud {prepared.reference} preparada. <a href={prepared.url} rel="noopener noreferrer">Abrir WhatsApp para enviar el mensaje</a>. Si no lo enviás, seguirá pendiente de contacto.</p>:null}
-    <p className="hint">WhatsApp se abrirá con el mensaje listo para revisar y enviar. El carrito permanece guardado hasta que vos decidas vaciarlo.</p>
+    <p className="cart-form-footnote"><Truck size={16} aria-hidden="true"/> Confirmaremos stock, costo de envío y medios de pago antes de cerrar el pedido.</p><p className="hint">WhatsApp se abrirá con el mensaje listo para revisar y enviar. El carrito permanece guardado hasta que vos decidas vaciarlo.</p>
    </form>
   </div>
  </main></SiteShell>;
