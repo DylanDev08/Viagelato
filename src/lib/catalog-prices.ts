@@ -5,5 +5,5 @@ export type CatalogPriceItem={
  imageStatus:"coincidencia_exacta"|"referencial"|"sin_foto";sourceDriveId:string|null;
 };
 export const CATALOG_PRICE_ITEMS:CatalogPriceItem[]=priceSource.products as CatalogPriceItem[];
-export const CATALOG_SOURCE_LABEL="Precios finales por presentación según planilla de Viagelato recibida el 28/10/2026.";
+export const CATALOG_SOURCE_LABEL="Precio final por presentación. Consultá disponibilidad y condiciones de entrega por WhatsApp.";
 export const findCatalogPriceItem=(id:number)=>CATALOG_PRICE_ITEMS.find(item=>item.id===id)??null;
