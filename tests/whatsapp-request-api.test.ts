@@ -84,6 +84,12 @@ describe("registrar referencia WhatsApp",()=>{
   expect((await POST(make({...payload,items:[{id:"catalog-price-47",quantity:1}]}))).status).toBe(400);
   expect(insert).not.toHaveBeenCalled();
  });
+ it("rechaza cambios de precio entre lo visto en carrito y el precio actual del servidor",async()=>{
+  const res=await POST(make({...payload,expected_subtotal:1000}));
+  expect(res.status).toBe(409);
+  expect((await res.json()).error).toMatch(/precios cambiaron/i);
+  expect(insert).not.toHaveBeenCalled();
+ });
  it("no registra si la base está sin conectar",async()=>{
   vi.mocked(connected).mockReturnValue(false);
   expect((await POST(make())).status).toBe(503);
