@@ -1,0 +1,156 @@
+/* Acceso administrativo sencillo en teléfonos; nunca altera autenticación ni permisos. */
+.footer-admin-entry {
+ font-size: 11px;
+ font-weight: 700;
+ text-decoration: underline;
+ text-underline-offset: 3px;
+ color: #555;
+}
+.mobile-admin-entry {
+ border-top: 1px solid #dedede;
+ margin-top: 10px;
+ font-size: 16px !important;
+ color: #444;
+ font-weight: 800;
+}
+.admin-mobile-bottom-nav,.admin-mobile-more { display: none; }
+.admin-login-heading {
+ display: flex;
+ align-items: center;
+ gap: 10px;
+ font-size: 11px;
+ font-weight: 800;
+ letter-spacing: .09em;
+ color: #555;
+ margin-bottom: 16px;
+}
+.admin-password-input { position: relative; min-width: 0; }
+.admin-password-input input { padding-right: 55px !important; }
+.admin-password-toggle {
+ position: absolute;
+ right: 2px; top: 2px; bottom: 2px;
+ display: grid;
+ place-items: center;
+ width: 48px;
+ border: 0;
+ border-radius: 8px;
+ background: transparent;
+ color: #333;
+}
+.admin-password-toggle:focus-visible { outline: 3px solid #555; outline-offset: 1px; }
+
+@media(max-width:760px) {
+ .admin-shell { padding-bottom: calc(78px + env(safe-area-inset-bottom,0px)); }
+ body:has(.admin-shell) { padding-bottom: 0; }
+ .admin-side { gap: 8px; padding-bottom: 12px; }
+ .admin-side nav { display: none; }
+ .admin-side h2 { font-size: 17px; }
+ .admin-side h2 span { font-size: 9px; letter-spacing: 1px; }
+ .admin-side-bottom { gap: 10px; margin-top: 0; }
+ .admin-side-bottom :is(a,button) { padding: 8px 10px; min-height: 44px; font-size: 11px; }
+ .admin-main { padding-top: 14px; }
+ .admin-bar { margin-bottom: 18px; }
+ .admin-mobile-bottom-nav {
+  position: fixed;
+  z-index: 72;
+  display: grid;
+  grid-template-columns: repeat(5,minmax(0,1fr));
+  align-items: stretch;
+  bottom: 0; left: 0; right: 0;
+  padding: 8px 6px calc(9px + env(safe-area-inset-bottom,0px));
+  background: #fff;
+  border-top: 1px solid #dedede;
+  box-shadow: 0 -5px 20px rgba(0,0,0,.08);
+ }
+ .admin-mobile-bottom-nav button {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 4px;
+  min-height: 54px;
+  min-width: 0;
+  border: 0;
+  background: transparent;
+  border-radius: 9px;
+  color: #555;
+  font-size: 10px;
+  font-weight: 800;
+  padding: 5px 1px;
+ }
+ .admin-mobile-bottom-nav button.active {
+  background: #111;
+  color: #fff;
+ }
+ .admin-mobile-bottom-nav button span {
+  max-width: 100%;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+ }
+ .admin-mobile-bottom-nav button:focus-visible,
+ .admin-mobile-more button:focus-visible { outline: 3px solid #666; outline-offset: 2px; }
+ .admin-mobile-more {
+  display: none;
+  position: fixed;
+  z-index: 71;
+  bottom: calc(73px + env(safe-area-inset-bottom,0px));
+  left: 12px; right: 12px;
+  max-height: min(390px, calc(100dvh - 120px));
+  overflow-y: auto;
+  padding: 14px;
+  background: #fff;
+  border: 1px solid #ddd;
+  border-radius: 14px;
+  box-shadow: 0 -8px 35px rgba(0,0,0,.17);
+  gap: 6px;
+ }
+ .admin-mobile-more.is-open { display: grid; }
+ .admin-mobile-more-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 3px 5px 8px;
+ }
+ .admin-mobile-more-header strong { font-size: 14px; }
+ .admin-mobile-more-header button {
+  display: grid;
+  place-items: center;
+  width: 44px; height: 44px;
+  border: 0;
+  background: #f1f1f1;
+  border-radius: 8px;
+ }
+ .admin-mobile-more > button {
+  display: flex;
+  align-items: center;
+  gap: 13px;
+  min-height: 48px;
+  border: 0;
+  border-radius: 9px;
+  padding: 11px 14px;
+  font-size: 13px;
+  font-weight: 750;
+  background: #f4f4f4;
+  color: #111;
+  text-align: left;
+ }
+ .admin-mobile-more > button.active { background: #111; color: #fff; }
+}
+
+@media(max-width:640px) {
+ .footer-bottom { gap: 8px; }
+ .footer-admin-entry { min-height: 40px; display: inline-flex; align-items: center; }
+ .auth-shell { padding: 16px; min-height: 100dvh; }
+ .auth-panel { width: 100%; max-width: 440px; padding: 24px 20px; }
+ .auth-panel h1 { font-size: 26px; line-height: 1.2; }
+ .auth-panel p { font-size: 13px; line-height: 1.5; }
+ .auth-panel input { min-height: 50px; font-size: 16px; }
+ .auth-panel > button { min-height: 52px; }
+ .auth-panel .auth-help a { min-height: 42px; display: inline-flex; align-items: center; }
+}
+@media(max-width:350px) {
+ .admin-mobile-bottom-nav { padding-inline: 2px; }
+ .admin-mobile-bottom-nav button { font-size: 9px; }
+ .admin-side-bottom :is(a,button) { font-size: 10px; padding-inline: 4px; }
+}
