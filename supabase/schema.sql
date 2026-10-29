@@ -290,11 +290,11 @@ insert into storage.buckets(id,name,public,file_size_limit,allowed_mime_types)
 values('images','images',true,3000000,array['image/jpeg','image/png','image/webp'])
 on conflict(id) do update set public=excluded.public,file_size_limit=excluded.file_size_limit,allowed_mime_types=excluded.allowed_mime_types;
 
--- Cobertura conocida: inactiva, sin tarifa y no elegible hasta validación comercial.
+-- Cobertura confirmada: elegible para envío gratis desde el mínimo; inactiva hasta confirmar tarifas debajo del mínimo.
 insert into public.shipping_zones(name,postal_codes,cost,free_shipping_eligible,ready,active) values
- ('Lomas de Zamora','{}',null,false,false,false),('Lanús','{}',null,false,false,false),('Banfield','{}',null,false,false,false),
- ('Avellaneda','{}',null,false,false,false),('Valentín Alsina','{}',null,false,false,false),
- ('Don Bosco','{}',null,false,false,false),('Wilde','{}',null,false,false,false)
+ ('Lomas de Zamora','{}',null,true,false,false),('Lanús','{}',null,true,false,false),('Banfield','{}',null,true,false,false),
+ ('Avellaneda','{}',null,true,false,false),('Valentín Alsina','{}',null,true,false,false),
+ ('Don Bosco','{}',null,true,false,false),('Wilde','{}',null,true,false,false)
 on conflict(name) do nothing;
 
 -- Crear el administrador en Auth > Users y luego ejecutar:
