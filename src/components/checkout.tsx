@@ -127,7 +127,7 @@ export function Checkout({products,settings,catalogItems=CATALOG_PRICE_ITEMS}:{p
      {DELIVERY_AREAS.map(area=><option key={area} value={area}>{area}</option>)}
      <option value="other">Otra localidad (consultar cobertura)</option>
     </select></label>
-    {selectedLocality==="other"?<label>Escribí tu localidad<input required minLength={2} maxLength={100} autoComplete="address-level2" value={otherLocality} onChange={e=>setOtherLocality(e.target.value)} placeholder="Por ejemplo: Quilmes" aria-describedby="other-locality-help"/><small id="other-locality-help">Vamos a confirmar la cobertura y el costo de entrega.</small></label>:null}
+    {selectedLocality==="other"?<label>Escribí tu localidad<input required minLength={2} maxLength={100} autoComplete="address-level2" aria-label="Escribí tu localidad" value={otherLocality} onChange={e=>setOtherLocality(e.target.value)} placeholder="Por ejemplo: Quilmes" aria-describedby="other-locality-help"/><small id="other-locality-help">Vamos a confirmar la cobertura y el costo de entrega.</small></label>:null}
     {settings.pickup_enabled?<label>Entrega<select value={delivery} onChange={e=>setDelivery(e.target.value as "shipping"|"pickup")}><option value="shipping">Envío a domicilio</option><option value="pickup">Consultar retiro</option></select></label>:null}
     {delivery==="shipping"?<label>Dirección de entrega (opcional)<input maxLength={250} autoComplete="street-address" value={address} onChange={e=>setAddress(e.target.value)} placeholder="Calle, altura y piso"/></label>:null}
     <label>Observaciones (opcional)<textarea maxLength={350} rows={3} value={notes} onChange={e=>setNotes(e.target.value)} placeholder="Horarios, preferencias de sabores, etc."/></label>
