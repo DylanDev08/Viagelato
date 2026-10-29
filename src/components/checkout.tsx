@@ -69,6 +69,10 @@ export function Checkout({products,settings,catalogItems=CATALOG_PRICE_ITEMS}:{p
    }
    if(typeof data.reference!=="string"||typeof data.whatsapp_url!=="string"||!data.whatsapp_url.startsWith("https://wa.me/")||!data.whatsapp_url.includes("?text="))throw new Error("El enlace de WhatsApp no está disponible");
    setPrepared({reference:data.reference,url:data.whatsapp_url});
+   if(typeof data.subtotal!=="number"||Math.abs(data.subtotal-subtotal)>0.009){
+    setError("Los precios cambiaron al preparar el pedido. Actualizá el carrito para revisar el subtotal antes de enviarlo.");
+    return;
+   }
    // Se guarda solo la preparación del mensaje. No se afirma que se envió ni se cobró.
    window.location.assign(data.whatsapp_url);
   }catch(reason){
