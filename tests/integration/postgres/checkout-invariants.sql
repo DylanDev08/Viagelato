@@ -2,8 +2,8 @@
 begin;
 update public.site_settings set transfer_enabled=true,on_delivery_enabled=true,pickup_enabled=false,reservation_minutes=30 where id=true;
 insert into public.categories(id,name,slug) values('20000000-0000-4000-8000-000000000001','Prueba','prueba');
-insert into public.products(id,category_id,name,slug,price,stock,sku,commercially_verified,active)
-values('10000000-0000-4000-8000-000000000001','20000000-0000-4000-8000-000000000001','Producto probado','producto-probado',60000,2,'TEST-001',true,true);
+insert into public.products(id,category_id,name,slug,description,price,stock,image_url,sku,commercially_verified,active)
+values('10000000-0000-4000-8000-000000000001','20000000-0000-4000-8000-000000000001','Producto probado','producto-probado','Producto completo para pruebas de integración.',60000,2,'/catalogo/alfajor-negro.webp','TEST-001',true,true);
 insert into public.shipping_zones(id,name,cost,free_shipping_eligible,ready,active)
 values('30000000-0000-4000-8000-000000000001','Zona probada',5000,true,true,true);
 
