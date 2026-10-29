@@ -3,8 +3,8 @@ import {NextResponse} from "next/server";
 import {z} from "zod";
 import {connected,privilegedDb} from "@/lib/supabase";
 import {CATALOG_PRICE_ITEMS} from "@/lib/catalog-prices";
-import {whatsappCartMessage,whatsappRequestReference} from "@/lib/whatsapp-cart";
-import {normalizeWhatsAppRequest,whatsappRequestSchema} from "@/lib/whatsapp-request-rules";
+import {whatsappCartMessage} from "@/lib/whatsapp-cart";
+import {normalizeWhatsAppRequest,whatsappRequestSchema,whatsappRequestReference} from "@/lib/whatsapp-request-rules";
 import {whatsappHref} from "@/lib/whatsapp";
 
 export const runtime="nodejs";
@@ -21,7 +21,7 @@ export async function POST(request:Request){
  if(!connected())return reply("La recepción de solicitudes todavía no está configurada",503);
  if(request.headers.get("sec-fetch-site")==="cross-site")return reply("Origen no permitido",403);
  const origin=request.headers.get("origin");
- if(origin&&new URL(origin).origin!==new URL(request.url).origin)return reply("Origen no permitido",403);
+ if(origin){try{if(new URL(origin).origin!==new URL(request.url).origin)return reply("Origen no permitido",403);}catch{return reply("Origen no permitido",403);}}
  if(!request.headers.get("content-type")?.toLowerCase().startsWith("application/json"))return reply("El cuerpo debe enviarse como JSON",415);
  const key=uuid.safeParse(request.headers.get("idempotency-key"));
  if(!key.success)return reply("Falta identificar esta solicitud",400);
