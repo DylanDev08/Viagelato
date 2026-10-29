@@ -2,7 +2,6 @@ import {createHash,createHmac} from "node:crypto";
 import {NextResponse} from "next/server";
 import {z} from "zod";
 import {connected,privilegedDb} from "@/lib/supabase";
-import {CATALOG_PRICE_ITEMS} from "@/lib/catalog-prices";
 import {whatsappCartMessage,type WhatsAppCartLine} from "@/lib/whatsapp-cart";
 import {normalizeWhatsAppRequest,whatsappRequestSchema,whatsappRequestReference} from "@/lib/whatsapp-request-rules";
 import {whatsappHref} from "@/lib/whatsapp";
@@ -83,9 +82,25 @@ export async function POST(request:Request){
   if(prior.request_fingerprint!==hash)return reply("Esta solicitud cambió. Revisá el carrito e intentá otra vez.",409);
   return preparedResponse(prior as RequestSnapshot,settings,false);
  }
- const source=new Map<string,{name:string;sku:string;presentation:string;price:number}>(CATALOG_PRICE_ITEMS.map(item=>[`catalog-price-${item.sourceRow}`,{
-  name:item.name,sku:item.sku,presentation:item.presentation,price:item.price
- }] as const));
+ const source=new Map<string,{name:string;sku:string;presentation:string;price:number}>();
+ // Revalidar cada fila del catálogo en Supabase: nunca cotizar desde el JSON
+ // ni aceptar una ficha que el administrador haya ocultado.
+ const requestedRows=input.items.filter(item=>item.id.startsWith("catalog-price-"))
+  .map(item=>Number(item.id.slice("catalog-price-".length)));
+ if(requestedRows.length){
+  const {data:catalog,error:catalogError}=await db.from("products")
+   .select("slug,name,sku,presentation,price")
+   .eq("catalog_visible",true)
+   .in("slug",requestedRows.map(row=>"excel-fila-"+row));
+  if(catalogError||!catalog||catalog.length!==requestedRows.length)
+   return reply("Hay productos ocultos o no disponibles. Actualizá el carrito.",409);
+  for(const item of catalog){
+   const row=Number(item.slug.slice("excel-fila-".length));
+   if(!requestedRows.includes(row)||!Number.isFinite(Number(item.price))||Number(item.price)<=0)
+    return reply("El catálogo cambió. Revisá el carrito.",409);
+   source.set("catalog-price-"+row,{name:item.name,sku:item.sku??"",presentation:item.presentation??"",price:Number(item.price)});
+  }
+ }
  const ids=input.items.filter(item=>!source.has(item.id)).map(item=>item.id);
  if(ids.length){
   if(!ids.every(id=>uuid.safeParse(id).success))return reply("Hay productos no disponibles",409);
