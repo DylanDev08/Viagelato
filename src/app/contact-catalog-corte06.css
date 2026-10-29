@@ -72,3 +72,24 @@
 .priced-detail-price>span{font-size:14px;color:#555}
 .priced-reference-note{border-left:3px solid #8c795a;padding:12px;background:#f4f1ec;color:#62543e}
 @media(max-width:640px){.priced-card-body{min-height:220px}.priced-card-bottom strong{font-size:19px}}
+
+
+/* Finalización comercial por WhatsApp: carrito con precios de caja, sin cobro online. */
+.priced-card{display:flex;flex-direction:column}
+.priced-card>.provisional-card-link{flex:1;height:auto}
+.priced-cart-action{display:grid;gap:9px;padding:5px 16px 17px}
+.priced-add-button{display:flex;align-items:center;justify-content:center;min-height:46px;width:100%;background:#111;color:#fff;border:1px solid #111;border-radius:3px;font:inherit;font-size:12px;font-weight:800;cursor:pointer;transition:background .2s}
+.priced-add-button:hover:not(:disabled){background:#343434}
+.priced-add-button:disabled{opacity:.55;cursor:not-allowed}
+.priced-cart-action small{font-size:11px;color:#777;text-align:center}
+.priced-cart-link{font-size:12px;font-weight:750;color:#111;text-decoration:underline;text-underline-offset:4px;text-align:center}
+.provisional-detail-copy>.priced-cart-action{padding:0;margin:16px 0;max-width:400px}
+.cart-checkout-tools{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:15px;margin-top:20px}
+.whatsapp-payment-info{margin:17px 0;padding:16px;background:#f4f4f3;border-left:3px solid #111}
+.whatsapp-payment-info strong{font-size:13px}
+.whatsapp-payment-info p{margin:8px 0 0;font-size:12px;line-height:1.6;color:#555}
+.checkout-page .cart-meta small{display:block;line-height:1.5}
+.checkout-page .checkout-grid>.panel{align-self:start}
+.checkout-page .qty button:disabled{opacity:.35;cursor:not-allowed}
+@media(max-width:640px){.priced-cart-action{padding-inline:13px}.cart-checkout-tools{align-items:flex-start;flex-direction:column}.checkout-page .checkout-grid{gap:20px}}
+@media(prefers-reduced-motion:reduce){.priced-add-button{transition:none}}
