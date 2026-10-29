@@ -82,7 +82,7 @@ export function Checkout({products,settings,catalogItems=CATALOG_PRICE_ITEMS}:{p
   }finally{setBusy(false);}
  }
 
- return <SiteShell settings={settings}><main className="shell checkout-page checkout-refresh">
+ return <SiteShell settings={settings} hideFloatingActions><main className="shell checkout-page checkout-refresh">
   <div className="cart-page-heading"><Link className="cart-back-link" href="/catalogo"><ArrowLeft size={17}/> Seguir comprando</Link><p className="kicker">TU SELECCIÓN</p><h1>Mi carrito<span className="cart-count-heading">{count}</span></h1><p>Revisá las cantidades, completá tus datos y enviá el pedido completo por WhatsApp. <strong>El pago se coordina después.</strong></p></div>
   <div className="checkout-grid refined-cart-grid">
    <div>
