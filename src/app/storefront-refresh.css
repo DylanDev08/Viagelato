@@ -261,3 +261,9 @@
 .checkout-refresh .cart-missing-alert p{font-size:12px;line-height:1.6;margin:7px 0 12px}
 .checkout-refresh .cart-missing-alert button{border:1px solid #9d6439;border-radius:7px;background:#fff;padding:9px 12px;font-weight:750;font-size:12px;color:#683d1b}
 .checkout-refresh .cart-missing-alert button:hover{background:#f7e6d6}
+
+/* Ficha: precio y acción de compra visibles antes de la información secundaria. */
+.product-description-section{border-top:1px solid #e5e5e5;margin-top:28px;padding-top:26px}
+.product-description-section>h2{margin-top:0}
+.product-description-section .provisional-detail-facts{margin-top:20px}
+@media(max-width:640px){.product-description-section{margin-top:24px;padding-top:22px}}
