@@ -6,7 +6,9 @@ import type { NextConfig } from "next";
  * mismo servidor que comprueba la sesión y consulta Supabase: así no
  * se mezclan versiones del panel y de la API durante los despliegues.
  *
- * Solo el backend público de health/checkout/cron sigue usando Render.
+ * El diagnóstico /api/health pertenece al servidor web de Vercel; no debe
+ * depender del backend legado en Render. Checkout legado y cron siguen usando
+ * Render mientras se valida la migración de esos dos endpoints.
  * No definir API_ORIGIN en Render (evita bucles).
  */
 const backendOrigin=process.env.API_ORIGIN?.trim();
@@ -21,7 +23,7 @@ function getBackendOrigin(){
 }
 const origin=getBackendOrigin();
 
-const renderRoutes=["/api/health","/api/checkout","/api/cron/:path*"] as const;
+const renderRoutes=["/api/checkout","/api/cron/:path*"] as const;
 
 const nextConfig:NextConfig={
   reactStrictMode:true,
