@@ -6,6 +6,7 @@ import {ArrowUpRight,ImageOff,Search,SlidersHorizontal} from "lucide-react";
 import {useDeferredValue,useMemo,useState} from "react";
 import {ars} from "@/lib/types";
 import {normalizeCatalogText} from "@/lib/catalog-search";
+import {PricedAddToCart} from "./priced-add-to-cart";
 import type {CatalogPriceItem} from "@/lib/catalog-prices";
 
 export function PricedCatalog({items}:{items:CatalogPriceItem[]}){
@@ -48,6 +49,7 @@ export function PricedCatalog({items}:{items:CatalogPriceItem[]}){
       {item.imageStatus==="sin_foto"&&<span className="priced-image-note">Fotografía pendiente</span>}
      </div>
     </Link>
+    <PricedAddToCart item={item}/>
    </article>)}
   </div>
   {filtered.length===0&&<div className="empty-catalog"><h3>No encontramos productos.</h3><button type="button" onClick={()=>{setQuery("");setCategory("all");setSort("category");}}>Limpiar filtros</button></div>}
