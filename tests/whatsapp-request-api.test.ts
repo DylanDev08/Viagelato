@@ -56,6 +56,13 @@ describe("registrar referencia WhatsApp",()=>{
   expect((await res.json()).subtotal).toBe(65000);
   expect(insert).toHaveBeenCalledWith(expect.objectContaining({subtotal:65000}),expect.anything());
  });
+ it("rechaza precio obsoleto sin registrar un pedido, incluso con WhatsApp configurado",async()=>{
+  catalogRead.mockResolvedValue({data:[{slug:"excel-fila-2",name:"Palitos de agua",sku:"VIA-CAT-2",presentation:"Caja x24",price:32500}],error:null});
+  const res=await POST(make({...payload,expected_subtotal:43800}));
+  expect(res.status).toBe(409);
+  expect((await res.json()).error).toMatch(/precios cambiaron/i);
+  expect(insert).not.toHaveBeenCalled();
+ });
  it("rechaza un producto oculto y no escribe solicitudes",async()=>{
   catalogRead.mockResolvedValue({data:[],error:null});
   const res=await POST(make());
