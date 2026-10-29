@@ -1,17 +1,14 @@
 "use client";
 import {createContext,useContext,useEffect,useMemo,useState} from "react";
 import type {CartLine} from "@/lib/types";
+import {normalizeCartLines} from "@/lib/cart-rules";
 
 type CartContext={items:CartLine[];count:number;add:(id:string,quantity?:number,maxStock?:number)=>void;setQuantity:(id:string,n:number)=>void;clear:()=>void};
 const ctx=createContext<CartContext|null>(null);
 const CART_KEY="viagelato-cart:v1";
 const LEGACY_CART_KEY="dist-cart";
-function validLines(value:unknown):CartLine[]{
- if(!Array.isArray(value))return [];
- return value.filter((line):line is CartLine=>Boolean(line)&&typeof line.id==="string"&&Number.isInteger(line.quantity)&&line.quantity>0&&line.quantity<=99).slice(0,50);
-}
 function readCart(){
- try{const stored=localStorage.getItem(CART_KEY)??localStorage.getItem(LEGACY_CART_KEY);const lines=validLines(JSON.parse(stored||"[]"));if(!localStorage.getItem(CART_KEY)&&stored){localStorage.setItem(CART_KEY,JSON.stringify(lines));localStorage.removeItem(LEGACY_CART_KEY);}return lines;}catch{return [];}
+ try{const stored=localStorage.getItem(CART_KEY)??localStorage.getItem(LEGACY_CART_KEY);const lines=normalizeCartLines(JSON.parse(stored||"[]"));if(!localStorage.getItem(CART_KEY)&&stored){localStorage.setItem(CART_KEY,JSON.stringify(lines));localStorage.removeItem(LEGACY_CART_KEY);}return lines;}catch{return [];}
 }
 function saveCart(items:CartLine[]){try{localStorage.setItem(CART_KEY,JSON.stringify(items));}catch{/* almacenamiento deshabilitado o sin espacio */}}
 export function CartProvider({children}:{children:React.ReactNode}){
