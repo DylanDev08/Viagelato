@@ -9,7 +9,8 @@ import {whatsappHref} from "@/lib/whatsapp";
 export const dynamic="force-dynamic";
 export async function generateMetadata({params}:{params:Promise<{tipo:string}>}):Promise<Metadata>{
  const {tipo}=await params;
- return {title:tipo==="privacidad"?"Política de privacidad":"Cambios y devoluciones"};
+ if(!["privacidad","devoluciones"].includes(tipo))return {title:"Política no encontrada",robots:{index:false,follow:false}};
+ return {title:tipo==="privacidad"?"Política de privacidad":"Cambios y devoluciones",alternates:{canonical:`/politicas/${tipo}`}};
 }
 
 export default async function Policies({params}:{params:Promise<{tipo:string}>}){

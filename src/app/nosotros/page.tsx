@@ -7,7 +7,7 @@ import {getStore} from "@/lib/site";
 import {whatsappHref} from "@/lib/whatsapp";
 
 export const dynamic="force-dynamic";
-export const metadata:Metadata={title:"Nosotros",description:"Conocé Viagelato S.A., distribución de helados y congelados con entregas coordinadas en Zona Sur."};
+export const metadata:Metadata={title:"Nosotros",description:"Conocé Viagelato S.A., distribución de helados y congelados con entregas coordinadas en Zona Sur.",alternates:{canonical:"/nosotros"}};
 
 export default async function AboutPage(){
  const {settings}=await getStore();

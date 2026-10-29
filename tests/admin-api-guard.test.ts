@@ -43,7 +43,7 @@ describe("CRUD administrativo con ID seguro y estado real",()=>{
  it("guarda la configuración vía una sola función atómica",async()=>{
   const rpc=vi.fn().mockResolvedValue({data:{name:"Viagelato S.A."},error:null});
   vi.mocked(privilegedDb).mockReturnValue({rpc} as unknown as ReturnType<typeof privilegedDb>);
-  const {id:_,...settings}=DEFAULT_SETTINGS;
+  const settings=Object.fromEntries(Object.entries(DEFAULT_SETTINGS).filter(([key])=>key!=="id"));
   const r=await saveSettings(req("PUT","settings",settings));
   expect(r.status).toBe(200);
   expect(rpc).toHaveBeenCalledOnce();
@@ -52,7 +52,7 @@ describe("CRUD administrativo con ID seguro y estado real",()=>{
  it("no comunica éxito si falla la transacción de configuración",async()=>{
   const rpc=vi.fn().mockResolvedValue({data:null,error:{message:"rollback"}});
   vi.mocked(privilegedDb).mockReturnValue({rpc} as unknown as ReturnType<typeof privilegedDb>);
-  const {id:_,...settings}=DEFAULT_SETTINGS;
+  const settings=Object.fromEntries(Object.entries(DEFAULT_SETTINGS).filter(([key])=>key!=="id"));
   const r=await saveSettings(req("PUT","settings",settings));
   expect(r.status).toBe(400);
   expect((await r.json()).error).toContain("No se aplicaron cambios parciales");

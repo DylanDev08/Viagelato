@@ -18,7 +18,7 @@ afterEach(()=>{vi.unstubAllGlobals();vi.restoreAllMocks();refresh.mockClear();})
 describe("seguimiento comercial de WhatsApp",()=>{
  it("obliga a verificar el stock y cotizar el envío antes de confirmar",async()=>{
   const user=userEvent.setup();
-  const send=vi.fn(async (_input:RequestInfo|URL,_init?:RequestInit)=>({ok:true,json:async()=>({updated:true})}));
+  const send=vi.fn(async (input:RequestInfo|URL,init?:RequestInit)=>{void input;void init;return {ok:true,json:async()=>({updated:true})};});
   vi.stubGlobal("fetch",send);
   vi.spyOn(window,"confirm").mockReturnValue(true);
   render(<WhatsAppRequests requests={[common]}/>);
@@ -38,7 +38,7 @@ describe("seguimiento comercial de WhatsApp",()=>{
  });
  it("aplica el costo cero de envío a zona elegible desde el umbral",async()=>{
   const user=userEvent.setup();
-  const send=vi.fn(async (_input:RequestInfo|URL,_init?:RequestInit)=>({ok:true,json:async()=>({updated:true})}));
+  const send=vi.fn(async (input:RequestInfo|URL,init?:RequestInit)=>{void input;void init;return {ok:true,json:async()=>({updated:true})};});
   vi.stubGlobal("fetch",send);
   vi.spyOn(window,"confirm").mockReturnValue(true);
   render(<WhatsAppRequests requests={[{...common,subtotal:65700,items:[{...common.items[0],quantity:3}]}]} freeShippingThreshold={60000}/>);
@@ -66,7 +66,7 @@ describe("seguimiento comercial de WhatsApp",()=>{
  });
  it("envía importe, referencia e idempotencia sin marcar el total automáticamente",async()=>{
   const user=userEvent.setup();
-  const send=vi.fn(async (_input:RequestInfo|URL,_init?:RequestInit)=>({ok:true,json:async()=>({updated:true})}));
+  const send=vi.fn(async (input:RequestInfo|URL,init?:RequestInit)=>{void input;void init;return {ok:true,json:async()=>({updated:true})};});
   vi.stubGlobal("fetch",send);
   vi.spyOn(window,"confirm").mockReturnValue(true);
   render(<WhatsAppRequests requests={[{...common,status:"confirmed",stock_confirmed:true,shipping_cost:3500,total:25400,amount_paid:10000,payment_status:"partial"}]}/>);

@@ -3,19 +3,26 @@ import {NextResponse} from "next/server";
 import {z} from "zod";
 import {connected,privilegedDb} from "@/lib/supabase";
 import {checkoutSchema,normalizeCheckout} from "@/lib/checkout-rules";
+import {clientAddress,isAllowedMutationOrigin,readLimitedJson} from "@/lib/request-security";
 
 export const runtime="nodejs";
 function jsonError(error:string,status:number,headers?:HeadersInit){return NextResponse.json({error},{status,headers:{"Cache-Control":"no-store",...headers}})}
-function clientKey(request:Request){const raw=request.headers.get("x-real-ip")||request.headers.get("x-forwarded-for")?.split(",")[0]?.trim()||"unknown";return createHmac("sha256",process.env.CHECKOUT_RATE_LIMIT_SALT!).update(raw).digest("hex")}
+function clientKey(request:Request){return createHmac("sha256",process.env.CHECKOUT_RATE_LIMIT_SALT!).update(clientAddress(request)).digest("hex")}
 
 export async function POST(request:Request){
  if(process.env.ENABLE_CHECKOUT!=="true"||!connected())return jsonError("Los pedidos todavía no están habilitados",503);
  if(!process.env.CHECKOUT_RATE_LIMIT_SALT)return jsonError("Falta completar la seguridad del checkout",503);
+ if(!isAllowedMutationOrigin(request))return jsonError("Origen no permitido",403);
  const idempotencyHeader=request.headers.get("idempotency-key");
  const idempotency=z.uuid().safeParse(idempotencyHeader);
  if(!idempotency.success)return jsonError("Falta una clave de idempotencia válida",400);
- const body=await request.json().catch(()=>null);
- const parsed=checkoutSchema.safeParse(body);
+ const body=await readLimitedJson(request);
+ if(!body.ok){
+  if(body.reason==="content-type")return jsonError("El cuerpo debe enviarse como JSON",415);
+  if(body.reason==="too-large"||body.reason==="empty")return jsonError("Solicitud demasiado extensa o vacía",413);
+  return jsonError("Formato de solicitud inválido",400);
+ }
+ const parsed=checkoutSchema.safeParse(body.value);
  if(!parsed.success)return NextResponse.json({error:"Revisá los datos de la compra",issues:parsed.error.issues.map(issue=>({path:issue.path,message:issue.message}))},{status:400,headers:{"Cache-Control":"no-store"}});
  const data=parsed.data;
  const db=privilegedDb();

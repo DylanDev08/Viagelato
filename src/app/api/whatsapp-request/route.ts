@@ -5,16 +5,16 @@ import {connected,privilegedDb} from "@/lib/supabase";
 import {whatsappCartMessage,type WhatsAppCartLine} from "@/lib/whatsapp-cart";
 import {normalizeWhatsAppRequest,whatsappRequestSchema,whatsappRequestReference} from "@/lib/whatsapp-request-rules";
 import {whatsappHref} from "@/lib/whatsapp";
+import {clientAddress,isAllowedMutationOrigin,readLimitedJson} from "@/lib/request-security";
 
 export const runtime="nodejs";
 const reply=(error:string,status:number)=>NextResponse.json({error},{status,headers:{"Cache-Control":"no-store"}});
 const uuid=z.uuid();
 function fingerprint(body:unknown){return createHash("sha256").update(JSON.stringify(body)).digest("hex");}
 function rateKey(request:Request){
- const secret=process.env.CHECKOUT_RATE_LIMIT_SALT||process.env.SUPABASE_SERVICE_ROLE_KEY;
+ const secret=process.env.CHECKOUT_RATE_LIMIT_SALT;
  if(!secret)throw new Error("Falta clave del limitador");
- const ip=request.headers.get("x-real-ip")||request.headers.get("x-forwarded-for")?.split(",")[0]?.trim()||"unknown";
- return createHmac("sha256",secret).update(ip).digest("hex");
+ return createHmac("sha256",secret).update(clientAddress(request)).digest("hex");
 }
 type RequestSnapshot={
  id:string;request_fingerprint:string;status:string;
@@ -50,16 +50,17 @@ function preparedResponse(record:RequestSnapshot,settings:CommercialSettings,cre
 
 export async function POST(request:Request){
  if(!connected())return reply("La recepción de solicitudes todavía no está configurada",503);
- if(request.headers.get("sec-fetch-site")==="cross-site")return reply("Origen no permitido",403);
- const origin=request.headers.get("origin");
- if(origin){try{if(new URL(origin).origin!==new URL(request.url).origin)return reply("Origen no permitido",403);}catch{return reply("Origen no permitido",403);}}
- if(!request.headers.get("content-type")?.toLowerCase().startsWith("application/json"))return reply("El cuerpo debe enviarse como JSON",415);
+ if(!process.env.CHECKOUT_RATE_LIMIT_SALT)return reply("Falta completar la seguridad de solicitudes",503);
+ if(!isAllowedMutationOrigin(request))return reply("Origen no permitido",403);
  const key=uuid.safeParse(request.headers.get("idempotency-key"));
  if(!key.success)return reply("Falta identificar esta solicitud",400);
- const raw=await request.text().catch(()=>"");
- if(!raw||raw.length>16000)return reply("Solicitud demasiado extensa o vacía",413);
- let body:unknown;try{body=JSON.parse(raw);}catch{return reply("Formato de solicitud inválido",400);}
- const parsed=whatsappRequestSchema.safeParse(body);
+ const body=await readLimitedJson(request);
+ if(!body.ok){
+  if(body.reason==="content-type")return reply("El cuerpo debe enviarse como JSON",415);
+  if(body.reason==="too-large"||body.reason==="empty")return reply("Solicitud demasiado extensa o vacía",413);
+  return reply("Formato de solicitud inválido",400);
+ }
+ const parsed=whatsappRequestSchema.safeParse(body.value);
  if(!parsed.success)return reply("Revisá tu nombre, localidad y productos",400);
  const input=normalizeWhatsAppRequest(parsed.data);
  const db=privilegedDb();

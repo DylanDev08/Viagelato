@@ -10,7 +10,7 @@ export {SiteHeader as Header} from "./site-header";
 export {SiteFooter as Footer} from "./site-footer";
 
 import {whatsappHref} from "@/lib/whatsapp";
-import {ars,type Banner,type Category,type Product,type Settings} from "@/lib/types";
+import {ars,type Banner,type Category,type PublicProduct,type Settings} from "@/lib/types";
 
 const HERO_PRODUCTS=[
  {src:"/catalogo/img-20261023-wa0103.webp",alt:"Balde de helado Seitu de cinco litros"},
@@ -18,7 +18,7 @@ const HERO_PRODUCTS=[
  {src:"/catalogo/cono-tu-dl.webp",alt:"Cono helado de dulce de leche"},
 ] as const;
 
-export function Storefront({settings,products,banners,demo,catalogItems=CATALOG_PRICE_ITEMS}:{settings:Settings;products:Product[];categories:Category[];banners:Banner[];demo:boolean;catalogItems?:CatalogPriceItem[]}){
+export function Storefront({settings,products,banners,demo,catalogItems=CATALOG_PRICE_ITEMS}:{settings:Settings;products:PublicProduct[];categories:Category[];banners:Banner[];demo:boolean;catalogItems?:CatalogPriceItem[]}){
  const featured=products.filter(product=>product.featured).slice(0,4);
  const visible=featured.length?featured:products.slice(0,4);
  const pricedPreview=storefrontSamples(catalogItems,4);

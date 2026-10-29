@@ -23,6 +23,9 @@ export type Product = {
   created_at?: string;
 };
 
+/** Producto público: el stock exacto se valida en servidor y no se expone al navegador. */
+export type PublicProduct = Omit<Product,"stock">;
+
 export type ShippingZone = {
   id: string;
   name: string;
