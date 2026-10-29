@@ -3,7 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import {Menu,ShoppingBag,X} from "lucide-react";
-import {useState} from "react";
+import {useEffect,useState} from "react";
 import {useCart} from "./cart";
 import type {Settings} from "@/lib/types";
 
@@ -17,6 +17,12 @@ const links=[
 export function SiteHeader({settings}:{settings:Settings}){
  const [open,setOpen]=useState(false);
  const {count}=useCart();
+ useEffect(()=>{
+  if(!open)return;
+  const close=(event:KeyboardEvent)=>{if(event.key==="Escape")setOpen(false);};
+  window.addEventListener("keydown",close);
+  return ()=>window.removeEventListener("keydown",close);
+ },[open]);
  return <header className="site-header">
   <div className="shell header-row">
    <Link className="site-brand" href="/" aria-label={`${settings.name}, inicio`} onClick={()=>setOpen(false)}>
@@ -31,8 +37,8 @@ export function SiteHeader({settings}:{settings:Settings}){
     <button className="menu-trigger" type="button" aria-expanded={open} aria-controls="mobile-navigation" aria-label={open?"Cerrar menú":"Abrir menú"} onClick={()=>setOpen(value=>!value)}>{open?<X/>:<Menu/>}</button>
    </div>
   </div>
-  <div id="mobile-navigation" className={`mobile-nav ${open?"is-open":""}`}>
-   <nav className="shell" aria-label="Navegación mobile">{links.map(link=><Link key={link.href} href={link.href} onClick={()=>setOpen(false)}>{link.label}</Link>)}</nav>
+  <div id="mobile-navigation" className={`mobile-nav ${open?"is-open":""}`} aria-hidden={!open}>
+   <nav className="shell" aria-label="Navegación mobile">{links.map(link=><Link key={link.href} href={link.href} onClick={()=>setOpen(false)} tabIndex={open?0:-1}>{link.label}</Link>)}</nav>
   </div>
  </header>;
 }
