@@ -1,7 +1,7 @@
 import {render,screen} from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import {describe,expect,it} from "vitest";
-import {CATALOG_PRICE_ITEMS,findCatalogPriceItem} from "@/lib/catalog-prices";
+import {CATALOG_PRICE_ITEMS,findCatalogPriceItem,findCatalogPriceItemByPath} from "@/lib/catalog-prices";
 import {PricedCatalog} from "@/components/priced-catalog";
 import {CartProvider} from "@/components/cart";
 
@@ -16,6 +16,14 @@ describe("precios del catálogo Viagelato de Excel",()=>{
   expect(CATALOG_PRICE_ITEMS.filter(item=>item.imageStatus==="sin_foto")).toHaveLength(2);
   expect(findCatalogPriceItem(1000)?.price).toBe(45900);
   expect(CATALOG_PRICE_ITEMS.find(item=>item.sourceRow===45)?.price).toBe(19900);
+ });
+ it("abre fichas reales y rechaza rutas inexistentes sin dejarlas en 404",()=>{
+  expect(findCatalogPriceItemByPath("44")?.name).toBe("Palitos de agua: limón, frutilla y uva");
+  expect(findCatalogPriceItemByPath("1000")?.price).toBe(45900);
+  expect(findCatalogPriceItemByPath("0")).toBeNull();
+  expect(findCatalogPriceItemByPath("abc")).toBeNull();
+  expect(findCatalogPriceItemByPath("44extra")).toBeNull();
+  expect(findCatalogPriceItemByPath("999999")).toBeNull();
  });
  it("muestra precios y permite agregar al carrito aunque el stock no esté confirmado",async()=>{
   const user=userEvent.setup();
