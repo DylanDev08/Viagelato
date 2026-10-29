@@ -17,7 +17,7 @@ describe("navegación móvil del carrito",()=>{
   await user.click(screen.getByRole("button",{name:"Añadir producto de prueba"}));
   const quick=screen.getByRole("navigation",{name:"Accesos rápidos de compra"});
   expect(quick).toHaveClass("has-cart-items");
-  expect(screen.getByRole("link",{name:"Ver carrito, 1 productos"})).toHaveAttribute("href","/carrito");
+  expect(screen.getByRole("link",{name:"Ver carrito, 1 producto"})).toHaveAttribute("href","/carrito");
   expect(screen.queryByRole("link",{name:"Hablar con Viagelato por WhatsApp"})).not.toBeInTheDocument();
  });
  it("no coloca navegación flotante sobre el formulario del propio carrito",()=>{
