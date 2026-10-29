@@ -51,7 +51,7 @@ export function Checkout({products,settings,catalogItems=CATALOG_PRICE_ITEMS}:{p
   setBusy(true);
   try{
    const payload={
-    customer_name:fullName,locality,address:delivery==="shipping"?address:"",notes,
+    customer_name:fullName,locality,address:delivery==="shipping"?address:"",notes,expected_subtotal:subtotal,
     shipping_method:delivery,
     items:lines.map(({product,quantity})=>({id:product.id,quantity})),
    };
