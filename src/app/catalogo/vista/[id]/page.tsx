@@ -6,16 +6,14 @@ import {ArrowLeft,ArrowUpRight,ImageOff,MessageCircle} from "lucide-react";
 import {SiteShell} from "@/components/site-shell";
 import {PricedAddToCart} from "@/components/priced-add-to-cart";
 import {getStore} from "@/lib/site";
-import {CATALOG_SOURCE_LABEL,findCatalogPriceItem} from "@/lib/catalog-prices";
+import {CATALOG_SOURCE_LABEL,findCatalogPriceItemByPath} from "@/lib/catalog-prices";
 import {ars} from "@/lib/types";
 import {productWhatsappMessage,whatsappHref} from "@/lib/whatsapp";
 
 export const dynamic="force-dynamic";
 type Props={params:Promise<{id:string}>};
-function lookup(raw:string){
- if(!/^[1-9]\\d{0,5}$/.test(raw))return null;
- return findCatalogPriceItem(Number(raw));
-}
+const lookup=findCatalogPriceItemByPath;
+
 export async function generateMetadata({params}:Props):Promise<Metadata>{
  const item=lookup((await params).id);
  if(!item)return {title:"Producto no encontrado",robots:{index:false,follow:false}};

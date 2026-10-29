@@ -31,6 +31,13 @@ describe("catálogo comercial agrupado",()=>{
   await user.click(screen.getByRole("button",{name:"Todos los tipos"}));
   expect(screen.getByRole("button",{name:"Todos los tipos"})).toHaveAttribute("aria-pressed","true");
  });
+ it("la portada compacta muestra cuatro productos en una única grilla",()=>{
+  const chosen=storefrontSamples(CATALOG_PRICE_ITEMS,4);
+  const {container}=render(<CartProvider><PricedCatalog items={chosen} compact/></CartProvider>);
+  expect(container.querySelectorAll(".priced-grid")).toHaveLength(1);
+  expect(container.querySelectorAll(".priced-card")).toHaveLength(4);
+  expect(container.querySelector(".catalog-type-heading")).toBeNull();
+ });
  it("las fichas de catálogo pasan a formulario sin inventar stock ni publicar",()=>{
   const item=CATALOG_PRICE_ITEMS[0];
   const draft=draftFromPricedCatalog(item,[]);

@@ -55,8 +55,9 @@ export function PricedCatalog({items,initialCategory,compact=false}:{items:Catal
    </div>
   </div>:null}
   {!compact?<p className="provisional-count" aria-live="polite">{filtered.length} {filtered.length===1?"producto":"productos"} con precio por presentación</p>:null}
-  {groups.map(group=><section className="catalog-type-section" key={group.name} aria-label={`Productos: ${group.name}`}>
-    {!compact?<div className="catalog-type-heading"><h2>{group.name}</h2><span>{group.count} {group.count===1?"producto":"productos"}</span></div>:null}
+  {compact?<div className="provisional-grid priced-grid" aria-label="Productos destacados">{filtered.map(item=><CatalogProductCard item={item} key={item.sourceRow}/>)}</div>:
+   groups.map(group=><section className="catalog-type-section" key={group.name} aria-label={`Productos: ${group.name}`}>
+    <div className="catalog-type-heading"><h2>{group.name}</h2><span>{group.count} {group.count===1?"producto":"productos"}</span></div>
     <div className="provisional-grid priced-grid">{group.items.map(item=><CatalogProductCard item={item} key={item.sourceRow}/>)}</div>
    </section>)}
   {!filtered.length&&!compact&&<div className="empty-catalog"><h3>No encontramos productos.</h3><button type="button" onClick={()=>{setQuery("");setCategory("all");setSort("category");}}>Limpiar filtros</button></div>}
