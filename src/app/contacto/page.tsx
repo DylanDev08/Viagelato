@@ -7,7 +7,8 @@ import {whatsappHref} from "@/lib/whatsapp";
 export const dynamic="force-dynamic";
 export const metadata:Metadata={
  title:"Contacto",
- description:"Consultá por helados, congelados, zonas de distribución y entregas de Viagelato."
+ description:"Consultá por helados, congelados, zonas de distribución y entregas de Viagelato.",
+ alternates:{canonical:"/contacto"}
 };
 export default async function ContactPage(){
  const {settings}=await getStore();

@@ -2,6 +2,7 @@ import type {MetadataRoute} from "next";
 import {getStore} from "@/lib/site";
 
 export default async function sitemap():Promise<MetadataRoute.Sitemap>{
+ if(process.env.ENABLE_INDEXING!=="true")return [];
  const base=process.env.NEXT_PUBLIC_SITE_URL||"http://localhost:3000";
  const {products}=await getStore();
  const staticRoutes=["","/catalogo","/productos","/nosotros","/envios","/contacto","/terminos","/politicas/privacidad","/politicas/devoluciones","/arrepentimiento"];
