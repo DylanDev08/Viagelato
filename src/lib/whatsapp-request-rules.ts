@@ -6,6 +6,7 @@ export const whatsappRequestSchema=z.object({
  address:z.string().trim().max(250).default(""),
  notes:z.string().trim().max(350).default(""),
  shipping_method:z.enum(["shipping","pickup"]),
+ expected_subtotal:z.number().finite().nonnegative().max(1e9).optional(),
  items:z.array(z.object({
   id:z.string().regex(/^(catalog-price-(?:[2-9]|[1-3][0-9]|4[0-6])|[a-f0-9-]{36})$/i),
   quantity:z.number().int().min(1).max(99),
