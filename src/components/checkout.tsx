@@ -19,7 +19,9 @@ type DisplayItem={
 export function Checkout({products,settings,catalogItems=CATALOG_PRICE_ITEMS}:{products:Product[];zones:ShippingZone[];settings:Settings;demo:boolean;checkoutEnabled:boolean;catalogItems?:CatalogPriceItem[]}){
  const {items,setQuantity,clear}=useCart();
  const [fullName,setFullName]=useState("");
- const [locality,setLocality]=useState("");
+ const [selectedLocality,setSelectedLocality]=useState("");
+ const [otherLocality,setOtherLocality]=useState("");
+ const locality=selectedLocality==="other"?otherLocality.trim():selectedLocality;
  const [address,setAddress]=useState("");
  const [notes,setNotes]=useState("");
  const [delivery,setDelivery]=useState<"shipping"|"pickup">("shipping");
@@ -50,7 +52,7 @@ export function Checkout({products,settings,catalogItems=CATALOG_PRICE_ITEMS}:{p
   setBusy(true);
   try{
    const payload={
-    customer_name:fullName,locality,address:delivery==="shipping"?address:"",notes,
+    customer_name:fullName,locality,address:delivery==="shipping"?address:"",notes,expected_subtotal:subtotal,
     shipping_method:delivery,
     items:lines.map(({product,quantity})=>({id:product.id,quantity})),
    };
@@ -68,11 +70,11 @@ export function Checkout({products,settings,catalogItems=CATALOG_PRICE_ITEMS}:{p
     throw new Error(data.error||"No se pudo guardar la solicitud");
    }
    if(typeof data.reference!=="string"||typeof data.whatsapp_url!=="string"||!data.whatsapp_url.startsWith("https://wa.me/")||!data.whatsapp_url.includes("?text="))throw new Error("El enlace de WhatsApp no está disponible");
-   setPrepared({reference:data.reference,url:data.whatsapp_url});
    if(typeof data.subtotal!=="number"||Math.abs(data.subtotal-subtotal)>0.009){
     setError("Los precios cambiaron al preparar el pedido. Actualizá el carrito para revisar el subtotal antes de enviarlo.");
     return;
    }
+   setPrepared({reference:data.reference,url:data.whatsapp_url});
    // Se guarda solo la preparación del mensaje. No se afirma que se envió ni se cobró.
    window.location.assign(data.whatsapp_url);
   }catch(reason){
@@ -120,11 +122,12 @@ export function Checkout({products,settings,catalogItems=CATALOG_PRICE_ITEMS}:{p
     <div className="cart-form-heading"><p className="kicker">PASO 02</p><MessageCircle size={22} aria-hidden="true"/><h2>Enviar pedido por WhatsApp</h2></div>
     <p className="hint">Completá tus datos para preparar el pedido con todos los productos del carrito. Viagelato confirmará por WhatsApp la disponibilidad, el envío y la transferencia.</p>
     <label>Nombre y apellido<input required minLength={2} maxLength={120} autoComplete="name" value={fullName} onChange={e=>setFullName(e.target.value)}/></label>
-    <label>Localidad<select required value={locality} onChange={e=>setLocality(e.target.value)}>
+    <label>Localidad<select required value={selectedLocality} onChange={e=>setSelectedLocality(e.target.value)}>
      <option value="">Elegí tu localidad</option>
      {DELIVERY_AREAS.map(area=><option key={area} value={area}>{area}</option>)}
-     <option value="Otra localidad">Otra localidad (consultar cobertura)</option>
+     <option value="other">Otra localidad (consultar cobertura)</option>
     </select></label>
+    {selectedLocality==="other"?<label>Escribí tu localidad<input required minLength={2} maxLength={100} autoComplete="address-level2" value={otherLocality} onChange={e=>setOtherLocality(e.target.value)} placeholder="Por ejemplo: Quilmes" aria-describedby="other-locality-help"/><small id="other-locality-help">Vamos a confirmar la cobertura y el costo de entrega.</small></label>:null}
     {settings.pickup_enabled?<label>Entrega<select value={delivery} onChange={e=>setDelivery(e.target.value as "shipping"|"pickup")}><option value="shipping">Envío a domicilio</option><option value="pickup">Consultar retiro</option></select></label>:null}
     {delivery==="shipping"?<label>Dirección de entrega (opcional)<input maxLength={250} autoComplete="street-address" value={address} onChange={e=>setAddress(e.target.value)} placeholder="Calle, altura y piso"/></label>:null}
     <label>Observaciones (opcional)<textarea maxLength={350} rows={3} value={notes} onChange={e=>setNotes(e.target.value)} placeholder="Horarios, preferencias de sabores, etc."/></label>
