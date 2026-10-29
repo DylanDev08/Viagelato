@@ -18,7 +18,7 @@ afterEach(()=>{vi.unstubAllGlobals();vi.restoreAllMocks();refresh.mockClear();})
 describe("seguimiento comercial de WhatsApp",()=>{
  it("obliga a verificar el stock y cotizar el envío antes de confirmar",async()=>{
   const user=userEvent.setup();
-  const send=vi.fn(async()=>({ok:true,json:async()=>({updated:true})}));
+  const send=vi.fn(async (_input:RequestInfo|URL,_init?:RequestInit)=>({ok:true,json:async()=>({updated:true})}));
   vi.stubGlobal("fetch",send);
   vi.spyOn(window,"confirm").mockReturnValue(true);
   render(<WhatsAppRequests requests={[common]}/>);
@@ -32,7 +32,7 @@ describe("seguimiento comercial de WhatsApp",()=>{
   expect(send).toHaveBeenCalledOnce();
   const [endpoint,options]=send.mock.calls[0];
   expect(endpoint).toBe("/api/admin/whatsapp-requests");
-  expect(JSON.parse(options.body)).toEqual({
+  expect(JSON.parse(String(options?.body))).toEqual({
    id:common.id,action:"confirm_terms",stock_confirmed:true,shipping_cost:3500
   });
  });
@@ -49,7 +49,7 @@ describe("seguimiento comercial de WhatsApp",()=>{
  });
  it("envía importe, referencia e idempotencia sin marcar el total automáticamente",async()=>{
   const user=userEvent.setup();
-  const send=vi.fn(async()=>({ok:true,json:async()=>({updated:true})}));
+  const send=vi.fn(async (_input:RequestInfo|URL,_init?:RequestInit)=>({ok:true,json:async()=>({updated:true})}));
   vi.stubGlobal("fetch",send);
   vi.spyOn(window,"confirm").mockReturnValue(true);
   render(<WhatsAppRequests requests={[{...common,status:"confirmed",stock_confirmed:true,shipping_cost:3500,total:25400,amount_paid:10000,payment_status:"partial"}]}/>);
@@ -57,7 +57,7 @@ describe("seguimiento comercial de WhatsApp",()=>{
   await user.type(screen.getByRole("textbox",{name:/Referencia bancaria/}),"OP-2");
   await user.click(screen.getByRole("button",{name:"Registrar importe recibido"}));
   expect(send).toHaveBeenCalledOnce();
-  const payload=JSON.parse(send.mock.calls[0][1].body);
+  const payload=JSON.parse(String(send.mock.calls[0]?.[1]?.body));
   expect(payload).toMatchObject({action:"record_payment",amount:15400,transfer_reference:"OP-2"});
   expect(payload.payment_key).toMatch(/^[a-f0-9-]{36}$/);
   expect(refresh).toHaveBeenCalledOnce();
