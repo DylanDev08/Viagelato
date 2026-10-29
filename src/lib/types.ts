@@ -96,7 +96,12 @@ export type WhatsAppRequest={
  items:{id:string;name:string;sku?:string|null;presentation?:string|null;price:number;quantity:number}[];
  subtotal:number;
  status:"draft"|"contacted"|"confirmed"|"preparing"|"shipped"|"delivered"|"cancelled";
- payment_status:"pending"|"paid";
+ payment_status:"pending"|"partial"|"paid";
+ stock_confirmed:boolean;
+ shipping_cost:number|null;
+ total:number|null;
+ amount_paid:number;
+ whatsapp_request_payments?:{id:string;amount:number;transfer_reference:string;created_at:string}[];
  created_at:string;
  updated_at:string;
 };
