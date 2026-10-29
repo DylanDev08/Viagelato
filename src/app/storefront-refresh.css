@@ -254,3 +254,10 @@
  .detail-cart-next{display:grid;gap:9px}
  .detail-cart-next span{text-align:left}
 }
+
+/* Corte 01: prevenir pedidos incompletos si se oculta una presentación guardada. */
+.checkout-refresh .cart-missing-alert{background:#fff6ed;border:1px solid #e9b58b;border-radius:10px;padding:16px;margin:10px 0 18px;color:#513118}
+.checkout-refresh .cart-missing-alert strong{font-size:13px}
+.checkout-refresh .cart-missing-alert p{font-size:12px;line-height:1.6;margin:7px 0 12px}
+.checkout-refresh .cart-missing-alert button{border:1px solid #9d6439;border-radius:7px;background:#fff;padding:9px 12px;font-weight:750;font-size:12px;color:#683d1b}
+.checkout-refresh .cart-missing-alert button:hover{background:#f7e6d6}
