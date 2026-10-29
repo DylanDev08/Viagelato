@@ -25,7 +25,8 @@ describe("panel administrativo",()=>{
   const user=userEvent.setup();
   render(<AdminDashboard initialProducts={[]} initialCategories={[]} initialOrders={[]} initialZones={[]} initialSettings={DEFAULT_SETTINGS} initialBanners={[]}/>);
   await user.click(screen.getByRole("button",{name:"Productos"}));
-  await user.click(screen.getByRole("button",{name:"Elegir imagen del catálogo provisional"}));
+  await user.click(screen.getByText("Usar otra fotografía del catálogo"));
+  await user.click(screen.getByRole("button",{name:"Elegir foto"}));
   expect(screen.getByRole("region",{name:"Imágenes candidatas"})).toBeInTheDocument();
   const picker=screen.getByRole("region",{name:"Imágenes candidatas"});
   expect(picker.querySelectorAll(".admin-candidate-card").length).toBeGreaterThan(0);
