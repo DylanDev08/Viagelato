@@ -76,7 +76,7 @@ describe("panel administrativo",()=>{
    render(<AdminDashboard initialProducts={[]} initialCategories={[]} initialOrders={[]} initialZones={[]} initialSettings={DEFAULT_SETTINGS} initialBanners={[]}/>);
    await user.click(screen.getByRole("button",{name:"Productos"}));
    await user.type(screen.getByLabelText("Nombre del producto"),"Helado nuevo");
-   expect(screen.getByText(/Al guardar, seguirá como borrador/)).toBeInTheDocument();
+   expect(screen.getByText(/Al guardar, seguirá oculto del catálogo público/)).toBeInTheDocument();
    await user.click(screen.getByRole("button",{name:"Guardar borrador"}));
    await screen.findByText("Borrador creado correctamente");
    expect(mockedFetch).toHaveBeenCalledOnce();
