@@ -29,7 +29,7 @@ export default async function ProductPage({params}:Props){
   <Link className="back-link" href="/catalogo"><ArrowLeft/> Volver al catálogo</Link>
   <div className="provisional-detail-grid">
    <div className="provisional-detail-image">
-    {item.image?<Image src={item.image} alt={item.name} fill priority sizes="(max-width: 900px) 100vw,50vw"/>:<div className="priced-detail-no-image"><ImageOff size={42} aria-hidden="true"/><p>Imagen no disponible</p></div>}
+    {item.image?<Image src={item.image} alt={item.name} fill priority sizes="(max-width: 900px) 100vw,50vw" unoptimized/>:<div className="priced-detail-no-image"><ImageOff size={42} aria-hidden="true"/><p>Imagen no disponible</p></div>}
    </div>
    <div className="provisional-detail-copy">
     <p className="kicker">{item.category}</p><h1>{item.name}</h1>
