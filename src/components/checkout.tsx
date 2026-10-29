@@ -7,7 +7,8 @@ import {useMemo,useState} from "react";
 import {useCart} from "./cart";
 import {SiteShell} from "./site-shell";
 import {ars,DELIVERY_AREAS,type Product,type Settings,type ShippingZone} from "@/lib/types";
-import {PRICED_CART_PRODUCTS} from "@/lib/whatsapp-cart";
+import {catalogCartId} from "@/lib/whatsapp-cart";
+import {CATALOG_PRICE_ITEMS,type CatalogPriceItem} from "@/lib/catalog-prices";
 import {checkoutRequestFingerprint,getOrCreateCheckoutKey,clearCheckoutKey} from "@/lib/checkout-idempotency";
 
 type DisplayItem={
@@ -15,7 +16,7 @@ type DisplayItem={
  price:number;image_url:string|null;stock:number|null;
 };
 
-export function Checkout({products,settings}:{products:Product[];zones:ShippingZone[];settings:Settings;demo:boolean;checkoutEnabled:boolean}){
+export function Checkout({products,settings,catalogItems=CATALOG_PRICE_ITEMS}:{products:Product[];zones:ShippingZone[];settings:Settings;demo:boolean;checkoutEnabled:boolean;catalogItems?:CatalogPriceItem[]}){
  const {items,setQuantity,clear}=useCart();
  const [fullName,setFullName]=useState("");
  const [locality,setLocality]=useState("");
@@ -27,8 +28,8 @@ export function Checkout({products,settings}:{products:Product[];zones:ShippingZ
  const [prepared,setPrepared]=useState<{reference:string;url:string}|null>(null);
  const productMap=useMemo(()=>new Map<string,DisplayItem>([
   ...products.map(product=>[product.id,{id:product.id,name:product.name,sku:product.sku,presentation:product.presentation,price:Number(product.price),image_url:product.image_url,stock:product.stock}] as const),
-  ...PRICED_CART_PRODUCTS.map(product=>[product.id,product] as const),
- ]),[products]);
+  ...catalogItems.map(product=>[catalogCartId(product.sourceRow),{id:catalogCartId(product.sourceRow),name:product.name,sku:product.sku,presentation:product.presentation,price:product.price,image_url:product.image,stock:null}] as const),
+ ]),[products,catalogItems]);
  const lines=useMemo(()=>items.flatMap(item=>{
   const product=productMap.get(item.id);
   return product?[{product,quantity:item.quantity}]:[];
