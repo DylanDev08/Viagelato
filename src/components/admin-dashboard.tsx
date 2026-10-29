@@ -173,7 +173,7 @@ export function AdminDashboard({initialProducts,initialCategories,initialOrders,
  <label>Nombre del producto<input required value={draft.name} onChange={e=>{updateDraft("name",e.target.value);if(!draft.id)updateDraft("slug",slugify(e.target.value));}}/></label>
  <div className="form-inline">
   <label>Precio de venta (ARS)<input required type="number" min="0" step="0.01" value={draft.price} onChange={e=>updateDraft("price",Number(e.target.value))}/></label>
-  <label>Unidades disponibles<input required type="number" min="0" step="1" value={draft.stock} onChange={e=>updateDraft("stock",Number(e.target.value))}/><small>0 si todavía no verificaste el stock.</small></label>
+  <label>Unidades disponibles<input aria-label="Unidades disponibles" required type="number" min="0" step="1" value={draft.stock} onChange={e=>updateDraft("stock",Number(e.target.value))}/><small>0 si todavía no verificaste el stock.</small></label>
  </div>
  <label>Categoría<select value={draft.category_id||""} onChange={e=>updateDraft("category_id",e.target.value||null)}><option value="">Sin categoría</option>{initialCategories.map(c=><option key={c.id} value={c.id}>{c.name}</option>)}</select></label>
  {draft.name&&!draft.category_id?<p className="hint">Si este tipo todavía no figura como categoría del panel, podés crearla en «Categorías» antes de publicar.</p>:null}
