@@ -267,3 +267,10 @@
 .product-description-section>h2{margin-top:0}
 .product-description-section .provisional-detail-facts{margin-top:20px}
 @media(max-width:640px){.product-description-section{margin-top:24px;padding-top:22px}}
+
+/* Menos interrupciones en mobile: al comprar, un CTA ocupa el ancho completo. */
+@media(max-width:640px){
+ .floating-actions.has-cart-items{grid-template-columns:minmax(0,1fr)}
+ .floating-actions.has-cart-items .float-cart{width:100%;min-height:48px}
+ .checkout-refresh{padding-bottom:65px}
+}
