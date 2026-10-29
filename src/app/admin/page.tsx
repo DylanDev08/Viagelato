@@ -14,7 +14,7 @@ export default async function AdminPage(){
   db.from("site_settings").select("*").eq("id",true).single(),
   db.from("payment_settings").select("*").eq("id",true).single(),
   db.from("banners").select("*").order("sort_order"),
-  db.from("whatsapp_order_requests").select("id,customer_name,locality,address,notes,shipping_method,items,subtotal,status,payment_status,created_at,updated_at").order("created_at",{ascending:false}).limit(100),
+  db.from("whatsapp_order_requests").select("id,customer_name,locality,address,notes,shipping_method,items,subtotal,stock_confirmed,shipping_cost,total,amount_paid,status,payment_status,created_at,updated_at,whatsapp_request_payments(id,amount,transfer_reference,created_at)").order("created_at",{ascending:false}).limit(100),
  ]);
  const failures=[
   ["products",products.error],["categories",categories.error],["orders",orders.error],
