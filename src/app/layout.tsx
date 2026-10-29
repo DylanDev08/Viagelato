@@ -11,6 +11,7 @@ import "./contact-catalog-corte06.css";
 import "./auth-recovery.css";
 import "./mobile.css";
 import "./admin-mobile-access.css";
+import "./grouped-catalog.css";
 
 const siteUrl=process.env.NEXT_PUBLIC_SITE_URL;
 const indexingEnabled=process.env.ENABLE_INDEXING==="true";
