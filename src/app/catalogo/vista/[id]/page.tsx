@@ -22,7 +22,7 @@ export async function generateMetadata({params}:Props):Promise<Metadata>{
  return {title:`${item.name} | Viagelato`,description:item.description,robots:{index:false,follow:false}};
 }
 export default async function ProductPage({params}:Props){
- const item=lookup((await params).id);
+ const item=await lookup((await params).id);
  if(!item)notFound();
  const {settings}=await getStore();
  return <SiteShell settings={settings}><main className="shell provisional-detail-page">
