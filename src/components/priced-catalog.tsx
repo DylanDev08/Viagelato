@@ -14,7 +14,7 @@ function CatalogProductCard({item}:{item:CatalogPriceItem}){
  return <article className="provisional-card priced-card" key={item.sourceRow}>
   <Link className="provisional-card-link" href={`/catalogo/vista/${item.id}`} aria-label={`Ver ficha y precio de ${item.name}`}>
    <div className="provisional-image priced-image">
-    {item.image?<Image src={item.image} alt={item.name} fill sizes="(max-width:640px) 100vw,(max-width:1000px) 50vw,25vw"/>:<div className="priced-image-pending"><ImageOff size={34} aria-hidden="true"/><span>Imagen no disponible</span></div>}
+    {item.image?<Image src={item.image} alt={item.name} fill sizes="(max-width:640px) 100vw,(max-width:1000px) 50vw,25vw" unoptimized/>:<div className="priced-image-pending"><ImageOff size={34} aria-hidden="true"/><span>Imagen no disponible</span></div>}
     <ArrowUpRight className="provisional-open-icon" aria-hidden="true"/>
    </div>
    <div className="provisional-card-body priced-card-body">
