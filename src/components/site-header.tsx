@@ -33,7 +33,7 @@ export function SiteHeader({settings}:{settings:Settings}){
     {links.map(link=><Link key={link.href} href={link.href}>{link.label}</Link>)}
    </nav>
    <div className="header-actions">
-    <Link className="header-cart" href="/carrito" aria-label={`Carrito con ${count} productos`}><ShoppingBag size={19}/><span>Carrito</span><b>{count}</b></Link>
+    <Link className="header-cart" href="/carrito" aria-label={`Carrito con ${count} ${count===1?"producto":"productos"}`}><ShoppingBag size={19}/><span>Carrito</span><b>{count}</b></Link>
     <button className="menu-trigger" type="button" aria-expanded={open} aria-controls="mobile-navigation" aria-label={open?"Cerrar menú":"Abrir menú"} onClick={()=>setOpen(value=>!value)}>{open?<X/>:<Menu/>}</button>
    </div>
   </div>
