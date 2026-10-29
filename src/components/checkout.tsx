@@ -7,7 +7,8 @@ import {useMemo,useState} from "react";
 import {useCart} from "./cart";
 import {SiteShell} from "./site-shell";
 import {ars,DELIVERY_AREAS,type Product,type Settings,type ShippingZone} from "@/lib/types";
-import {PRICED_CART_PRODUCTS} from "@/lib/whatsapp-cart";
+import {catalogCartId} from "@/lib/whatsapp-cart";
+import {CATALOG_PRICE_ITEMS,type CatalogPriceItem} from "@/lib/catalog-prices";
 import {checkoutRequestFingerprint,getOrCreateCheckoutKey,clearCheckoutKey} from "@/lib/checkout-idempotency";
 
 type DisplayItem={
@@ -15,7 +16,7 @@ type DisplayItem={
  price:number;image_url:string|null;stock:number|null;
 };
 
-export function Checkout({products,settings}:{products:Product[];zones:ShippingZone[];settings:Settings;demo:boolean;checkoutEnabled:boolean}){
+export function Checkout({products,settings,catalogItems=CATALOG_PRICE_ITEMS}:{products:Product[];zones:ShippingZone[];settings:Settings;demo:boolean;checkoutEnabled:boolean;catalogItems?:CatalogPriceItem[]}){
  const {items,setQuantity,clear}=useCart();
  const [fullName,setFullName]=useState("");
  const [locality,setLocality]=useState("");
@@ -27,17 +28,18 @@ export function Checkout({products,settings}:{products:Product[];zones:ShippingZ
  const [prepared,setPrepared]=useState<{reference:string;url:string}|null>(null);
  const productMap=useMemo(()=>new Map<string,DisplayItem>([
   ...products.map(product=>[product.id,{id:product.id,name:product.name,sku:product.sku,presentation:product.presentation,price:Number(product.price),image_url:product.image_url,stock:product.stock}] as const),
-  ...PRICED_CART_PRODUCTS.map(product=>[product.id,product] as const),
- ]),[products]);
+  ...catalogItems.map(item=>[catalogCartId(item.sourceRow),{id:catalogCartId(item.sourceRow),name:item.name,sku:item.sku,presentation:item.presentation,price:item.price,image_url:item.image,stock:null}] as const),
+ ]),[products,catalogItems]);
  const lines=useMemo(()=>items.flatMap(item=>{
   const product=productMap.get(item.id);
   return product?[{product,quantity:item.quantity}]:[];
  }),[items,productMap]);
  const count=lines.reduce((sum,line)=>sum+line.quantity,0);
  const subtotal=lines.reduce((sum,line)=>sum+Number(line.product.price)*line.quantity,0);
- const missing=items.length-lines.length;
+ const missingIds=items.filter(item=>!productMap.has(item.id)).map(item=>item.id);
+ const missing=missingIds.length;
  const eligible=DELIVERY_AREAS.some(area=>area===locality);
- const canRequest=lines.length>0&&lines.length<=30&&fullName.trim().length>=2&&locality.trim().length>=2;
+ const canRequest=missing===0&&lines.length>0&&lines.length<=30&&fullName.trim().length>=2&&locality.trim().length>=2;
  const promo=delivery==="shipping"&&eligible&&subtotal>=Number(settings.free_shipping_threshold);
 
  async function sendRequest(event:React.FormEvent<HTMLFormElement>){
@@ -81,7 +83,7 @@ export function Checkout({products,settings}:{products:Product[];zones:ShippingZ
    <div>
     <section className="panel cart-products-panel" aria-label="Productos seleccionados">
      <div className="cart-panel-heading"><div><p className="kicker">PASO 01</p><h2>Productos seleccionados</h2></div><span>{count} {count===1?"unidad":"unidades"}</span></div>
-     {missing>0?<p className="hint" role="status">Algunos artículos guardados ya no están en el catálogo. No se incluirán en la solicitud.</p>:null}
+     {missing>0?<div className="cart-missing" role="alert"><p>Tenés {missing} {missing===1?"producto que ya no está disponible":"productos que ya no están disponibles"}. Revisá el carrito antes de continuar: no prepararemos un pedido incompleto.</p><button type="button" onClick={()=>missingIds.forEach(id=>setQuantity(id,0))}>Quitar productos no disponibles</button></div>:null}
      {!lines.length?<div className="cart-empty"><ShoppingBag size={32} aria-hidden="true"/><h3>Tu carrito está esperando productos.</h3><p>Elegí helados y congelados del catálogo para preparar tu consulta.</p><Link className="primary-action" href="/catalogo">Explorar catálogo <ArrowRight size={18}/></Link></div>:lines.map(({product,quantity})=><article className="cart-item cart-line" key={product.id}>
       <div className="mini-art cart-line-art">{product.image_url?<Image src={product.image_url} alt={product.name} fill sizes="(max-width:640px) 74px, 96px" unoptimized/>:<ShoppingBag size={24} aria-hidden="true"/>}</div>
       <div className="cart-meta">
