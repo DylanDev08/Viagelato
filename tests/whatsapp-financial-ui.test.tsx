@@ -36,6 +36,23 @@ describe("seguimiento comercial de WhatsApp",()=>{
    id:common.id,action:"confirm_terms",stock_confirmed:true,shipping_cost:3500
   });
  });
+ it("aplica el costo cero de envío a zona elegible desde el umbral",async()=>{
+  const user=userEvent.setup();
+  const send=vi.fn(async (_input:RequestInfo|URL,_init?:RequestInit)=>({ok:true,json:async()=>({updated:true})}));
+  vi.stubGlobal("fetch",send);
+  vi.spyOn(window,"confirm").mockReturnValue(true);
+  render(<WhatsAppRequests requests={[{...common,subtotal:65700,items:[{...common.items[0],quantity:3}]}]} freeShippingThreshold={60000}/>);
+  expect(screen.getByText(/Envío gratuito por superar/)).toBeInTheDocument();
+  const shipping=screen.getByRole("spinbutton",{name:/Costo de envío acordado/});
+  expect(shipping).toBeDisabled();
+  expect(shipping).toHaveValue(0);
+  await user.click(screen.getByRole("checkbox",{name:/Verifiqué que hay stock/}));
+  await user.click(screen.getByRole("button",{name:"Guardar stock y envío"}));
+  expect(send).toHaveBeenCalledOnce();
+  expect(JSON.parse(String(send.mock.calls[0]?.[1]?.body))).toMatchObject({
+   action:"confirm_terms",stock_confirmed:true,shipping_cost:0
+  });
+ });
  it("no habilita preparación cuando falta acreditar saldo",()=>{
   render(<WhatsAppRequests requests={[{...common,status:"confirmed",stock_confirmed:true,shipping_cost:3500,total:25400,
    amount_paid:10000,payment_status:"partial",whatsapp_request_payments:[
