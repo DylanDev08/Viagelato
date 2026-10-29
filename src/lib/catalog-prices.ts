@@ -1,6 +1,6 @@
 import priceSource from "../../docs/viagelato/catalogo_precios_20261028.json";
 export type CatalogPriceItem={
- sourceRow:number;id:number;price:number;name:string;category:string;
+ sourceRow:number;id:number;price:number;name:string;category:string;sku:string;
  presentation:string;variants:string;description:string;image:string|null;
  imageStatus:"coincidencia_exacta"|"referencial"|"sin_foto";sourceDriveId:string|null;
 };

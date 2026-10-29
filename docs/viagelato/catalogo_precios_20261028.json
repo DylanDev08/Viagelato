@@ -13,10 +13,11 @@
       "category": "Palitos y conos",
       "presentation": "Caja de 36 unidades",
       "variants": "Limón, frutilla y uva",
-      "description": "Palitos de agua: limón, frutilla y uva. Presentación: Caja de 36 unidades. Sabores o variedades indicados en la lista: Limón, frutilla y uva. Precio final de la presentación indicada según el Excel recibido. Consultá disponibilidad y combinaciones antes de coordinar la entrega.",
+      "description": "Caja de 36 palitos de agua en sabores limón, frutilla y uva. Una opción frutal para ofrecer variedad en una sola presentación; la composición del surtido se coordina según disponibilidad.",
       "image": "/catalogo/frutilla-al-agua.webp",
       "imageStatus": "coincidencia_exacta",
-      "sourceDriveId": "1WTiAxueCqL8mmilK7p0VtCVHkaofolT4"
+      "sourceDriveId": "1WTiAxueCqL8mmilK7p0VtCVHkaofolT4",
+      "sku": "VIA-PAL-002-X36"
     },
     {
       "sourceRow": 3,
@@ -26,10 +27,11 @@
       "category": "Palitos y conos",
       "presentation": "Caja de 24 unidades",
       "variants": "Naranja",
-      "description": "Palito de agua naranja. Presentación: Caja de 24 unidades. Sabores o variedades indicados en la lista: Naranja. Precio final de la presentación indicada según el Excel recibido. Consultá disponibilidad y combinaciones antes de coordinar la entrega.",
+      "description": "Palitos de agua sabor naranja, presentados en caja de 24 unidades. Una alternativa frutal para incorporar al freezer y vender por unidad o por caja.",
       "image": "/catalogo/seitu-fan-1.webp",
       "imageStatus": "coincidencia_exacta",
-      "sourceDriveId": "1TALwuy_gwTEY_7R3U8zyUp3mY7yftIbj"
+      "sourceDriveId": "1TALwuy_gwTEY_7R3U8zyUp3mY7yftIbj",
+      "sku": "VIA-PAL-003-X24"
     },
     {
       "sourceRow": 4,
@@ -39,10 +41,11 @@
       "category": "Palitos y conos",
       "presentation": "Caja de 24 unidades",
       "variants": "Piccole",
-      "description": "Palitos Piccole. Presentación: Caja de 24 unidades. Sabores o variedades indicados en la lista: Piccole. Precio final de la presentación indicada según el Excel recibido. Consultá disponibilidad y combinaciones antes de coordinar la entrega.",
+      "description": "Caja de 24 palitos Piccole. Presentación pensada para abastecer un punto de venta con esta línea de helados individuales; consultar las variedades disponibles.",
       "image": "/catalogo/piccole.webp",
       "imageStatus": "coincidencia_exacta",
-      "sourceDriveId": "1q9ur7THyszPExyycba-VEMY9FSl44lsh"
+      "sourceDriveId": "1q9ur7THyszPExyycba-VEMY9FSl44lsh",
+      "sku": "VIA-PAL-004-X24"
     },
     {
       "sourceRow": 5,
@@ -52,10 +55,11 @@
       "category": "Palitos y conos",
       "presentation": "Caja de 24 unidades",
       "variants": "Extra Ácido",
-      "description": "Palito de agua Extra Ácido. Presentación: Caja de 24 unidades. Sabores o variedades indicados en la lista: Extra Ácido. Precio final de la presentación indicada según el Excel recibido. Consultá disponibilidad y combinaciones antes de coordinar la entrega.",
+      "description": "Palitos de agua Extra Ácido en caja de 24 unidades. Una propuesta de sabor intenso para quienes prefieren opciones frutales diferentes a los clásicos.",
       "image": "/catalogo/seitu-extra-acido.webp",
       "imageStatus": "coincidencia_exacta",
-      "sourceDriveId": "1eZKuYJowFkqhkUVXR07L8DP_gMWoeUB2"
+      "sourceDriveId": "1eZKuYJowFkqhkUVXR07L8DP_gMWoeUB2",
+      "sku": "VIA-PAL-005-X24"
     },
     {
       "sourceRow": 6,
@@ -65,10 +69,11 @@
       "category": "Palitos y conos",
       "presentation": "Caja de 24 unidades",
       "variants": "Frisky",
-      "description": "Palitos Frisky. Presentación: Caja de 24 unidades. Sabores o variedades indicados en la lista: Frisky. Precio final de la presentación indicada según el Excel recibido. Consultá disponibilidad y combinaciones antes de coordinar la entrega.",
+      "description": "Caja de 24 palitos Frisky. Formato de venta mayorista para sumar esta variedad de helados individuales al surtido del comercio.",
       "image": "/catalogo/frisky-1.webp",
       "imageStatus": "coincidencia_exacta",
-      "sourceDriveId": "1ofq-Z58UxHpB77Yjicz3zwO0awRaj93m"
+      "sourceDriveId": "1ofq-Z58UxHpB77Yjicz3zwO0awRaj93m",
+      "sku": "VIA-PAL-006-X24"
     },
     {
       "sourceRow": 7,
@@ -78,10 +83,11 @@
       "category": "Palitos y conos",
       "presentation": "Caja de 24 unidades",
       "variants": "Frutilla",
-      "description": "FrutiFrozen de frutilla. Presentación: Caja de 24 unidades. Sabores o variedades indicados en la lista: Frutilla. Precio final de la presentación indicada según el Excel recibido. Consultá disponibilidad y combinaciones antes de coordinar la entrega.",
+      "description": "FrutiFrozen de frutilla en presentación de 24 unidades. Palitos helados de esta variedad frutal, listos para mantener congelados y ofrecer individualmente.",
       "image": "/catalogo/frutifrozen-palito.webp",
       "imageStatus": "coincidencia_exacta",
-      "sourceDriveId": "1ywvRS0szdcU1_cTUCRYZmQrjFwiCHPi1"
+      "sourceDriveId": "1ywvRS0szdcU1_cTUCRYZmQrjFwiCHPi1",
+      "sku": "VIA-PAL-007-X24"
     },
     {
       "sourceRow": 8,
@@ -91,10 +97,11 @@
       "category": "Palitos y conos",
       "presentation": "Caja de 24 unidades",
       "variants": "Frutilla, americana y chocolate",
-      "description": "Palitos Giovi surtidos. Presentación: Caja de 24 unidades. Sabores o variedades indicados en la lista: Frutilla, americana y chocolate. Precio final de la presentación indicada según el Excel recibido. Consultá disponibilidad y combinaciones antes de coordinar la entrega.",
+      "description": "Caja de 24 palitos Giovi. La lista incluye frutilla, americana y chocolate; consultar la disponibilidad de sabores y la combinación de la caja.",
       "image": "/catalogo/giovi-frutilla-1.webp",
       "imageStatus": "coincidencia_exacta",
-      "sourceDriveId": "1n2hehpyfl94tL_I9Fmc5EdnETXfE68gN"
+      "sourceDriveId": "1n2hehpyfl94tL_I9Fmc5EdnETXfE68gN",
+      "sku": "VIA-PAL-008-X24"
     },
     {
       "sourceRow": 9,
@@ -104,10 +111,11 @@
       "category": "Palitos y conos",
       "presentation": "Caja de 24 unidades",
       "variants": "Granizado",
-      "description": "Palitos granizados. Presentación: Caja de 24 unidades. Sabores o variedades indicados en la lista: Granizado. Precio final de la presentación indicada según el Excel recibido. Consultá disponibilidad y combinaciones antes de coordinar la entrega.",
+      "description": "Palitos granizados en caja de 24 unidades. Una alternativa individual para sumar al surtido de helados y abastecer exhibidoras o freezers.",
       "image": "/catalogo/granizado.webp",
       "imageStatus": "coincidencia_exacta",
-      "sourceDriveId": "1Pg6M6RvpAdmJ3dcs8nkXfHaWRZCdQ5Ye"
+      "sourceDriveId": "1Pg6M6RvpAdmJ3dcs8nkXfHaWRZCdQ5Ye",
+      "sku": "VIA-PAL-009-X24"
     },
     {
       "sourceRow": 10,
@@ -117,10 +125,11 @@
       "category": "Palitos y conos",
       "presentation": "Caja de 20 unidades",
       "variants": "Frutilla-americana y chocolate-vainilla",
-      "description": "Helados Carita surtidos. Presentación: Caja de 20 unidades. Sabores o variedades indicados en la lista: Frutilla-americana y chocolate-vainilla. Precio final de la presentación indicada según el Excel recibido. Consultá disponibilidad y combinaciones antes de coordinar la entrega.",
+      "description": "Caja de 20 helados Carita. Variedades indicadas: frutilla-americana y chocolate-vainilla, sujetas a disponibilidad al preparar el pedido.",
       "image": "/catalogo/copia-de-carita-fr-am.webp",
       "imageStatus": "coincidencia_exacta",
-      "sourceDriveId": "1eecyxlh7uT2IufBF6zI1TGIij789z9AY"
+      "sourceDriveId": "1eecyxlh7uT2IufBF6zI1TGIij789z9AY",
+      "sku": "VIA-PAL-010-X20"
     },
     {
       "sourceRow": 11,
@@ -130,10 +139,11 @@
       "category": "Palitos y conos",
       "presentation": "Caja de 24 unidades",
       "variants": "Bombón",
-      "description": "Palitos Bombón. Presentación: Caja de 24 unidades. Sabores o variedades indicados en la lista: Bombón. Precio final de la presentación indicada según el Excel recibido. Consultá disponibilidad y combinaciones antes de coordinar la entrega.",
+      "description": "Palitos Bombón en caja de 24 unidades. Una presentación para comercializar helados de la línea Bombón por unidad en el punto de venta.",
       "image": "/catalogo/palito-bombon-1.webp",
       "imageStatus": "coincidencia_exacta",
-      "sourceDriveId": "1TUfWMpwD0cCJdKNjrulkhmC1EJ6Z3hC9"
+      "sourceDriveId": "1TUfWMpwD0cCJdKNjrulkhmC1EJ6Z3hC9",
+      "sku": "VIA-PAL-011-X24"
     },
     {
       "sourceRow": 12,
@@ -143,10 +153,11 @@
       "category": "Palitos y conos",
       "presentation": "Caja de 24 unidades",
       "variants": "Bombón crocante",
-      "description": "Palitos Bombón Crocante. Presentación: Caja de 24 unidades. Sabores o variedades indicados en la lista: Bombón crocante. Precio final de la presentación indicada según el Excel recibido. Consultá disponibilidad y combinaciones antes de coordinar la entrega.",
+      "description": "Caja de 24 palitos Bombón Crocante. Variante de la línea Bombón identificada por su terminación crocante, ideal para complementar la selección de helados individuales.",
       "image": "/catalogo/palito-bombon-crocante-1.webp",
       "imageStatus": "coincidencia_exacta",
-      "sourceDriveId": "1ZE0f3YpqBI8mzpMwR5zgnvroWTkIquaz"
+      "sourceDriveId": "1ZE0f3YpqBI8mzpMwR5zgnvroWTkIquaz",
+      "sku": "VIA-PAL-012-X24"
     },
     {
       "sourceRow": 13,
@@ -156,10 +167,11 @@
       "category": "Palitos y conos",
       "presentation": "Caja de 24 unidades",
       "variants": "Frutilla y vainilla",
-      "description": "Palitos dietéticos frutilla-vainilla. Presentación: Caja de 24 unidades. Sabores o variedades indicados en la lista: Frutilla y vainilla. Precio final de la presentación indicada según el Excel recibido. Consultá disponibilidad y combinaciones antes de coordinar la entrega.",
+      "description": "Palitos dietéticos de frutilla y vainilla, presentados en caja de 24 unidades. Variante identificada como dietética en la lista comercial; consultar su rotulado nutricional para información específica.",
       "image": "/catalogo/copia-de-4248180c-d8ca-4c9c-abbb-36fa1f4ef1b8.webp",
       "imageStatus": "coincidencia_exacta",
-      "sourceDriveId": "1oRQemHWYQxk9QtwNq4d2y-jreDmmf5Ac"
+      "sourceDriveId": "1oRQemHWYQxk9QtwNq4d2y-jreDmmf5Ac",
+      "sku": "VIA-PAL-013-X24"
     },
     {
       "sourceRow": 14,
@@ -169,10 +181,11 @@
       "category": "Alfajores helados",
       "presentation": "Caja de 16 unidades",
       "variants": "Seichoc",
-      "description": "Alfajores helados Seichoc. Presentación: Caja de 16 unidades. Sabores o variedades indicados en la lista: Seichoc. Precio final de la presentación indicada según el Excel recibido. Consultá disponibilidad y combinaciones antes de coordinar la entrega.",
+      "description": "Alfajores helados Seichoc en caja de 16 unidades. Formato mayorista de esta línea para ofrecer alfajores helados como producto individual.",
       "image": "/catalogo/seichoc-flow-1.webp",
       "imageStatus": "coincidencia_exacta",
-      "sourceDriveId": "1TcplxySZ-8THMKfir8u0g38Al9-so0n8"
+      "sourceDriveId": "1TcplxySZ-8THMKfir8u0g38Al9-so0n8",
+      "sku": "VIA-ALF-014-X16"
     },
     {
       "sourceRow": 15,
@@ -182,10 +195,11 @@
       "category": "Bombones helados",
       "presentation": "Caja de 16 unidades",
       "variants": "Almendras, blanco y cookies",
-      "description": "Palitos Seibom surtidos. Presentación: Caja de 16 unidades. Sabores o variedades indicados en la lista: Almendras, blanco y cookies. Precio final de la presentación indicada según el Excel recibido. Consultá disponibilidad y combinaciones antes de coordinar la entrega.",
+      "description": "Palitos Seibom en caja de 16 unidades. Variedades señaladas en la lista: almendras, blanco y cookies; confirmar la combinación antes de cerrar el pedido.",
       "image": "/catalogo/seibom-almendras-1.webp",
       "imageStatus": "coincidencia_exacta",
-      "sourceDriveId": "132g09j6D3DmZZ9s2GzpHgLMksHCkr7CP"
+      "sourceDriveId": "132g09j6D3DmZZ9s2GzpHgLMksHCkr7CP",
+      "sku": "VIA-BOM-015-X16"
     },
     {
       "sourceRow": 16,
@@ -195,10 +209,11 @@
       "category": "Bombones helados",
       "presentation": "Caja de 14 unidades",
       "variants": "Dubai",
-      "description": "Palitos Seibom Dubai. Presentación: Caja de 14 unidades. Sabores o variedades indicados en la lista: Dubai. Precio final de la presentación indicada según el Excel recibido. Consultá disponibilidad y combinaciones antes de coordinar la entrega.",
+      "description": "Palitos Seibom Dubai en caja de 14 unidades. Una presentación específica de esta variedad de la línea Seibom, con precio por caja completa.",
       "image": "/catalogo/seibom-dubai.webp",
       "imageStatus": "coincidencia_exacta",
-      "sourceDriveId": "16uqPYDZ5v7I0GA_Dxf46W8S3DH-_Qtdv"
+      "sourceDriveId": "16uqPYDZ5v7I0GA_Dxf46W8S3DH-_Qtdv",
+      "sku": "VIA-BOM-016-X14"
     },
     {
       "sourceRow": 17,
@@ -208,10 +223,11 @@
       "category": "Palitos y conos",
       "presentation": "Caja de 14 unidades",
       "variants": "Americana y dulce de leche",
-      "description": "Conos Tu Flama. Presentación: Caja de 14 unidades. Sabores o variedades indicados en la lista: Americana y dulce de leche. Precio final de la presentación indicada según el Excel recibido. Consultá disponibilidad y combinaciones antes de coordinar la entrega.",
+      "description": "Conos helados Tu Flama en caja de 14 unidades. Disponibles en las variedades americana y dulce de leche indicadas en la lista; consultar surtido y disponibilidad.",
       "image": "/catalogo/cono-tu-dl.webp",
       "imageStatus": "coincidencia_exacta",
-      "sourceDriveId": "1b06e-Q3zOI6VYWQm_Q-NdzGr9KzH5cDv"
+      "sourceDriveId": "1b06e-Q3zOI6VYWQm_Q-NdzGr9KzH5cDv",
+      "sku": "VIA-PAL-017-X14"
     },
     {
       "sourceRow": 18,
@@ -221,10 +237,11 @@
       "category": "Postres y especiales",
       "presentation": "Caja de 12 unidades (220 cc cada una)",
       "variants": "Americana-frutilla, chocolate-dulce de leche y americana-cookies",
-      "description": "Copas heladas de 220 cc. Presentación: Caja de 12 unidades (220 cc cada una). Sabores o variedades indicados en la lista: Americana-frutilla, chocolate-dulce de leche y americana-cookies. Precio final de la presentación indicada según el Excel recibido. Consultá disponibilidad y combinaciones antes de coordinar la entrega.",
+      "description": "Copas heladas de 220 cc cada una, en caja de 12 unidades. Variedades indicadas: americana-frutilla, chocolate-dulce de leche y americana-cookies.",
       "image": "/catalogo/copa-frutilla.webp",
       "imageStatus": "coincidencia_exacta",
-      "sourceDriveId": "137RVq7fNw96loOC1qw0sV7b7hVaJkRn1"
+      "sourceDriveId": "137RVq7fNw96loOC1qw0sV7b7hVaJkRn1",
+      "sku": "VIA-POS-018-X12"
     },
     {
       "sourceRow": 19,
@@ -234,10 +251,11 @@
       "category": "Bombones helados",
       "presentation": "Caja de 8 unidades",
       "variants": "Americana, menta, dulce de leche y pistacho",
-      "description": "Bomboncitos helados surtidos. Presentación: Caja de 8 unidades. Sabores o variedades indicados en la lista: Americana, menta, dulce de leche y pistacho. Precio final de la presentación indicada según el Excel recibido. Consultá disponibilidad y combinaciones antes de coordinar la entrega.",
+      "description": "Caja de 8 bomboncitos helados surtidos. La lista contempla americana, menta, dulce de leche y pistacho; confirmar los sabores de la presentación al realizar el pedido.",
       "image": "/catalogo/bomboncitos-ddl.webp",
       "imageStatus": "coincidencia_exacta",
-      "sourceDriveId": "1nJ6VvJXeWw64L8esnNzr-fKUU1KxJacV"
+      "sourceDriveId": "1nJ6VvJXeWw64L8esnNzr-fKUU1KxJacV",
+      "sku": "VIA-BOM-019-X8"
     },
     {
       "sourceRow": 20,
@@ -247,10 +265,11 @@
       "category": "Bombones helados",
       "presentation": "Caja de 8 unidades",
       "variants": "Seichoc",
-      "description": "Bomboncitos Seichoc. Presentación: Caja de 8 unidades. Sabores o variedades indicados en la lista: Seichoc. Precio final de la presentación indicada según el Excel recibido. Consultá disponibilidad y combinaciones antes de coordinar la entrega.",
+      "description": "Bomboncitos Seichoc en caja de 8 unidades. Presentación de esta variedad de bombones helados para venta en comercios o consumo compartido.",
       "image": "/catalogo/seichoc-catalogo-1536x1536.webp",
       "imageStatus": "coincidencia_exacta",
-      "sourceDriveId": "1L9GoLfS3dGs7oGCeJLACUZmQTvkIZ4qN"
+      "sourceDriveId": "1L9GoLfS3dGs7oGCeJLACUZmQTvkIZ4qN",
+      "sku": "VIA-BOM-020-X8"
     },
     {
       "sourceRow": 21,
@@ -260,23 +279,25 @@
       "category": "Bombones helados",
       "presentation": "Envase de 150 g",
       "variants": "Arándanos bañados",
-      "description": "FrutiFrozen arándanos bañados. Presentación: Envase de 150 g. Sabores o variedades indicados en la lista: Arándanos bañados. Precio final de la presentación indicada según el Excel recibido. Consultá disponibilidad y combinaciones antes de coordinar la entrega.",
+      "description": "FrutiFrozen de arándanos bañados, en envase de 150 g. Producto congelado en formato individual, con precio correspondiente a cada envase.",
       "image": "/catalogo/arandanos-1-1536x1532.webp",
       "imageStatus": "coincidencia_exacta",
-      "sourceDriveId": "1wdxUk4W7RiSbs1H5mH9HJjds_bIreQ81"
+      "sourceDriveId": "1wdxUk4W7RiSbs1H5mH9HJjds_bIreQ81",
+      "sku": "VIA-BOM-021-150G"
     },
     {
       "sourceRow": 22,
       "id": 32,
       "price": 7900,
       "name": "FrutiFrozen frambuesas bañadas",
-      "category": "Palitos y conos",
+      "category": "Bombones helados",
       "presentation": "Envase de 150 g",
       "variants": "Frambuesas bañadas",
-      "description": "FrutiFrozen frambuesas bañadas. Presentación: Envase de 150 g. Sabores o variedades indicados en la lista: Frambuesas bañadas. Precio final de la presentación indicada según el Excel recibido. Consultá disponibilidad y combinaciones antes de coordinar la entrega.",
+      "description": "FrutiFrozen de frambuesas bañadas en presentación de 150 g. Una alternativa frutal congelada para sumar a la línea FrutiFrozen.",
       "image": "/catalogo/frutifrozen-1.webp",
       "imageStatus": "coincidencia_exacta",
-      "sourceDriveId": "14r-sp4tzV7iFzBeJmlElwaDDk3SsfKmW"
+      "sourceDriveId": "14r-sp4tzV7iFzBeJmlElwaDDk3SsfKmW",
+      "sku": "VIA-BOM-022-150G"
     },
     {
       "sourceRow": 23,
@@ -286,10 +307,11 @@
       "category": "Postres y especiales",
       "presentation": "Caja de 20 unidades",
       "variants": "Almendrado",
-      "description": "Almendrado. Presentación: Caja de 20 unidades. Sabores o variedades indicados en la lista: Almendrado. Precio final de la presentación indicada según el Excel recibido. Consultá disponibilidad y combinaciones antes de coordinar la entrega.",
+      "description": "Almendrado en caja de 20 unidades. Presentación de mayor cantidad para abastecer comercios que ofrecen postres helados individuales.",
       "image": "/catalogo/flowpack-almendrado.webp",
       "imageStatus": "coincidencia_exacta",
-      "sourceDriveId": "16SZ2bA7_uo1rPwHCPZA2j5aLKAvoz3al"
+      "sourceDriveId": "16SZ2bA7_uo1rPwHCPZA2j5aLKAvoz3al",
+      "sku": "VIA-POS-023-X20"
     },
     {
       "sourceRow": 24,
@@ -299,10 +321,11 @@
       "category": "Postres y especiales",
       "presentation": "Caja de 20 unidades",
       "variants": "Tricolor",
-      "description": "Tricolor. Presentación: Caja de 20 unidades. Sabores o variedades indicados en la lista: Tricolor. Precio final de la presentación indicada según el Excel recibido. Consultá disponibilidad y combinaciones antes de coordinar la entrega.",
+      "description": "Postres helados Tricolor en caja de 20 unidades. Formato de venta por caja para disponer de la variedad Tricolor en el freezer del negocio.",
       "image": "/catalogo/tricolor-flowpack.webp",
       "imageStatus": "coincidencia_exacta",
-      "sourceDriveId": "1OOia7_a7NojfnJG1BhcUHu11vuzggE8m"
+      "sourceDriveId": "1OOia7_a7NojfnJG1BhcUHu11vuzggE8m",
+      "sku": "VIA-POS-024-X20"
     },
     {
       "sourceRow": 25,
@@ -312,10 +335,11 @@
       "category": "Postres y especiales",
       "presentation": "Caja de 20 unidades",
       "variants": "Suizo",
-      "description": "Suizo. Presentación: Caja de 20 unidades. Sabores o variedades indicados en la lista: Suizo. Precio final de la presentación indicada según el Excel recibido. Consultá disponibilidad y combinaciones antes de coordinar la entrega.",
+      "description": "Postre helado Suizo en caja de 20 unidades. Presentación mayorista de esta variedad clásica, diferenciada de la caja de 8 unidades.",
       "image": "/catalogo/suizo-flowpack.webp",
       "imageStatus": "coincidencia_exacta",
-      "sourceDriveId": "1E3MXbIBMKxig_thyvJr8bYz7P4-HF7_k"
+      "sourceDriveId": "1E3MXbIBMKxig_thyvJr8bYz7P4-HF7_k",
+      "sku": "VIA-POS-025-X20"
     },
     {
       "sourceRow": 26,
@@ -325,10 +349,11 @@
       "category": "Postres y especiales",
       "presentation": "Caja de 24 unidades",
       "variants": "Clásico y nevado",
-      "description": "Escocés clásico o nevado. Presentación: Caja de 24 unidades. Sabores o variedades indicados en la lista: Clásico y nevado. Precio final de la presentación indicada según el Excel recibido. Consultá disponibilidad y combinaciones antes de coordinar la entrega.",
+      "description": "Postres Escocés en caja de 24 unidades. La lista contempla las versiones clásico y nevado; la variedad entregada se confirma al coordinar el pedido.",
       "image": "/catalogo/escoces.webp",
       "imageStatus": "coincidencia_exacta",
-      "sourceDriveId": "1_88Q0-UpXo7iUSvyE753SxjrUy5PkjMZ"
+      "sourceDriveId": "1_88Q0-UpXo7iUSvyE753SxjrUy5PkjMZ",
+      "sku": "VIA-POS-026-X24"
     },
     {
       "sourceRow": 27,
@@ -338,10 +363,11 @@
       "category": "Postres y especiales",
       "presentation": "Caja de 8 unidades",
       "variants": "Almendrado",
-      "description": "Almendrado. Presentación: Caja de 8 unidades. Sabores o variedades indicados en la lista: Almendrado. Precio final de la presentación indicada según el Excel recibido. Consultá disponibilidad y combinaciones antes de coordinar la entrega.",
+      "description": "Almendrado en caja de 8 unidades. Presentación compacta de este postre helado, con precio por caja y no por unidad.",
       "image": "/catalogo/7798138004597.webp",
       "imageStatus": "coincidencia_exacta",
-      "sourceDriveId": "1_-_MWetcFVnsY6aWA_pabtv9cHJjm88n"
+      "sourceDriveId": "1_-_MWetcFVnsY6aWA_pabtv9cHJjm88n",
+      "sku": "VIA-POS-027-X8"
     },
     {
       "sourceRow": 28,
@@ -351,10 +377,11 @@
       "category": "Postres y especiales",
       "presentation": "Caja de 8 unidades",
       "variants": "Tricolor",
-      "description": "Tricolor. Presentación: Caja de 8 unidades. Sabores o variedades indicados en la lista: Tricolor. Precio final de la presentación indicada según el Excel recibido. Consultá disponibilidad y combinaciones antes de coordinar la entrega.",
+      "description": "Postres helados Tricolor en caja de 8 unidades. Una presentación de menor cantidad para incorporar esta variedad al surtido del comercio.",
       "image": "/catalogo/tricolor.webp",
       "imageStatus": "coincidencia_exacta",
-      "sourceDriveId": "1f8qfMJKCDarSSYRP15FP5o4oQrWtsvKK"
+      "sourceDriveId": "1f8qfMJKCDarSSYRP15FP5o4oQrWtsvKK",
+      "sku": "VIA-POS-028-X8"
     },
     {
       "sourceRow": 29,
@@ -364,10 +391,11 @@
       "category": "Postres y especiales",
       "presentation": "Caja de 8 unidades",
       "variants": "Suizo",
-      "description": "Suizo. Presentación: Caja de 8 unidades. Sabores o variedades indicados en la lista: Suizo. Precio final de la presentación indicada según el Excel recibido. Consultá disponibilidad y combinaciones antes de coordinar la entrega.",
+      "description": "Postre helado Suizo en caja de 8 unidades. Opción de menor cantidad para quienes necesitan reponer esta variedad sin comprar una caja de 20.",
       "image": "/catalogo/suizo.webp",
       "imageStatus": "coincidencia_exacta",
-      "sourceDriveId": "1lVYbQPuGy3eSfEyKZa8XeFsQUgIwhcJ_"
+      "sourceDriveId": "1lVYbQPuGy3eSfEyKZa8XeFsQUgIwhcJ_",
+      "sku": "VIA-POS-029-X8"
     },
     {
       "sourceRow": 30,
@@ -377,10 +405,11 @@
       "category": "Postres y especiales",
       "presentation": "Caja de 6 unidades",
       "variants": "Tricolor dietético",
-      "description": "Tricolor Cormillot dietético. Presentación: Caja de 6 unidades. Sabores o variedades indicados en la lista: Tricolor dietético. Precio final de la presentación indicada según el Excel recibido. Consultá disponibilidad y combinaciones antes de coordinar la entrega.",
+      "description": "Tricolor Cormillot dietético en caja de 6 unidades. Presentación identificada como dietética en el catálogo; verificar el etiquetado del fabricante para información nutricional.",
       "image": "/catalogo/tricolor-cormillot.webp",
       "imageStatus": "coincidencia_exacta",
-      "sourceDriveId": "1rhuzqBJD1bIIAxef6g2BzCHkgIDUVOuf"
+      "sourceDriveId": "1rhuzqBJD1bIIAxef6g2BzCHkgIDUVOuf",
+      "sku": "VIA-POS-030-X6"
     },
     {
       "sourceRow": 31,
@@ -390,10 +419,11 @@
       "category": "Postres y especiales",
       "presentation": "Caja de 8 unidades",
       "variants": "Clásico, nevado y pistacho",
-      "description": "Bombón Escocés. Presentación: Caja de 8 unidades. Sabores o variedades indicados en la lista: Clásico, nevado y pistacho. Precio final de la presentación indicada según el Excel recibido. Consultá disponibilidad y combinaciones antes de coordinar la entrega.",
+      "description": "Bombón Escocés en caja de 8 unidades. La lista incluye las variedades clásico, nevado y pistacho; confirmar la selección disponible antes de comprar.",
       "image": "/catalogo/escoces-clasico.webp",
       "imageStatus": "coincidencia_exacta",
-      "sourceDriveId": "1qYUcGFeXQ90Jq6SpJGvXHO9MR3kAgBwL"
+      "sourceDriveId": "1qYUcGFeXQ90Jq6SpJGvXHO9MR3kAgBwL",
+      "sku": "VIA-POS-031-X8"
     },
     {
       "sourceRow": 32,
@@ -403,10 +433,11 @@
       "category": "Tortas heladas",
       "presentation": "Mini torta (peso no especificado)",
       "variants": "Cookies",
-      "description": "Mini torta Cookies. Presentación: Mini torta (peso no especificado). Sabores o variedades indicados en la lista: Cookies. Precio final de la presentación indicada según el Excel recibido. Consultá disponibilidad y combinaciones antes de coordinar la entrega.",
+      "description": "Mini torta helada Cookies. Presentación individual de torta de esta variedad; el peso no está especificado en la lista comercial.",
       "image": "/catalogo/mini-torta-helada-cookies.webp",
       "imageStatus": "coincidencia_exacta",
-      "sourceDriveId": "1hvVqV0YncLcQi9939laT7wcCwFEMMoS2"
+      "sourceDriveId": "1hvVqV0YncLcQi9939laT7wcCwFEMMoS2",
+      "sku": "VIA-TOR-032-MINI"
     },
     {
       "sourceRow": 33,
@@ -416,10 +447,11 @@
       "category": "Alfajores helados",
       "presentation": "Caja de 8 unidades",
       "variants": "Seichoc",
-      "description": "Alfajores helados Seichoc. Presentación: Caja de 8 unidades. Sabores o variedades indicados en la lista: Seichoc. Precio final de la presentación indicada según el Excel recibido. Consultá disponibilidad y combinaciones antes de coordinar la entrega.",
+      "description": "Alfajores helados Seichoc en caja de 8 unidades. Presentación de menor cantidad de la línea Seichoc, distinta de la caja de 16 unidades.",
       "image": "/catalogo/caja-x8-alfajor-seichoc.webp",
       "imageStatus": "coincidencia_exacta",
-      "sourceDriveId": "1yB-R-kVcg1BmrUPOs-6SRx3DlydA88ID"
+      "sourceDriveId": "1yB-R-kVcg1BmrUPOs-6SRx3DlydA88ID",
+      "sku": "VIA-ALF-033-X8"
     },
     {
       "sourceRow": 34,
@@ -429,10 +461,11 @@
       "category": "Alfajores helados",
       "presentation": "Caja de 8 unidades",
       "variants": "Clásico y nevado",
-      "description": "Alfajores helados. Presentación: Caja de 8 unidades. Sabores o variedades indicados en la lista: Clásico y nevado. Precio final de la presentación indicada según el Excel recibido. Consultá disponibilidad y combinaciones antes de coordinar la entrega.",
+      "description": "Caja de 8 alfajores helados de la línea clásica. La lista menciona las variedades clásico y nevado; consultar disponibilidad antes de confirmar el surtido.",
       "image": "/catalogo/alfajor-negro.webp",
       "imageStatus": "coincidencia_exacta",
-      "sourceDriveId": "1xYLG484ww97BOir5zqAzu9gOMWfinunj"
+      "sourceDriveId": "1xYLG484ww97BOir5zqAzu9gOMWfinunj",
+      "sku": "VIA-ALF-034-X8"
     },
     {
       "sourceRow": 35,
@@ -442,10 +475,11 @@
       "category": "Tortas heladas",
       "presentation": "Torta de 800 g",
       "variants": "Frutilla y dulce de leche",
-      "description": "Torta Isabella. Presentación: Torta de 800 g. Sabores o variedades indicados en la lista: Frutilla y dulce de leche. Precio final de la presentación indicada según el Excel recibido. Consultá disponibilidad y combinaciones antes de coordinar la entrega.",
-      "image": "/catalogo/postres-seitu-diplay.webp",
-      "imageStatus": "referencial",
-      "sourceDriveId": "1eUcyRDkGwFHsOqVjO5EDlGyUMUd3SFC3"
+      "description": "Torta helada Isabella de 800 g con combinación de frutilla y dulce de leche. Precio por torta completa; la fotografía individual del producto queda pendiente de confirmar.",
+      "image": null,
+      "imageStatus": "sin_foto",
+      "sourceDriveId": "1eUcyRDkGwFHsOqVjO5EDlGyUMUd3SFC3",
+      "sku": "VIA-TOR-035-800G"
     },
     {
       "sourceRow": 36,
@@ -455,10 +489,11 @@
       "category": "Tortas heladas",
       "presentation": "Torta de 800 g",
       "variants": "Cookies",
-      "description": "Torta Cookies. Presentación: Torta de 800 g. Sabores o variedades indicados en la lista: Cookies. Precio final de la presentación indicada según el Excel recibido. Consultá disponibilidad y combinaciones antes de coordinar la entrega.",
+      "description": "Torta helada Cookies de 800 g. Una presentación de torta completa para compartir, dentro de la variedad Cookies indicada en el catálogo.",
       "image": "/catalogo/torta-cookies.webp",
       "imageStatus": "coincidencia_exacta",
-      "sourceDriveId": "1BPy1D7-sVMfPqn401qCDJGIomoXWfLuK"
+      "sourceDriveId": "1BPy1D7-sVMfPqn401qCDJGIomoXWfLuK",
+      "sku": "VIA-TOR-036-800G"
     },
     {
       "sourceRow": 37,
@@ -468,10 +503,11 @@
       "category": "Tortas heladas",
       "presentation": "Torta de 800 g",
       "variants": "Lemon Pie",
-      "description": "Torta Lemon Pie. Presentación: Torta de 800 g. Sabores o variedades indicados en la lista: Lemon Pie. Precio final de la presentación indicada según el Excel recibido. Consultá disponibilidad y combinaciones antes de coordinar la entrega.",
+      "description": "Torta helada Lemon Pie de 800 g. Opción de torta completa identificada con el sabor Lemon Pie para sumar a la línea de postres congelados.",
       "image": "/catalogo/torta-lemon.webp",
       "imageStatus": "coincidencia_exacta",
-      "sourceDriveId": "1stSE4-z5pPuJCWVdHeFoQBm-nkoO6ikw"
+      "sourceDriveId": "1stSE4-z5pPuJCWVdHeFoQBm-nkoO6ikw",
+      "sku": "VIA-TOR-037-800G"
     },
     {
       "sourceRow": 38,
@@ -481,10 +517,11 @@
       "category": "Tortas heladas",
       "presentation": "Torta de 800 g",
       "variants": "Bombón",
-      "description": "Torta Bombón. Presentación: Torta de 800 g. Sabores o variedades indicados en la lista: Bombón. Precio final de la presentación indicada según el Excel recibido. Consultá disponibilidad y combinaciones antes de coordinar la entrega.",
+      "description": "Torta helada Bombón de 800 g. Presentación de torta completa de la variedad Bombón, con precio correspondiente a la unidad de 800 g.",
       "image": "/catalogo/torta-bombon.webp",
       "imageStatus": "coincidencia_exacta",
-      "sourceDriveId": "1dWY6JlhtfXgNgSYPM26NpNgNc7-vousQ"
+      "sourceDriveId": "1dWY6JlhtfXgNgSYPM26NpNgNc7-vousQ",
+      "sku": "VIA-TOR-038-800G"
     },
     {
       "sourceRow": 39,
@@ -494,10 +531,11 @@
       "category": "Baldes y potes",
       "presentation": "Pote de 750 cc",
       "variants": "Limón, chocolate-dulce de leche y americana-frutilla",
-      "description": "Pote clásico de 750 cc. Presentación: Pote de 750 cc. Sabores o variedades indicados en la lista: Limón, chocolate-dulce de leche y americana-frutilla. Precio final de la presentación indicada según el Excel recibido. Consultá disponibilidad y combinaciones antes de coordinar la entrega.",
+      "description": "Pote clásico de helado de 750 cc. La lista ofrece limón, chocolate-dulce de leche y americana-frutilla; seleccionar la variedad disponible antes de confirmar.",
       "image": "/catalogo/pote-duo-ddl-chocolate-750cc.webp",
       "imageStatus": "coincidencia_exacta",
-      "sourceDriveId": "1Vqcl_oWyeSyYBeM9_WaQ5VpnglTiCICX"
+      "sourceDriveId": "1Vqcl_oWyeSyYBeM9_WaQ5VpnglTiCICX",
+      "sku": "VIA-HEL-039-750CC"
     },
     {
       "sourceRow": 40,
@@ -507,10 +545,11 @@
       "category": "Baldes y potes",
       "presentation": "Pote de 750 cc",
       "variants": "Súper chocolate, dulce de leche granizado, frutilla a la crema y crema-cookies",
-      "description": "Pote premium de 750 cc. Presentación: Pote de 750 cc. Sabores o variedades indicados en la lista: Súper chocolate, dulce de leche granizado, frutilla a la crema y crema-cookies. Precio final de la presentación indicada según el Excel recibido. Consultá disponibilidad y combinaciones antes de coordinar la entrega.",
+      "description": "Pote premium de helado de 750 cc. Sabores indicados: súper chocolate, dulce de leche granizado, frutilla a la crema y crema-cookies; consultar disponibilidad.",
       "image": "/catalogo/dulce-de-lechep.webp",
       "imageStatus": "coincidencia_exacta",
-      "sourceDriveId": "1wul8hx-X2GcQBuGE3WhzgZFvMet_B2ca"
+      "sourceDriveId": "1wul8hx-X2GcQBuGE3WhzgZFvMet_B2ca",
+      "sku": "VIA-HEL-040-750CC"
     },
     {
       "sourceRow": 41,
@@ -520,10 +559,11 @@
       "category": "Baldes y potes",
       "presentation": "Pote de 750 cc",
       "variants": "Chocolate con almendras y vainilla",
-      "description": "Pote vegano de 750 cc. Presentación: Pote de 750 cc. Sabores o variedades indicados en la lista: Chocolate con almendras y vainilla. Precio final de la presentación indicada según el Excel recibido. Consultá disponibilidad y combinaciones antes de coordinar la entrega.",
+      "description": "Pote vegano de helado de 750 cc. Variedades informadas: chocolate con almendras y vainilla. Para alérgenos y composición, consultar el envase del fabricante.",
       "image": "/catalogo/render-vegano-2023.webp",
       "imageStatus": "coincidencia_exacta",
-      "sourceDriveId": "17RNXu6ZhfnICzhOEDHHYSKB0Y7dk7hed"
+      "sourceDriveId": "17RNXu6ZhfnICzhOEDHHYSKB0Y7dk7hed",
+      "sku": "VIA-HEL-041-750CC"
     },
     {
       "sourceRow": 42,
@@ -533,10 +573,11 @@
       "category": "Baldes y potes",
       "presentation": "Pote de 360 cc",
       "variants": "Chocolate y vainilla",
-      "description": "Pote Cormillot de 360 cc. Presentación: Pote de 360 cc. Sabores o variedades indicados en la lista: Chocolate y vainilla. Precio final de la presentación indicada según el Excel recibido. Consultá disponibilidad y combinaciones antes de coordinar la entrega.",
+      "description": "Pote Cormillot de helado de 360 cc en combinación de chocolate y vainilla. Presentación compacta identificada como parte de la línea Cormillot.",
       "image": "/catalogo/pote-cormillot-360cc.webp",
       "imageStatus": "coincidencia_exacta",
-      "sourceDriveId": "1JwJTutpGE5LDtGp7ZVXWKZ4aW7o8S80r"
+      "sourceDriveId": "1JwJTutpGE5LDtGp7ZVXWKZ4aW7o8S80r",
+      "sku": "VIA-HEL-042-360CC"
     },
     {
       "sourceRow": 43,
@@ -546,10 +587,11 @@
       "category": "Baldes y potes",
       "presentation": "Pote de 360 cc",
       "variants": "Dubai",
-      "description": "Pote Dubai de 360 cc. Presentación: Pote de 360 cc. Sabores o variedades indicados en la lista: Dubai. Precio final de la presentación indicada según el Excel recibido. Consultá disponibilidad y combinaciones antes de coordinar la entrega.",
+      "description": "Pote de helado Dubai de 360 cc. Presentación individual de esta variedad, con precio por pote y conservación en freezer.",
       "image": "/catalogo/dubai-pote.webp",
       "imageStatus": "coincidencia_exacta",
-      "sourceDriveId": "1X3JFfHtkW3Kbk5tsP45R7PJfQPsuxv6_"
+      "sourceDriveId": "1X3JFfHtkW3Kbk5tsP45R7PJfQPsuxv6_",
+      "sku": "VIA-HEL-043-360CC"
     },
     {
       "sourceRow": 44,
@@ -559,10 +601,11 @@
       "category": "Baldes y potes",
       "presentation": "Balde de 3 litros",
       "variants": "Banana-flan-granizado; frutilla-dulce de leche-chocolate; americana-dulce de leche-frutilla; americana-dulce de leche-chocolate-frutilla; dulce de leche-tramontana-tiramisú; granizado-chocolate-dulce de leche-flan",
-      "description": "Balde de helado de 3 litros. Presentación: Balde de 3 litros. Sabores o variedades indicados en la lista: Banana-flan-granizado; frutilla-dulce de leche-chocolate; americana-dulce de leche-frutilla; americana-dulce de leche-chocolate-frutilla; dulce de leche-tramontana-tiramisú; granizado-chocolate-dulce de leche-flan. Precio final de la presentación indicada según el Excel recibido. Consultá disponibilidad y combinaciones antes de coordinar la entrega.",
+      "description": "Balde de helado de 3 litros. Entre las combinaciones de sabores de la lista figuran banana-flan-granizado, frutilla-dulce de leche-chocolate y otras opciones; confirmar la elegida.",
       "image": "/catalogo/balde-3lts-bn-fl-gr.webp",
       "imageStatus": "coincidencia_exacta",
-      "sourceDriveId": "1iAIzMlE-F-ZL_WsH6QabNxFYwcX6FD99"
+      "sourceDriveId": "1iAIzMlE-F-ZL_WsH6QabNxFYwcX6FD99",
+      "sku": "VIA-HEL-044-3L"
     },
     {
       "sourceRow": 45,
@@ -572,10 +615,11 @@
       "category": "Baldes y potes",
       "presentation": "Balde de 5 litros",
       "variants": "Banana-flan-granizado; americana-dulce de leche-frutilla; americana-chocolate-dulce de leche-frutilla; granizado-chocolate-dulce de leche-flan",
-      "description": "Balde de helado de 5 litros. Presentación: Balde de 5 litros. Sabores o variedades indicados en la lista: Banana-flan-granizado; americana-dulce de leche-frutilla; americana-chocolate-dulce de leche-frutilla; granizado-chocolate-dulce de leche-flan. Precio final de la presentación indicada según el Excel recibido. Consultá disponibilidad y combinaciones antes de coordinar la entrega.",
+      "description": "Balde de helado de 5 litros para venta y abastecimiento en formato grande. La lista incluye combinaciones con banana, flan, granizado, americana, dulce de leche, chocolate y frutilla.",
       "image": "/catalogo/img-20261023-wa0103.webp",
       "imageStatus": "coincidencia_exacta",
-      "sourceDriveId": "1Sh8z9wMUpyTFSZ4TDkzeKsPy6-QnqPxf"
+      "sourceDriveId": "1Sh8z9wMUpyTFSZ4TDkzeKsPy6-QnqPxf",
+      "sku": "VIA-HEL-045-5L"
     },
     {
       "sourceRow": 46,
@@ -585,10 +629,11 @@
       "category": "Baldes y potes",
       "presentation": "Lata de 10 litros",
       "variants": "Americana, limón, dulce de leche, chocolate y frutilla a la crema; consultar otros sabores",
-      "description": "Lata de helado de 10 litros. Presentación: Lata de 10 litros. Sabores o variedades indicados en la lista: Americana, limón, dulce de leche, chocolate y frutilla a la crema; consultar otros sabores. Precio final de la presentación indicada según el Excel recibido. Consultá disponibilidad y combinaciones antes de coordinar la entrega.",
+      "description": "Lata de helado de 10 litros. Sabores mencionados en la lista: americana, limón, dulce de leche, chocolate y frutilla a la crema. Consultar otros sabores y disponibilidad.",
       "image": null,
       "imageStatus": "sin_foto",
-      "sourceDriveId": null
+      "sourceDriveId": null,
+      "sku": "VIA-HEL-046-10L"
     }
   ]
 }

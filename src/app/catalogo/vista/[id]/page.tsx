@@ -4,6 +4,7 @@ import Link from "next/link";
 import {notFound} from "next/navigation";
 import {ArrowLeft,ArrowUpRight,ImageOff,MessageCircle,PackageSearch} from "lucide-react";
 import {SiteShell} from "@/components/site-shell";
+import {PricedAddToCart} from "@/components/priced-add-to-cart";
 import {getStore} from "@/lib/site";
 import {PROVISIONAL_PRODUCT_ASSETS} from "@/lib/provisional-catalog";
 import {CATALOG_SOURCE_LABEL,findCatalogPriceItem} from "@/lib/catalog-prices";
@@ -46,6 +47,7 @@ export default async function ProductPreviewPage({params}:Props){
       <p className="hint">{CATALOG_SOURCE_LABEL}</p>
      </>:<><h2>Acerca de este producto</h2><p>Esta imagen pertenece al catálogo preliminar de Viagelato. Su precio y presentación no figuran asociados en la última planilla.</p>
       <div className="provisional-detail-facts"><div><span>Categoría orientativa</span><strong>{item.category}</strong></div><div><span>Precio y stock</span><strong>A confirmar</strong></div></div></>}
+    {priced?<PricedAddToCart item={priced}/>:null}
     {whatsapp?<a className="primary-action whatsapp-action" href={whatsapp} target="_blank" rel="noopener noreferrer"><MessageCircle/> Consultar por WhatsApp <ArrowUpRight/></a>:
      <Link className="primary-action" href="/contacto"><MessageCircle/> Consultar disponibilidad <ArrowUpRight/></Link>}
     <p className="hint">Esta consulta no genera automáticamente un pedido ni reserva mercadería.</p>
