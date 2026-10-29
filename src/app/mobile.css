@@ -266,7 +266,7 @@
   .priced-description { font-size: 12px; -webkit-line-clamp: 3; }
   .priced-card-bottom strong { font-size: 22px; }
   .priced-cart-action { padding: 4px 16px 17px; }
-  .provisional-image { aspect-ratio: 1.25; }
+  .provisional-image { aspect-ratio: 1.25; height: auto; }
   .provisional-image img { object-fit: contain; }
   .temperature-card span { font-size: 10px; }
   .floating-actions { padding-inline: 12px; gap: 7px; }
