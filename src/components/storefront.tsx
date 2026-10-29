@@ -33,7 +33,7 @@ export function Storefront({settings,products,banners,demo,catalogItems=CATALOG_
    <div className="section-title"><div><p className="kicker">CATÁLOGO</p><h2>Encontrá lo que<br/>necesitás.</h2></div><p>Explorá cada tipo de producto. El catálogo completo está organizado en grupos para elegir más rápido.</p></div>
    <div className="home-type-grid">
     {catalogGroups.map(group=><Link href={categoryCatalogHref(group.name)} key={group.name} className="home-type-card">
-     <span className="home-type-photo">{group.image?<Image src={group.image} alt="" fill sizes="(max-width:640px) 44vw, (max-width:960px) 30vw, 17vw"/>:null}</span>
+     <span className="home-type-photo">{group.image?<Image src={group.image} alt="" fill sizes="(max-width:640px) 44vw, (max-width:960px) 30vw, 17vw" unoptimized/>:null}</span>
      <span className="home-type-info"><strong>{group.name}</strong><small>{group.count} presentaciones</small><ArrowRight size={18} aria-hidden="true"/></span>
     </Link>)}
    </div>
