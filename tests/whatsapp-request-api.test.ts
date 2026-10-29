@@ -4,6 +4,7 @@ import {POST} from "@/app/api/whatsapp-request/route";
 import {connected,privilegedDb} from "@/lib/supabase";
 
 vi.mock("@/lib/supabase",()=>({connected:vi.fn(()=>true),privilegedDb:vi.fn()}));
+vi.mock("@/lib/site",()=>({getPublishedCatalog:vi.fn(async()=> (await import("@/lib/catalog-prices")).CATALOG_PRICE_ITEMS)}));
 const id="11111111-2222-4333-8444-555555555555",key="22222222-3333-4444-8555-666666666666";
 const payload={customer_name:"Ana Gomez",locality:"Lanús",address:"Av. Mitre 123",notes:"",
  shipping_method:"shipping",items:[{id:"catalog-price-2",quantity:2}]};
