@@ -3,7 +3,7 @@ import {useEffect,useMemo,useState,type FormEvent} from "react";
 import {useRouter} from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
-import {LayoutDashboard,Package,Layers,Truck,Image as ImageIcon,Settings,ShoppingBag,MessageCircle,ExternalLink,LogOut,UploadCloud} from "lucide-react";
+import {LayoutDashboard,Package,Layers,Truck,Image as ImageIcon,Settings,ShoppingBag,MessageCircle,ExternalLink,LogOut,UploadCloud,Menu,X} from "lucide-react";
 import {browserDb} from "@/lib/browser";
 import {WhatsAppRequests} from "@/components/admin-whatsapp-requests";
 import {normalizeCatalogText} from "@/lib/catalog-search";
@@ -18,6 +18,8 @@ const empty:Draft={name:"",slug:"",description:"",price:0,stock:0,image_url:null
 const nav:{id:Tab;label:string;icon:typeof Package}[]=[
  {id:"overview",label:"Resumen",icon:LayoutDashboard},{id:"products",label:"Productos",icon:Package},{id:"categories",label:"Categorías",icon:Layers},{id:"orders",label:"Pedidos",icon:ShoppingBag},{id:"requests",label:"WhatsApp",icon:MessageCircle},{id:"zones",label:"Zonas de envío",icon:Truck},{id:"banners",label:"Banners",icon:ImageIcon},{id:"settings",label:"Configuración",icon:Settings}
 ];
+const mobileMainTabs:Tab[]=["overview","products","requests","orders"];
+const mobileMoreTabs:Tab[]=["categories","zones","banners","settings"];
 function friendlyIssue(issue:{path?:(string|number)[];message?:string}|undefined){
  if(!issue)return "";
  if(issue.path?.[0]==="active"&&issue.message?.startsWith("Para publicar"))return issue.message;
@@ -32,7 +34,7 @@ async function request(path:string,method:string,data?:unknown){
  return d;
 }
 export function AdminDashboard({initialProducts,initialCategories,initialOrders,initialWhatsAppRequests=[],initialZones,initialSettings,initialBanners}:{initialProducts:Product[];initialCategories:Category[];initialOrders:Order[];initialWhatsAppRequests?:WhatsAppRequest[];initialZones:ShippingZone[];initialSettings:StoreSettings;initialBanners:Banner[]}){
- const [tab,setTab]=useState<Tab>("overview"),[draft,setDraft]=useState<Draft>({...empty}),[settings,setSettings]=useState(initialSettings),[notice,setNotice]=useState(""),[noticeError,setNoticeError]=useState(false),[busy,setBusy]=useState(false);
+ const [tab,setTab]=useState<Tab>("overview"),[mobileMoreOpen,setMobileMoreOpen]=useState(false),[draft,setDraft]=useState<Draft>({...empty}),[settings,setSettings]=useState(initialSettings),[notice,setNotice]=useState(""),[noticeError,setNoticeError]=useState(false),[busy,setBusy]=useState(false);
  const [productQuery,setProductQuery]=useState(""),[productStatus,setProductStatus]=useState<"all"|"published"|"hidden"|"pending">("all");
  const [savedDraft,setSavedDraft]=useState<Draft>({...empty});
  const [savedSettings,setSavedSettings]=useState<StoreSettings>(initialSettings);
@@ -55,7 +57,7 @@ export function AdminDashboard({initialProducts,initialCategories,initialOrders,
   }
   return true;
  }
- function changeTab(next:Tab){if(next!==tab&&canLeaveEditor(next))setTab(next);}
+ function changeTab(next:Tab){if(next!==tab&&!canLeaveEditor(next))return;setTab(next);setMobileMoreOpen(false);}
  function startProduct(value:Draft){
   if(productHasChanges&&!window.confirm("Hay cambios sin guardar. ¿Descartarlos y abrir otra ficha?"))return;
   const snapshot={...value};
@@ -66,6 +68,13 @@ export function AdminDashboard({initialProducts,initialCategories,initialOrders,
  const [showCandidatePicker,setShowCandidatePicker]=useState(false),[candidateQuery,setCandidateQuery]=useState("");
  const [newCat,setNewCat]=useState({name:"",slug:"",id:""}),[zoneId,setZoneId]=useState(""),[zoneName,setZoneName]=useState(""),[zoneCodes,setZoneCodes]=useState(""),[zoneCost,setZoneCost]=useState(""),[zoneReady,setZoneReady]=useState(false),[zoneFree,setZoneFree]=useState(false),[banner,setBanner]=useState({id:"",title:"",subtitle:"",image_url:"",href:"/catalogo",active:true,sort_order:0});
  const router=useRouter();
+ useEffect(()=>{
+  if(!mobileMoreOpen)return;
+  function closeOnEscape(event:KeyboardEvent){if(event.key==="Escape")setMobileMoreOpen(false);}
+  window.addEventListener("keydown",closeOnEscape);
+  return ()=>window.removeEventListener("keydown",closeOnEscape);
+ },[mobileMoreOpen]);
+
  async function act(fn:()=>Promise<unknown>,refresh=true,successMessage="Cambios guardados correctamente"){setBusy(true);setNotice("");setNoticeError(false);try{await fn();setNotice(successMessage);if(refresh)router.refresh();}catch(e){setNoticeError(true);setNotice(e instanceof Error?e.message:"No se pudo guardar");}finally{setBusy(false);}}
  const slugify=(name:string)=>name.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/[^a-z0-9 ]/g,"").trim().replace(/\s+/g,"-");
  function updateDraft<K extends keyof Draft>(field:K,val:Draft[K]){setDraft(v=>({...v,[field]:val}));}
@@ -152,5 +161,27 @@ export function AdminDashboard({initialProducts,initialCategories,initialOrders,
  </div><p className="hint">Estos textos son contenido editable, no políticas legales generadas automáticamente. Revisalas antes de publicar.</p><button className="btn primary" disabled={busy}>Guardar configuración</button></form></div>}
  {tab==="requests"&&<WhatsAppRequests requests={initialWhatsAppRequests} freeShippingThreshold={Number(initialSettings.free_shipping_threshold)}/>}
  {tab==="orders"&&<div className="panel"><h2>Pedidos recibidos</h2><p>Avanzá cada pedido con los botones de estado. Solo marcá un pago como cobrado si comprobaste que lo recibiste.</p><div className="admin-list">{initialOrders.map(o=>{const next=nextOrderStep(o);return <article className="admin-list-row" key={o.id}><div className="grow"><strong>#{o.id.slice(0,8)} · {o.customer_name}</strong><small>{o.customer_email} · {o.customer_phone} · {new Date(o.created_at).toLocaleDateString("es-AR")}</small><small>{o.shipping_method==="pickup"?"Retiro":"Envío: "+o.address}</small><small>Pago: {o.payment_method==="transfer"?"Transferencia":"Al recibir"} · {o.payment_status==="paid"?"Cobrado":"Pendiente"}</small></div><div className="grow">{o.order_items?.map((it,i)=><small key={i}>{it.quantity} × {it.product_name} · {ars(Number(it.unit_price))}</small>)}</div><strong>{ars(Number(o.total))}</strong><span className="status-pill">{orderStatusLabel(o.status)}</span>{o.payment_status!=="paid"&&!(["cancelled","expired"] as string[]).includes(o.status)&&<button className="btn tiny" disabled={busy} onClick={()=>{if(confirm("¿Verificaste que el pago se recibió realmente?"))void act(()=>request("orders","PATCH",{id:o.id,action:"mark_paid"}));}}>Marcar cobrado</button>}{next&&<button className="btn tiny" disabled={busy} onClick={()=>{if(next.status==="delivered"&&!confirm("¿Confirmás que el cliente recibió el pedido?"))return;void act(()=>request("orders","PATCH",{id:o.id,action:"set_status",status:next.status}),true,"Estado del pedido actualizado");}}>{next.label}</button>}{o.payment_status!=="paid"&&!(["delivered","cancelled","expired"] as string[]).includes(o.status)&&<button className="btn tiny danger" disabled={busy} onClick={()=>{if(confirm("¿Cancelar pedido y devolver el stock?"))void act(()=>request("orders","PATCH",{id:o.id,action:"cancel"}));}}>Cancelar</button>}</article>;})}{!initialOrders.length&&<p>No hay pedidos todavía. Los pedidos nuevos aparecerán acá cuando se habiliten las ventas.</p>}</div></div>}
- </main></div>;
+
+ </main>
+ <nav className="admin-mobile-bottom-nav" aria-label="Accesos rápidos de administración">
+  {mobileMainTabs.map(id=>{
+   const item=nav.find(n=>n.id===id)!;
+   return <button key={id} type="button" aria-label={`Acceso rápido: ${item.label}`} aria-pressed={tab===id}
+    disabled={busy} onClick={()=>changeTab(id)} className={tab===id?"active":""}>
+    <item.icon size={20} aria-hidden="true"/><span>{id==="overview"?"Inicio":item.label}</span>
+   </button>;
+  })}
+  <button type="button" className={mobileMoreOpen||mobileMoreTabs.includes(tab)?"active":""}
+   aria-label="Más módulos administrativos" aria-expanded={mobileMoreOpen} aria-controls="admin-mobile-more"
+   onClick={()=>setMobileMoreOpen(value=>!value)} disabled={busy}>
+   <Menu size={20} aria-hidden="true"/><span>Más</span>
+  </button>
+ </nav>
+ <div id="admin-mobile-more" className={`admin-mobile-more ${mobileMoreOpen?"is-open":""}`} aria-hidden={!mobileMoreOpen}>
+  <div className="admin-mobile-more-header"><strong>Más herramientas</strong><button type="button" aria-label="Cerrar más módulos" onClick={()=>setMobileMoreOpen(false)} tabIndex={mobileMoreOpen?0:-1}><X size={20} aria-hidden="true"/></button></div>
+  {mobileMoreTabs.map(id=>{const item=nav.find(n=>n.id===id)!;return <button type="button" key={id} className={tab===id?"active":""}
+   disabled={busy} aria-label={`Ir a ${item.label}`} aria-pressed={tab===id}
+   onClick={()=>changeTab(id)} tabIndex={mobileMoreOpen?0:-1}>
+   <item.icon size={19} aria-hidden="true"/>{item.label}</button>;})}
+ </div></div>;
 }
