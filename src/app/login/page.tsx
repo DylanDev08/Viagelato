@@ -1,6 +1,7 @@
 "use client";
 import {type FormEvent,useState} from "react";
 import Link from "next/link";
+import {Eye,EyeOff,LockKeyhole} from "lucide-react";
 import {useRouter} from "next/navigation";
 import {browserDb} from "@/lib/browser";
 
@@ -9,6 +10,7 @@ export default function Login(){
  const[password,setPassword]=useState("");
  const[error,setError]=useState("");
  const[busy,setBusy]=useState(false);
+ const[showPassword,setShowPassword]=useState(false);
  const router=useRouter();
 
  async function submit(e:FormEvent){
@@ -31,10 +33,11 @@ export default function Login(){
   }finally{setBusy(false);}
  }
  return <main className="auth-shell"><form className="panel auth-panel" onSubmit={submit}>
+  <div className="admin-login-heading"><LockKeyhole size={24} aria-hidden="true"/><span>VIAGELATO · PANEL</span></div>
   <h1>Acceso administrador</h1>
-  <p>Ingresá con una cuenta autorizada de Supabase para administrar Viagelato.</p>
+  <p>Gestioná los productos, pedidos y mensajes de WhatsApp desde tu celular.</p>
   <label>Email<input type="email" autoComplete="username" value={email} onChange={e=>setEmail(e.target.value)} required/></label>
-  <label>Contraseña<input type="password" autoComplete="current-password" value={password} onChange={e=>setPassword(e.target.value)} required/></label>
+  <label>Contraseña<div className="admin-password-input"><input type={showPassword?"text":"password"} autoComplete="current-password" value={password} onChange={e=>setPassword(e.target.value)} required/><button className="admin-password-toggle" type="button" aria-label={showPassword?"Ocultar contraseña":"Mostrar contraseña"} aria-pressed={showPassword} onClick={()=>setShowPassword(value=>!value)}>{showPassword?<EyeOff size={20} aria-hidden="true"/>:<Eye size={20} aria-hidden="true"/>}</button></div></label>
   <p className="auth-help"><Link href="/recuperar-acceso">¿Olvidaste tu contraseña? Recuperar acceso</Link></p>
   {error&&<p className="error" role="alert">{error}</p>}
   <button disabled={busy} className="btn primary full">{busy?"Verificando acceso…":"Ingresar"}</button>
