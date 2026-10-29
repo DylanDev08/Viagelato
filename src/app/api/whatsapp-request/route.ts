@@ -37,9 +37,9 @@ export async function POST(request:Request){
  });
  if(rateError)return reply("No pudimos validar la seguridad de la solicitud",503);
  if(!allowed)return reply("Demasiados intentos. Volvé a intentarlo en unos minutos.",429);
- const source=new Map(CATALOG_PRICE_ITEMS.map(item=>[`catalog-price-${item.sourceRow}`,{
+ const source=new Map<string,{name:string;sku:string;presentation:string;price:number}>(CATALOG_PRICE_ITEMS.map(item=>[`catalog-price-${item.sourceRow}`,{
   name:item.name,sku:item.sku,presentation:item.presentation,price:item.price
- }]));
+ }] as const));
  const ids=input.items.filter(item=>!source.has(item.id)).map(item=>item.id);
  if(ids.length){
   if(!ids.every(id=>uuid.safeParse(id).success))return reply("Hay productos no disponibles",409);
