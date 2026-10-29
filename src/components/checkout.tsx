@@ -76,7 +76,7 @@ export function Checkout({products,settings}:{products:Product[];zones:ShippingZ
  }
 
  return <SiteShell settings={settings}><main className="shell checkout-page checkout-refresh">
-  <div className="cart-page-heading"><Link className="cart-back-link" href="/catalogo"><ArrowLeft size={17}/> Seguir comprando</Link><p className="kicker">TU SELECCIÓN</p><h1>Mi carrito<span className="cart-count-heading">{count}</span></h1><p>Revisá tus productos, ajustá las cantidades y enviá tu consulta por WhatsApp. <strong>No tenés que pagar en la web.</strong></p></div>
+  <div className="cart-page-heading"><Link className="cart-back-link" href="/catalogo"><ArrowLeft size={17}/> Seguir comprando</Link><p className="kicker">TU SELECCIÓN</p><h1>Mi carrito<span className="cart-count-heading">{count}</span></h1><p>Revisá las cantidades, completá tus datos y enviá el pedido completo por WhatsApp. <strong>El pago se coordina después.</strong></p></div>
   <div className="checkout-grid refined-cart-grid">
    <div>
     <section className="panel cart-products-panel" aria-label="Productos seleccionados">
@@ -112,8 +112,8 @@ export function Checkout({products,settings}:{products:Product[];zones:ShippingZ
     </section>
    </div>
    <form className="panel cart-form-panel" onSubmit={sendRequest}>
-    <div className="cart-form-heading"><p className="kicker">PASO 02</p><MessageCircle size={22} aria-hidden="true"/><h2>Coordinar por WhatsApp</h2></div>
-    <p className="hint">Completá estos datos para preparar tu solicitud. Guardaremos nombre, localidad, productos y datos de entrega para que Viagelato pueda hacer seguimiento. Abrir WhatsApp no confirma el pedido ni el pago.</p>
+    <div className="cart-form-heading"><p className="kicker">PASO 02</p><MessageCircle size={22} aria-hidden="true"/><h2>Enviar pedido por WhatsApp</h2></div>
+    <p className="hint">Completá tus datos para preparar el pedido con todos los productos del carrito. Viagelato confirmará por WhatsApp la disponibilidad, el envío y la transferencia.</p>
     <label>Nombre y apellido<input required minLength={2} maxLength={120} autoComplete="name" value={fullName} onChange={e=>setFullName(e.target.value)}/></label>
     <label>Localidad<select required value={locality} onChange={e=>setLocality(e.target.value)}>
      <option value="">Elegí tu localidad</option>
@@ -129,8 +129,8 @@ export function Checkout({products,settings}:{products:Product[];zones:ShippingZ
     </div>
     {error?<p className="error" role="alert">{error}</p>:null}
     {lines.length>30?<p role="alert" className="error">Máximo 30 productos diferentes por solicitud. Quitá algunos para continuar.</p>:null}
-    <button type="submit" className="btn primary full cart-submit" disabled={!canRequest||busy}>{busy?"Preparando solicitud…":<>Continuar por WhatsApp <ArrowRight size={18}/></>}</button>
-    {prepared?<p role="status">Solicitud {prepared.reference} preparada. <a href={prepared.url} rel="noopener noreferrer">Abrir WhatsApp para enviar el mensaje</a>. Si no lo enviás, seguirá pendiente de contacto.</p>:null}
+    <button type="submit" className="btn primary full cart-submit" disabled={!canRequest||busy}>{busy?"Preparando solicitud…":<>Preparar pedido en WhatsApp <ArrowRight size={18}/></>}</button>
+    {prepared?<p role="status">Pedido {prepared.reference} preparado. <a href={prepared.url} rel="noopener noreferrer">Abrir WhatsApp para enviar el mensaje</a>. Si no lo enviás, seguirá pendiente de contacto.</p>:null}
     <p className="cart-form-footnote"><Truck size={16} aria-hidden="true"/> Confirmaremos stock, costo de envío y medios de pago antes de cerrar el pedido.</p><p className="hint">WhatsApp se abrirá con el mensaje listo para revisar y enviar. El carrito permanece guardado hasta que vos decidas vaciarlo.</p>
    </form>
   </div>

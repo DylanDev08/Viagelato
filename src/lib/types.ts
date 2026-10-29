@@ -189,8 +189,8 @@ export const DEFAULT_SETTINGS: Settings = {
   whatsapp: "+5491140962202",
   phone: "11 4096-2202",
   instagram: "https://www.instagram.com/distribuidorviagelato/",
-  address: "Ubicación a confirmar",
-  maps_url: "",
+  address: "Eva Perón 3050, Monte Chingolo, Lanús Este, Buenos Aires, Argentina",
+  maps_url: "https://www.google.com/maps/search/?api=1&query=Eva%20Per%C3%B3n%203050%2C%20Monte%20Chingolo%2C%20Lan%C3%BAs%20Este%2C%20Buenos%20Aires%2C%20Argentina",
   contact_email: "",
   hero_title: "Helados y congelados, directo a tu negocio.",
   hero_subtitle:

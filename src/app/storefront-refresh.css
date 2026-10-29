@@ -230,3 +230,27 @@
  .home-catalog .compact-catalog .provisional-card{transition:none}
  .home-catalog .compact-catalog .provisional-card:hover{transform:none}
 }
+
+/* Compra desde producto: un solo destino, el carrito. */
+.provisional-detail-copy .detail-cart-purchase{border:1px solid #dedede;background:#f8f8f7;border-radius:14px;padding:20px;margin-top:24px;max-width:540px}
+.detail-cart-kicker{display:flex;align-items:center;gap:8px;font-weight:800;font-size:10px!important;letter-spacing:.1em!important;margin:0 0 15px!important;color:#555!important}
+.detail-cart-purchase-row{display:flex;gap:12px;align-items:stretch;flex-wrap:wrap}
+.detail-cart-quantity{display:flex;align-items:center;justify-content:space-between;gap:4px;border:1px solid #d9d9d9;border-radius:9px;background:#fff;padding:4px;min-height:53px}
+.detail-cart-quantity button{border:0;background:#f2f2f2;display:grid;place-items:center;min-width:41px;height:42px;border-radius:7px;color:#111}
+.detail-cart-quantity button:hover:not(:disabled){background:#e6e6e6}
+.detail-cart-quantity output{min-width:25px;text-align:center;font-size:15px;font-weight:800}
+.detail-cart-add{min-height:53px;flex:1;white-space:normal;gap:10px;text-align:center;border-radius:9px}
+.detail-cart-next{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:16px;background:#fff;border:1px solid #dedede;border-radius:9px;padding:13px 14px}
+.detail-cart-next strong{font-size:12px}
+.detail-cart-next span{font-size:11px;font-weight:800;display:inline-flex;align-items:center;gap:6px;text-align:right}
+.detail-cart-next:hover{border-color:#111}
+.detail-cart-note{font-size:12px!important;line-height:1.6!important;color:#656565!important;margin:15px 0 0!important}
+.detail-purchase-disclaimer{font-size:12px;line-height:1.6;margin-top:16px;max-width:540px}
+.product-detail .detail-cart-next{max-width:450px}
+@media(max-width:640px){
+ .provisional-detail-copy .detail-cart-purchase{padding:15px}
+ .detail-cart-purchase-row{display:grid;grid-template-columns:1fr;gap:11px}
+ .detail-cart-quantity{width:100%;justify-content:space-between}
+ .detail-cart-next{display:grid;gap:9px}
+ .detail-cart-next span{text-align:left}
+}

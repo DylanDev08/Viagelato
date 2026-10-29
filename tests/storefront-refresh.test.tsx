@@ -7,7 +7,7 @@ import {DEFAULT_SETTINGS} from "@/lib/types";
 
 describe("actualización visual y datos comerciales",()=>{
  it("no publica una dirección exacta cuando no está confirmada",()=>{
-  render(<SiteFooter settings={DEFAULT_SETTINGS}/>);
+  render(<SiteFooter settings={{...DEFAULT_SETTINGS,address:"",maps_url:""}}/>);
   expect(screen.getByText(/Consultá nuestra ubicación exacta/i)).toBeInTheDocument();
   expect(screen.queryByRole("link",{name:/Cómo llegar/i})).not.toBeInTheDocument();
   expect(screen.getByRole("link",{name:"Cambios y devoluciones"})).toHaveAttribute("href","/politicas/devoluciones");
