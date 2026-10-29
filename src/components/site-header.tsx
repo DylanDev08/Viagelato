@@ -38,7 +38,7 @@ export function SiteHeader({settings}:{settings:Settings}){
    </div>
   </div>
   <div id="mobile-navigation" className={`mobile-nav ${open?"is-open":""}`} aria-hidden={!open}>
-   <nav className="shell" aria-label="Navegación mobile">{links.map(link=><Link key={link.href} href={link.href} onClick={()=>setOpen(false)} tabIndex={open?0:-1}>{link.label}</Link>)}</nav>
+   <nav className="shell" aria-label="Navegación mobile">{links.map(link=><Link key={link.href} href={link.href} onClick={()=>setOpen(false)} tabIndex={open?0:-1}>{link.label}</Link>)}<Link className="mobile-admin-entry" href="/admin" onClick={()=>setOpen(false)} tabIndex={open?0:-1}>Acceso administración</Link></nav>
   </div>
  </header>;
 }
