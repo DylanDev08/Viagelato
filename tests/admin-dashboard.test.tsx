@@ -112,6 +112,33 @@ describe("panel administrativo",()=>{
   }finally{vi.unstubAllGlobals();}
  });
 
+ it("publica de forma explícita una ficha completa sin hacerlo al guardar borradores",async()=>{
+  const user=userEvent.setup();
+  const product={
+   id:"00000000-0000-4000-8000-000000000021",name:"Postre helado",slug:"postre-helado",
+   description:"Postre helado en caja de varias unidades para distribuir.",
+   price:32000,stock:5,image_url:"/catalogo/alfajor-negro.webp",
+   category_id:null,sku:"POS-021",presentation:"Caja",
+   active:false,featured:false,commercially_verified:true,catalog_visible:false
+  };
+  const mockedFetch=vi.fn().mockResolvedValue({ok:true,json:async()=>({...product,active:true})});
+  vi.stubGlobal("fetch",mockedFetch);
+  try{
+   render(<AdminDashboard initialProducts={[product]} initialCategories={[]} initialOrders={[]} initialZones={[]} initialSettings={DEFAULT_SETTINGS} initialBanners={[]}/>);
+   await user.click(screen.getByRole("button",{name:"Productos"}));
+   await user.click(screen.getByRole("button",{name:"Editar"}));
+   const publish=screen.getByRole("button",{name:"Publicar en la tienda"});
+   expect(publish).toBeEnabled();
+   await user.click(publish);
+   await screen.findByText("Producto publicado correctamente");
+   expect(mockedFetch).toHaveBeenCalledOnce();
+   const [url,options]=mockedFetch.mock.calls[0];
+   expect(url).toBe("/api/admin/products");
+   expect(options.method).toBe("PATCH");
+   expect(JSON.parse(options.body)).toMatchObject({id:product.id,active:true,catalog_visible:false});
+   expect(screen.getByText("Estado actual: Publicado en la tienda")).toBeInTheDocument();
+  }finally{vi.unstubAllGlobals();}
+ });
  it("mantiene el enlace de una categoría al corregir su nombre",async()=>{
   const user=userEvent.setup();
   const category={id:"00000000-0000-4000-8000-000000000017",name:"Postres helados",slug:"postres-helados"};
