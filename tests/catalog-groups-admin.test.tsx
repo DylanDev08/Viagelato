@@ -4,6 +4,7 @@ import {describe,expect,it,vi} from "vitest";
 import {CATALOG_PRICE_ITEMS} from "@/lib/catalog-prices";
 import {groupCatalogByType,storefrontSamples,categoryCatalogHref,CATALOG_TYPES} from "@/lib/catalog-groups";
 import {draftFromPricedCatalog} from "@/lib/catalog-product-draft";
+import {productSchema} from "@/lib/admin-rules";
 import {PricedCatalog} from "@/components/priced-catalog";
 import {CartProvider} from "@/components/cart";
 import {AdminDashboard} from "@/components/admin-dashboard";
@@ -46,7 +47,8 @@ describe("catálogo comercial agrupado",()=>{
    price:item.price,stock:0,image_url:item.image,active:false,
    commercially_verified:false,category_id:null
   });
-  expect(draft.slug).toContain("via-");
+  expect(draft.slug).toBe(`excel-fila-${item.sourceRow}`);
+  expect(productSchema.safeParse({...draft,catalog_visible:true}).success).toBe(true);
  });
  it("el admin permite seleccionar un producto existente para prellenar la ficha",async()=>{
   const user=userEvent.setup();
