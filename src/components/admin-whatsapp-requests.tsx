@@ -4,6 +4,7 @@ import {useRouter} from "next/navigation";
 import {ars,type WhatsAppRequest} from "@/lib/types";
 import {whatsappRequestReference} from "@/lib/whatsapp-request-rules";
 import {searchWhatsAppRequests,whatsappRequestCounts,type WhatsAppAdminFilter} from "@/lib/admin-whatsapp-ui";
+import {DailyWhatsAppSummary} from "@/components/admin-whatsapp-daily-summary";
 
 const labels:Record<WhatsAppRequest["status"],string>={
  draft:"Mensaje preparado",contacted:"Contactado",confirmed:"Pedido confirmado",
@@ -27,6 +28,7 @@ function RequestCard({request,freeShippingThreshold}:{request:WhatsAppRequest;fr
  const [shipping,setShipping]=useState(request.shipping_method==="pickup"||freeShipping?"0":request.shipping_cost===null?"":String(Number(request.shipping_cost)));
  const [stock,setStock]=useState(request.stock_confirmed);
  const [paymentAmount,setPaymentAmount]=useState("");
+ const [receiptMethod,setReceiptMethod]=useState<"transfer"|"cash">("transfer");
  const [paymentSubmitted,setPaymentSubmitted]=useState(false);
  const [bankReference,setBankReference]=useState("");
  const [busy,setBusy]=useState(false);
@@ -71,13 +73,13 @@ function RequestCard({request,freeShippingThreshold}:{request:WhatsAppRequest;fr
   if(!Number.isFinite(amount)||amount<=0||remaining===null||amount>remaining){setError("El importe debe ser mayor que cero y no superar el saldo pendiente.");return;}
   const normalizedReference=bankReference.trim();
   if(normalizedReference.length>100){setError("La referencia bancaria no puede superar 100 caracteres.");return;}
-  if(!window.confirm(`¿Verificaste en la cuenta de Viagelato el ingreso real de ${ars(amount)}? Esto registrará una transferencia.`))return;
-  const fingerprint=`${request.id}|${amount}|${normalizedReference}`;
+  if(!window.confirm(receiptMethod==="cash"?`¿Recibiste físicamente ${ars(amount)} en efectivo? Solo registrá dinero que ya tengas en tu poder.`:`¿Verificaste en la cuenta de Viagelato el ingreso real de ${ars(amount)}? Esto registrará una transferencia.`))return;
+  const fingerprint=`${request.id}|${receiptMethod}|${amount}|${receiptMethod==="cash"?"":normalizedReference}`;
   if(lastPayment.current?.fingerprint!==fingerprint)lastPayment.current={fingerprint,key:crypto.randomUUID()};
   const successful=await apply({
-   id:request.id,action:"record_payment",amount,payment_key:lastPayment.current.key,
-   transfer_reference:normalizedReference
-  },"Transferencia registrada y auditada");
+   id:request.id,action:receiptMethod==="cash"?"record_cash":"record_payment",amount,payment_key:lastPayment.current.key,
+   ...(receiptMethod==="transfer"?{transfer_reference:normalizedReference}:{})
+  },receiptMethod==="cash"?"Efectivo registrado":"Transferencia registrada y auditada");
   if(successful){setPaymentSubmitted(true);setPaymentAmount("");setBankReference("");}
  }
  async function move(action:string){
@@ -116,17 +118,18 @@ function RequestCard({request,freeShippingThreshold}:{request:WhatsAppRequest;fr
   {termsComplete?<p className="hint">Stock y envío verificados manualmente. Este paso no modifica el inventario.</p>:null}
   {request.payment_status==="partial"?<p className="hint">Pago parcial registrado. El pedido no pasará a preparación hasta completar el saldo.</p>:null}
   {canRegisterPayment?<form className="whatsapp-request-form" onSubmit={event=>void registerPayment(event)}>
-   <h3>Registrar una transferencia recibida</h3>
+   <h3>Registrar un pago recibido</h3>
+   <label>Cómo pagó el cliente<select value={receiptMethod} onChange={event=>{setReceiptMethod(event.target.value as "transfer"|"cash");lastPayment.current=null;}} disabled={busy}><option value="transfer">Transferencia bancaria</option><option value="cash">Efectivo</option></select></label>
    <label>Importe recibido (ARS)<input required type="number" inputMode="decimal" min="0.01" step="0.01"
     max={remaining??undefined} placeholder={remaining===null?"":String(remaining)}
     value={paymentAmount} onChange={event=>setPaymentAmount(event.target.value)} disabled={busy}/></label>
-   <label>Referencia bancaria (opcional)<input maxLength={100} value={bankReference}
-    onChange={event=>setBankReference(event.target.value)} disabled={busy} placeholder="Número de operación, si está disponible"/></label>
-   <button type="submit" className="btn tiny" disabled={busy||paymentSubmitted}>{paymentSubmitted?"Pago guardado · actualizando":"Registrar transferencia"}</button>
-   <small>Solo registrá transferencias acreditadas y comprobadas. Un pago parcial deja el resto pendiente. Nunca vuelvas a cargar un pago ya registrado.</small>
+   {receiptMethod==="transfer"?<label>Referencia bancaria (opcional)<input maxLength={100} value={bankReference}
+    onChange={event=>setBankReference(event.target.value)} disabled={busy} placeholder="Número de operación, si está disponible"/></label>:null}
+   <button type="submit" className="btn tiny" disabled={busy||paymentSubmitted}>{paymentSubmitted?"Pago guardado · actualizando":receiptMethod==="cash"?"Registrar efectivo recibido":"Registrar transferencia"}</button>
+   <small>Registrá solo dinero efectivamente recibido. El saldo se actualiza automáticamente y cada operación queda en el historial. Nunca vuelvas a cargar un pago ya registrado.</small>
   </form>:null}
-  {request.whatsapp_request_payments?.length?<details className="whatsapp-payment-history"><summary>Historial de transferencias ({request.whatsapp_request_payments.length})</summary>
-   {request.whatsapp_request_payments.map(payment=><small key={payment.id}>{ars(Number(payment.amount))} · {new Date(payment.created_at).toLocaleString("es-AR")}{payment.transfer_reference?` · Ref. ${payment.transfer_reference}`:""}</small>)}
+  {request.whatsapp_request_payments?.length?<details className="whatsapp-payment-history"><summary>Historial de cobros ({request.whatsapp_request_payments.length})</summary>
+   {request.whatsapp_request_payments.map(payment=><small key={payment.id}>{payment.payment_method==="cash"?"Efectivo":"Transferencia"} · {ars(Number(payment.amount))} · {new Date(payment.created_at).toLocaleString("es-AR")}{payment.transfer_reference?` · Ref. ${payment.transfer_reference}`:""}</small>)}
   </details>:null}
   <div className="whatsapp-request-actions">
    {next?<button className="btn tiny" type="button" disabled={busy||blockedConfirm||blockedPreparing}
@@ -157,6 +160,7 @@ export function WhatsAppRequests({requests,freeShippingThreshold=60000}:{request
    <div><h2>Pedidos por WhatsApp</h2><p className="hint">Primero verificá que el cliente haya enviado el mensaje. Después confirmá stock, entrega y pagos recibidos.</p></div>
    <button type="button" className="btn ghost" onClick={()=>{setFilter("attention");setSearch("");}}>Ver pendientes</button>
   </div>
+  <DailyWhatsAppSummary/>
   <div className="whatsapp-admin-metrics" aria-label="Resumen de pedidos recientes">
    <div><small>Necesitan atención</small><strong>{counts.attention}</strong></div>
    <div><small>En curso</small><strong>{counts.processing}</strong></div>
