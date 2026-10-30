@@ -3,18 +3,29 @@ import {NextResponse} from "next/server";
 import {z} from "zod";
 import {connected,privilegedDb} from "@/lib/supabase";
 import {checkoutSchema,normalizeCheckout} from "@/lib/checkout-rules";
+import {readJsonBody,RequestBodyError} from "@/lib/request-body";
+import {isAllowedAdminMutation} from "@/lib/admin-origin";
 
 export const runtime="nodejs";
 function jsonError(error:string,status:number,headers?:HeadersInit){return NextResponse.json({error},{status,headers:{"Cache-Control":"no-store",...headers}})}
 function clientKey(request:Request){const raw=request.headers.get("x-real-ip")||request.headers.get("x-forwarded-for")?.split(",")[0]?.trim()||"unknown";return createHmac("sha256",process.env.CHECKOUT_RATE_LIMIT_SALT!).update(raw).digest("hex")}
 
 export async function POST(request:Request){
+ try{return await createOrder(request);}
+ catch(error){
+  if(error instanceof RequestBodyError)return jsonError(error.message,error.status);
+  return jsonError("No pudimos registrar el pedido. Volvé a intentar con el mismo carrito.",503);
+ }
+}
+
+async function createOrder(request:Request){
  if(process.env.ENABLE_CHECKOUT!=="true"||!connected())return jsonError("Los pedidos todavía no están habilitados",503);
  if(!process.env.CHECKOUT_RATE_LIMIT_SALT)return jsonError("Falta completar la seguridad del checkout",503);
+ if(!isAllowedAdminMutation(request,process.env.NEXT_PUBLIC_SITE_URL,""))return jsonError("Origen no permitido",403);
  const idempotencyHeader=request.headers.get("idempotency-key");
  const idempotency=z.uuid().safeParse(idempotencyHeader);
  if(!idempotency.success)return jsonError("Falta una clave de idempotencia válida",400);
- const body=await request.json().catch(()=>null);
+ const body=await readJsonBody(request);
  const parsed=checkoutSchema.safeParse(body);
  if(!parsed.success)return NextResponse.json({error:"Revisá los datos de la compra",issues:parsed.error.issues.map(issue=>({path:issue.path,message:issue.message}))},{status:400,headers:{"Cache-Control":"no-store"}});
  const data=parsed.data;

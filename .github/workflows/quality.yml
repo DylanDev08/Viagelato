@@ -7,6 +7,8 @@ on:
       - 'tests/**'
       - 'package.json'
       - 'package-lock.json'
+      - 'supabase/**'
+      - 'next.config.ts'
       - '.github/workflows/quality.yml'
   workflow_dispatch:
 
@@ -40,5 +42,9 @@ jobs:
         run: npm run lint
       - name: TypeScript
         run: npm run typecheck
+      - name: PostgreSQL invariants and data isolation (disposable Docker database)
+        run: npm run test:db
+      - name: Dependency audit
+        run: npm audit --audit-level=moderate
       - name: Production build (offline checkout)
         run: npm run build
