@@ -274,3 +274,27 @@
  .floating-actions.has-cart-items .float-cart{width:100%;min-height:48px}
  .checkout-refresh{padding-bottom:65px}
 }
+
+
+/* Checkout: selectores legibles, foco accesible y campos sin desbordes. */
+.checkout-refresh .cart-form-panel{min-width:0}
+.checkout-refresh .cart-form-panel label{display:flex;flex-direction:column;min-width:0;line-height:1.45;font-weight:650}
+.checkout-refresh .cart-form-panel :is(input,select,textarea){box-sizing:border-box;width:100%;max-width:100%;min-width:0;color:#171717;font-family:inherit;line-height:1.45}
+.checkout-refresh .cart-form-panel select{appearance:auto;-webkit-appearance:menulist;cursor:pointer;background-color:#fff;color-scheme:light}
+.checkout-refresh .cart-form-panel :is(input,select,textarea):focus-visible{outline:2px solid #222;outline-offset:2px;border-color:#222}
+.checkout-refresh .cart-form-panel :is(input,select,textarea)::placeholder{color:#777;opacity:1}
+.checkout-refresh .cart-form-panel select option{color:#111;background:#fff}
+.checkout-refresh .cart-form-panel .hint{overflow-wrap:anywhere}
+.checkout-refresh .cart-form-panel .whatsapp-payment-info{overflow-wrap:anywhere}
+.checkout-refresh .cart-submit{max-width:100%;white-space:normal;text-align:center}
+@media(max-width:960px){
+ .checkout-refresh .cart-form-panel{position:static;top:auto}
+ .checkout-refresh .cart-form-panel :is(input,select,textarea){font-size:16px;min-height:48px}
+ .checkout-refresh .cart-form-panel label{margin-bottom:16px}
+}
+@media(max-width:640px){
+ .checkout-refresh .panel{padding:19px 16px}
+ .checkout-refresh .cart-form-heading h2{font-size:21px!important;line-height:1.2}
+ .checkout-refresh .cart-submit{min-height:52px;padding-inline:12px}
+ .checkout-refresh .cart-checkout-tools{flex-wrap:wrap;gap:12px}
+}
