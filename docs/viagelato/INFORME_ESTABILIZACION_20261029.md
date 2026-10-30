@@ -1,5 +1,7 @@
 ﻿# Viagelato — estabilización, SEO y seguridad · 29/10/2026
 
+PR en borrador: https://github.com/DylanDev08/Viagelato/pull/26
+
 ## Alcance y estado
 
 Repositorio `DylanDev08/Viagelato`, base `main` en `62bd9655e8b831390e26e8f37005677f5ca2fb9c`, rama `fix/stability-security-20261029`.
@@ -68,7 +70,7 @@ Entorno local Windows, Node 24.19.0, npm 11.17.0, Next instalado 16.4.3 por lock
 | npm ci --ignore-scripts | Instalación aprobada, lockfile conservado |
 | npm run typecheck | Aprobado |
 | npm run lint | 0 errores; 8 advertencias preexistentes por variables sin uso en tests |
-| npm test -- --reporter=dot | 41 archivos, 173 pruebas aprobadas |
+| npm test -- --reporter=dot | 42 archivos, 174 pruebas aprobadas |
 | npm run test:db | VIAGELATO_DB_TESTS_OK y VIAGELATO_SECURITY_TESTS_OK |
 | Concurrencia real del limitador | VIAGELATO_CONCURRENT_LIMIT_OK: 3 de 12 admitidos con límite 3 |
 | npm run build | Aprobado; compilación, TypeScript y 19 páginas estáticas generadas |
@@ -144,3 +146,5 @@ El listado siguiente incluye código, pruebas, migración y documentación de es
 - `tests/structured-data.test.ts`
 - `tests/whatsapp-request-api.test.ts`
 - `docs/viagelato/INFORME_ESTABILIZACION_20261029.md`
+
+- `tests/checkout-prepared-request.test.tsx`
