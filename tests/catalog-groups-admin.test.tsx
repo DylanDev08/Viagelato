@@ -50,6 +50,23 @@ describe("catálogo comercial agrupado",()=>{
   expect(draft.slug).toBe(`excel-fila-${item.sourceRow}`);
   expect(productSchema.safeParse({...draft,catalog_visible:true}).success).toBe(true);
  });
+ it("permite editar fichas ya importadas sin duplicar el SKU ni perder stock y precio",async()=>{
+  const user=userEvent.setup();
+  const item=CATALOG_PRICE_ITEMS[0];
+  const existing={...draftFromPricedCatalog(item,[]),
+   id:"00000000-0000-4000-8000-000000000033",stock:7,price:item.price+500,
+   catalog_visible:true,commercially_verified:false};
+  render(<AdminDashboard {...props} initialProducts={[existing]}/>);
+  await user.click(screen.getByRole("button",{name:"Productos"}));
+  await user.click(screen.getByRole("button",{name:"Cargar desde catálogo"}));
+  const picker=screen.getByRole("region",{name:"Productos del catálogo"});
+  await user.click(within(picker).getByRole("button",{name:`Editar producto ${item.name}`}));
+  expect(screen.getByRole("heading",{name:"Editar producto"})).toBeInTheDocument();
+  expect(screen.getByLabelText("Precio de venta (ARS)")).toHaveValue(item.price+500);
+  expect(screen.getByLabelText("Unidades disponibles")).toHaveValue(7);
+  expect(screen.getByText("Estado actual: Visible en el catálogo")).toBeInTheDocument();
+  expect(screen.queryByRole("region",{name:"Productos del catálogo"})).not.toBeInTheDocument();
+ });
  it("el admin permite seleccionar un producto existente para prellenar la ficha",async()=>{
   const user=userEvent.setup();
   render(<AdminDashboard {...props}/>);
