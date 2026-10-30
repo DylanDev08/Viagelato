@@ -60,7 +60,7 @@ describe("catálogo comercial agrupado",()=>{
   expect(screen.getByLabelText("Nombre del producto")).toHaveValue(item.name);
   expect(screen.getByLabelText("Precio de venta (ARS)")).toHaveValue(item.price);
   expect(screen.getByLabelText("Unidades disponibles")).toHaveValue(0);
-  expect(screen.getByLabelText("Mostrar este producto en la tienda")).not.toBeChecked();
+  expect(screen.getByRole("button",{name:"Publicar en la tienda"})).toBeDisabled();
   expect(screen.getByText(/Pendiente para publicar/)).toBeInTheDocument();
  });
 });
