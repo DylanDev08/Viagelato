@@ -21,7 +21,7 @@ export function Checkout({products,settings,catalogItems=CATALOG_PRICE_ITEMS}:{p
  const [fullName,setFullName]=useState("");
  const [selectedLocality,setSelectedLocality]=useState("");
  const [otherLocality,setOtherLocality]=useState("");
- const locality=selectedLocality==="other"?otherLocality.trim():selectedLocality;
+ const locality=delivery==="pickup"?"Retiro en local":selectedLocality==="other"?otherLocality.trim():selectedLocality||"Zona no indicada";
  const [address,setAddress]=useState("");
  const [notes,setNotes]=useState("");
  const [delivery,setDelivery]=useState<"shipping"|"pickup">("shipping");
@@ -41,7 +41,7 @@ export function Checkout({products,settings,catalogItems=CATALOG_PRICE_ITEMS}:{p
  const subtotal=lines.reduce((sum,line)=>sum+Number(line.product.price)*line.quantity,0);
  const missing=items.length-lines.length;
  const eligible=DELIVERY_AREAS.some(area=>area===locality);
- const canRequest=missing===0&&lines.length>0&&lines.length<=30&&fullName.trim().length>=2&&locality.trim().length>=2;
+ const canRequest=missing===0&&lines.length>0&&lines.length<=30&&fullName.trim().length>=2&&(delivery==="pickup"||address.trim().length>=3);
  const promo=delivery==="shipping"&&eligible&&subtotal>=Number(settings.free_shipping_threshold);
 
  async function sendRequest(event:React.FormEvent<HTMLFormElement>){
@@ -49,7 +49,7 @@ export function Checkout({products,settings,catalogItems=CATALOG_PRICE_ITEMS}:{p
   if(busy)return;
   setError("");
   setPrepared(null);
-  if(!canRequest)return setError("Completá nombre y localidad, con un máximo de 30 productos diferentes.");
+  if(!canRequest)return setError("Completá tu nombre y, si pedís envío, la dirección de entrega. Máximo 30 productos diferentes.");
   setBusy(true);
   try{
    const payload={
@@ -112,7 +112,7 @@ export function Checkout({products,settings,catalogItems=CATALOG_PRICE_ITEMS}:{p
      <div className="totals">
       <p><span>Presentaciones</span><strong>{count}</strong></p>
       <p><span>Subtotal de productos</span><strong>{ars(subtotal)}</strong></p>
-      <p><span>Envío</span><strong>{promo?"Promoción a confirmar":"A coordinar"}</strong></p>
+      <p><span>{delivery==="pickup"?"Retiro":"Envío"}</span><strong>{delivery==="pickup"?"En el local":promo?"Promoción a confirmar":"A coordinar"}</strong></p>
       <hr/>
       <p><span>Total final</span><strong>Se confirma por WhatsApp</strong></p>
      </div>
@@ -123,24 +123,24 @@ export function Checkout({products,settings,catalogItems=CATALOG_PRICE_ITEMS}:{p
     <div className="cart-form-heading"><p className="kicker">PASO 02</p><MessageCircle size={22} aria-hidden="true"/><h2>Enviar pedido por WhatsApp</h2></div>
     <p className="hint">Completá tus datos para preparar el pedido con todos los productos del carrito. Viagelato confirmará por WhatsApp la disponibilidad, entrega y forma de pago elegida.</p>
     <label>Nombre y apellido<input required minLength={2} maxLength={120} autoComplete="name" value={fullName} onChange={e=>setFullName(e.target.value)}/></label>
-    <label>Localidad<select required value={selectedLocality} onChange={e=>setSelectedLocality(e.target.value)}>
-     <option value="">Elegí tu localidad</option>
+    <label>Entrega<select value={delivery} onChange={e=>setDelivery(e.target.value as "shipping"|"pickup")}><option value="shipping">Envío a domicilio</option><option value="pickup">Retiro en el local</option></select></label>
+    {delivery==="shipping"?<label>Zona de entrega (opcional)<select value={selectedLocality} onChange={e=>setSelectedLocality(e.target.value)}>
+     <option value="">Seleccionar zona (opcional)</option>
      {DELIVERY_AREAS.map(area=><option key={area} value={area}>{area}</option>)}
      <option value="other">Otra localidad (consultar cobertura)</option>
-    </select></label>
-    {selectedLocality==="other"?<label>Escribí tu localidad<input required minLength={2} maxLength={100} autoComplete="address-level2" aria-label="Escribí tu localidad" value={otherLocality} onChange={e=>setOtherLocality(e.target.value)} placeholder="Por ejemplo: Quilmes" aria-describedby="other-locality-help"/><small id="other-locality-help">Vamos a confirmar la cobertura y el costo de entrega.</small></label>:null}
-    <label>Entrega<select value={delivery} onChange={e=>setDelivery(e.target.value as "shipping"|"pickup")}><option value="shipping">Envío a domicilio</option><option value="pickup">Retiro en el local</option></select></label>
-    {delivery==="pickup"?<p className="hint">Retiro: {settings.address || "Dirección a confirmar por WhatsApp"}. Te confirmamos cuándo estará listo.</p>:null}
+    </select></label>:null}
+    {delivery==="shipping"&&selectedLocality==="other"?<label>Escribí tu localidad<input minLength={2} maxLength={100} autoComplete="address-level2" aria-label="Escribí tu localidad" value={otherLocality} onChange={e=>setOtherLocality(e.target.value)} placeholder="Por ejemplo: Quilmes" aria-describedby="other-locality-help"/><small id="other-locality-help">Vamos a confirmar la cobertura y el costo de entrega.</small></label>:null}
+    {delivery==="pickup"?<div className="whatsapp-payment-info"><strong>Retiro en el local</strong><p>{settings.address || "Dirección a confirmar por WhatsApp"}</p><p>Coordinaremos el horario de retiro por WhatsApp.</p></div>:null}
     {delivery==="shipping"?<label>Dirección de entrega<input required maxLength={250} autoComplete="street-address" value={address} onChange={e=>setAddress(e.target.value)} placeholder="Calle, altura y piso"/></label>:null}
     <label>Método de pago<select value={paymentMethod} onChange={e=>setPaymentMethod(e.target.value as "transfer"|"cash")}><option value="transfer">Transferencia bancaria</option><option value="cash">Efectivo (al recibir o retirar)</option></select></label>
     <label>Observaciones (opcional)<textarea maxLength={350} rows={3} value={notes} onChange={e=>setNotes(e.target.value)} placeholder="Horarios, preferencias de sabores, etc."/></label>
     <div className="whatsapp-payment-info">
-     <strong>Pago elegido: {paymentMethod==="cash"?"Efectivo":"Transferencia bancaria"}</strong>
-     <p>{promo?`Tu subtotal supera ${ars(settings.free_shipping_threshold)} en una localidad elegible. Solicitaremos la promoción de envío gratuito, sujeta a confirmación.`:"Te confirmamos el costo de entrega y la disponibilidad antes de cerrar el pedido."}</p>
+     <strong>{paymentMethod==="cash"?"Pago en efectivo":"Pago por transferencia bancaria"}</strong>
+     <p>{delivery==="pickup"?"Coordinaremos la disponibilidad y horario de retiro.":promo?`Tu compra alcanza la promoción de envío en zona elegible (desde ${ars(settings.free_shipping_threshold)}), sujeta a confirmación.`:"Te confirmamos la disponibilidad y, si corresponde, el costo de envío."}</p>
     </div>
     {error?<p className="error" role="alert">{error}</p>:null}
     {lines.length>30?<p role="alert" className="error">Máximo 30 productos diferentes por solicitud. Quitá algunos para continuar.</p>:null}
-    <button type="submit" className="btn primary full cart-submit" disabled={!canRequest||busy}>{busy?"Preparando solicitud…":<>Preparar pedido en WhatsApp <ArrowRight size={18}/></>}</button>
+    <button type="submit" className="btn primary full cart-submit" disabled={!canRequest||busy}>{busy?"Preparando solicitud…":<>Enviar pedido por WhatsApp <ArrowRight size={18}/></>}</button>
     {prepared?<p role="status">Pedido {prepared.reference} preparado. <a href={prepared.url} rel="noopener noreferrer">Abrir WhatsApp para enviar el mensaje</a>. Si no lo enviás, seguirá pendiente de contacto.</p>:null}
     <p className="cart-form-footnote"><Truck size={16} aria-hidden="true"/> Confirmaremos stock, costo de envío y el medio de pago seleccionado antes de cerrar el pedido.</p><p className="hint">WhatsApp se abrirá con el mensaje listo para revisar y enviar. El carrito permanece guardado hasta que vos decidas vaciarlo.</p>
    </form>
