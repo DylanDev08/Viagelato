@@ -27,7 +27,11 @@ export default function Login(){
     setAdminUnavailable(true);
     throw new Error("Este entorno no tiene habilitada la verificación administrativa.");
    }
-   if(response.status===401||response.status===403){
+   if(response.status===401){
+    await client.auth.signOut();
+    throw new Error("No pudimos verificar la sesión en este dominio. Ingresá desde el sitio principal y comprobá que el navegador permita cookies.");
+   }
+   if(response.status===403){
     await client.auth.signOut();
     throw new Error("La cuenta ingresó correctamente, pero no tiene permiso de administrador.");
    }
