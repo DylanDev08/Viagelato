@@ -62,7 +62,7 @@ select public.admin_record_whatsapp_payment('70000000-0000-4000-8000-00000000000
 -- Efectivo auditado: solo después de la confirmación y sin duplicar cobros.
 select public.admin_record_whatsapp_cash('70000000-0000-4000-8000-000000000001','90000000-0000-4000-8000-000000000001',25,'80000000-0000-4000-8000-000000000003');
 select public.admin_record_whatsapp_cash('70000000-0000-4000-8000-000000000001','90000000-0000-4000-8000-000000000001',25,'80000000-0000-4000-8000-000000000003');
-do $
+do $$
 declare summary jsonb;
 begin
  if (select amount_paid from public.whatsapp_order_requests where id='70000000-0000-4000-8000-000000000001')<>75
@@ -85,8 +85,8 @@ begin
  exception when raise_exception then
   if sqlerrm='Reporte accesible sin administrador' then raise; end if;
  end;
-end $;
-do $ begin
+end $$;
+do $$ begin
  if (select amount_paid from public.whatsapp_order_requests where id='70000000-0000-4000-8000-000000000001')<>75 then raise exception 'Pago duplicado'; end if;
  begin perform public.admin_update_whatsapp_request('70000000-0000-4000-8000-000000000001','preparing','90000000-0000-4000-8000-000000000001'); raise exception 'Preparación sin pago'; exception when raise_exception then if sqlerrm='Preparación sin pago' then raise; end if; end;
  begin perform public.admin_update_whatsapp_request('70000000-0000-4000-8000-000000000001','cancel',gen_random_uuid()); raise exception 'Actor no autorizado'; exception when raise_exception then if sqlerrm='Actor no autorizado' then raise; end if; end;
