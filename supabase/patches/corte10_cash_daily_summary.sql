@@ -99,7 +99,7 @@ begin
  insert into public.whatsapp_request_events(request_id,actor_user_id,action,previous_status,next_status)
  values(p_request_id,p_actor_user_id,'payment_received',r.payment_status,new_state);
  return true;
-end $;
+end $$;
 
 create or replace function public.admin_whatsapp_daily_summary(
  p_day date,p_actor_user_id uuid
