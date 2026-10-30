@@ -26,13 +26,27 @@ const origin=getBackendOrigin();
 
 const renderRoutes=["/api/checkout","/api/cron/:path*"] as const;
 
+// Framing restrictions only (no script-src) to avoid breaking Next.js hydration.
+// All headers apply to app and API responses, including unauthenticated routes.
+export const securityHeaders=[
+ {key:"X-Content-Type-Options",value:"nosniff"},
+ {key:"X-Frame-Options",value:"DENY"},
+ {key:"Referrer-Policy",value:"strict-origin-when-cross-origin"},
+ {key:"Permissions-Policy",value:"camera=(), microphone=(), geolocation=(), payment=()"},
+ {key:"Content-Security-Policy",value:"frame-ancestors 'none'; object-src 'none'; base-uri 'self'"},
+ ...(process.env.NODE_ENV==="production"?[{key:"Strict-Transport-Security",value:"max-age=31536000"}]:[]),
+];
+
 const nextConfig:NextConfig={
   reactStrictMode:true,
   async headers(){
-    return PRIVATE_ROUTES.map(route=>({
+    return [
+      {source:"/:path*",headers:securityHeaders},
+      ...PRIVATE_ROUTES.map(route=>({
       source:`${route}/:path*`,
       headers:[{key:"X-Robots-Tag",value:"noindex, nofollow"},{key:"Cache-Control",value:"private, no-store"}],
-    }));
+    }))
+    ];
   },
   async rewrites(){
     return {
