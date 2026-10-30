@@ -7,7 +7,7 @@ import {getStore} from "@/lib/site";
 import {getPublicCatalog} from "@/lib/catalog-source";
 
 export const dynamic="force-dynamic";
-export const metadata:Metadata={title:"Catálogo y precios",description:"Explorá las presentaciones de helados y congelados de Viagelato con precios finales por presentación y consulta de disponibilidad."};
+export const metadata:Metadata={title:"Catálogo y precios",description:"Explorá las presentaciones de helados y congelados de Viagelato con precios finales por presentación y consulta de disponibilidad.",alternates:{canonical:"/catalogo"}};
 export default async function CatalogPage({searchParams}:{searchParams:Promise<{tipo?:string}>}){
  const {tipo}=await searchParams;
  const items=await getPublicCatalog();

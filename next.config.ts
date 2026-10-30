@@ -1,4 +1,5 @@
 import type { NextConfig } from "next";
+import {PRIVATE_ROUTES} from "./src/lib/seo";
 
 /**
  * Vercel y Render comparten dominio público, pero /admin se renderiza
@@ -27,6 +28,12 @@ const renderRoutes=["/api/checkout","/api/cron/:path*"] as const;
 
 const nextConfig:NextConfig={
   reactStrictMode:true,
+  async headers(){
+    return PRIVATE_ROUTES.map(route=>({
+      source:`${route}/:path*`,
+      headers:[{key:"X-Robots-Tag",value:"noindex, nofollow"},{key:"Cache-Control",value:"private, no-store"}],
+    }));
+  },
   async rewrites(){
     return {
       beforeFiles:origin
