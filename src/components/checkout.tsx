@@ -25,6 +25,7 @@ export function Checkout({products,settings,catalogItems=CATALOG_PRICE_ITEMS}:{p
  const [address,setAddress]=useState("");
  const [notes,setNotes]=useState("");
  const [delivery,setDelivery]=useState<"shipping"|"pickup">("shipping");
+ const [paymentMethod,setPaymentMethod]=useState<"transfer"|"cash">("transfer");
  const [error,setError]=useState("");
  const [busy,setBusy]=useState(false);
  const [prepared,setPrepared]=useState<{reference:string;url:string}|null>(null);
@@ -53,7 +54,7 @@ export function Checkout({products,settings,catalogItems=CATALOG_PRICE_ITEMS}:{p
   try{
    const payload={
     customer_name:fullName,locality,address:delivery==="shipping"?address:"",notes,expected_subtotal:subtotal,
-    shipping_method:delivery,
+    shipping_method:delivery,payment_method:paymentMethod,
     items:lines.map(({product,quantity})=>({id:product.id,quantity})),
    };
    const body=JSON.stringify(payload);
@@ -83,13 +84,13 @@ export function Checkout({products,settings,catalogItems=CATALOG_PRICE_ITEMS}:{p
  }
 
  return <SiteShell settings={settings} hideFloatingActions><main className="shell checkout-page checkout-refresh">
-  <div className="cart-page-heading"><Link className="cart-back-link" href="/catalogo"><ArrowLeft size={17}/> Seguir comprando</Link><p className="kicker">TU SELECCIÓN</p><h1>Mi carrito<span className="cart-count-heading">{count}</span></h1><p>Revisá las cantidades, completá tus datos y enviá el pedido completo por WhatsApp. <strong>El pago se coordina después.</strong></p></div>
+  <div className="cart-page-heading"><Link className="cart-back-link" href="/catalogo"><ArrowLeft size={17}/> Seguir comprando</Link><p className="kicker">TU SELECCIÓN</p><h1>Mi carrito<span className="cart-count-heading">{count}</span></h1><p>Revisá las cantidades, elegí cómo recibir tu compra y el medio de pago. Enviá todo junto por WhatsApp.</p></div>
   <div className="checkout-grid refined-cart-grid">
    <div>
     <section className="panel cart-products-panel" aria-label="Productos seleccionados">
      <div className="cart-panel-heading"><div><p className="kicker">PASO 01</p><h2>Productos seleccionados</h2></div><span>{count} {count===1?"unidad":"unidades"}</span></div>
      {missing>0?<div className="cart-missing-alert" role="alert"><strong>Hay {missing} {missing===1?"producto que ya no está":"productos que ya no están"} disponible{missing===1?"":"s"}.</strong><p>Revisá tu selección antes de preparar el pedido. No quitamos artículos sin avisarte.</p><button type="button" onClick={()=>items.filter(item=>!productMap.has(item.id)).forEach(item=>setQuantity(item.id,0))}>Quitar artículos no disponibles</button></div>:null}
-     {!lines.length?<div className="cart-empty"><ShoppingBag size={32} aria-hidden="true"/><h3>Tu carrito está esperando productos.</h3><p>Elegí helados y congelados del catálogo para preparar tu consulta.</p><Link className="primary-action" href="/catalogo">Explorar catálogo <ArrowRight size={18}/></Link></div>:lines.map(({product,quantity})=><article className="cart-item cart-line" key={product.id}>
+     {!lines.length?<div className="cart-empty"><ShoppingBag size={32} aria-hidden="true"/><h3>Tu carrito está esperando productos.</h3><p>Elegí helados y congelados del catálogo para preparar tu pedido.</p><Link className="primary-action" href="/catalogo">Explorar catálogo <ArrowRight size={18}/></Link></div>:lines.map(({product,quantity})=><article className="cart-item cart-line" key={product.id}>
       <div className="mini-art cart-line-art">{product.image_url?<Image src={product.image_url} alt={product.name} fill sizes="(max-width:640px) 74px, 96px" unoptimized/>:<ShoppingBag size={24} aria-hidden="true"/>}</div>
       <div className="cart-meta">
        <strong>{product.name}</strong>
@@ -128,18 +129,20 @@ export function Checkout({products,settings,catalogItems=CATALOG_PRICE_ITEMS}:{p
      <option value="other">Otra localidad (consultar cobertura)</option>
     </select></label>
     {selectedLocality==="other"?<label>Escribí tu localidad<input required minLength={2} maxLength={100} autoComplete="address-level2" aria-label="Escribí tu localidad" value={otherLocality} onChange={e=>setOtherLocality(e.target.value)} placeholder="Por ejemplo: Quilmes" aria-describedby="other-locality-help"/><small id="other-locality-help">Vamos a confirmar la cobertura y el costo de entrega.</small></label>:null}
-    {settings.pickup_enabled?<label>Entrega<select value={delivery} onChange={e=>setDelivery(e.target.value as "shipping"|"pickup")}><option value="shipping">Envío a domicilio</option><option value="pickup">Consultar retiro</option></select></label>:null}
-    {delivery==="shipping"?<label>Dirección de entrega (opcional)<input maxLength={250} autoComplete="street-address" value={address} onChange={e=>setAddress(e.target.value)} placeholder="Calle, altura y piso"/></label>:null}
+    <label>Entrega<select value={delivery} onChange={e=>setDelivery(e.target.value as "shipping"|"pickup")}><option value="shipping">Envío a domicilio</option><option value="pickup">Retiro en el local</option></select></label>
+    {delivery==="pickup"?<p className="hint">Retiro: {settings.address || "Dirección a confirmar por WhatsApp"}. Te confirmamos cuándo estará listo.</p>:null}
+    {delivery==="shipping"?<label>Dirección de entrega<input required maxLength={250} autoComplete="street-address" value={address} onChange={e=>setAddress(e.target.value)} placeholder="Calle, altura y piso"/></label>:null}
+    <label>Método de pago<select value={paymentMethod} onChange={e=>setPaymentMethod(e.target.value as "transfer"|"cash")}><option value="transfer">Transferencia bancaria</option><option value="cash">Efectivo (al recibir o retirar)</option></select></label>
     <label>Observaciones (opcional)<textarea maxLength={350} rows={3} value={notes} onChange={e=>setNotes(e.target.value)} placeholder="Horarios, preferencias de sabores, etc."/></label>
     <div className="whatsapp-payment-info">
-     <strong>Pago por transferencia, coordinado por WhatsApp</strong>
-     <p>{promo?`Tu subtotal supera ${ars(settings.free_shipping_threshold)} en una localidad elegible. Solicitaremos la promoción de envío gratuito, sujeta a confirmación.`:"Te confirmamos el costo de entrega y la disponibilidad antes de solicitar la transferencia."}</p>
+     <strong>Pago elegido: {paymentMethod==="cash"?"Efectivo":"Transferencia bancaria"}</strong>
+     <p>{promo?`Tu subtotal supera ${ars(settings.free_shipping_threshold)} en una localidad elegible. Solicitaremos la promoción de envío gratuito, sujeta a confirmación.`:"Te confirmamos el costo de entrega y la disponibilidad antes de cerrar el pedido."}</p>
     </div>
     {error?<p className="error" role="alert">{error}</p>:null}
     {lines.length>30?<p role="alert" className="error">Máximo 30 productos diferentes por solicitud. Quitá algunos para continuar.</p>:null}
     <button type="submit" className="btn primary full cart-submit" disabled={!canRequest||busy}>{busy?"Preparando solicitud…":<>Preparar pedido en WhatsApp <ArrowRight size={18}/></>}</button>
     {prepared?<p role="status">Pedido {prepared.reference} preparado. <a href={prepared.url} rel="noopener noreferrer">Abrir WhatsApp para enviar el mensaje</a>. Si no lo enviás, seguirá pendiente de contacto.</p>:null}
-    <p className="cart-form-footnote"><Truck size={16} aria-hidden="true"/> Confirmaremos stock, costo de envío y medios de pago antes de cerrar el pedido.</p><p className="hint">WhatsApp se abrirá con el mensaje listo para revisar y enviar. El carrito permanece guardado hasta que vos decidas vaciarlo.</p>
+    <p className="cart-form-footnote"><Truck size={16} aria-hidden="true"/> Confirmaremos stock, costo de envío y el medio de pago seleccionado antes de cerrar el pedido.</p><p className="hint">WhatsApp se abrirá con el mensaje listo para revisar y enviar. El carrito permanece guardado hasta que vos decidas vaciarlo.</p>
    </form>
   </div>
  </main></SiteShell>;
