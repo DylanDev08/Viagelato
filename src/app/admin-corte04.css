@@ -134,3 +134,21 @@
  .whatsapp-request-badges{width:100%}
  .whatsapp-request-actions button{width:100%;white-space:normal}
 }
+
+/* Resumen diario de pedidos y cobros reales (consulta administrativa). */
+.whatsapp-daily-summary{background:#fafafa;border:1px solid #ddd;border-radius:12px;padding:17px;margin:20px 0;min-width:0}
+.whatsapp-daily-head{display:flex;align-items:end;justify-content:space-between;gap:16px;flex-wrap:wrap}
+.whatsapp-daily-head h3{font-size:16px;margin:0 0 6px}
+.whatsapp-daily-head p{font-size:12px;color:#555;line-height:1.55;max-width:60ch;margin:0}
+.whatsapp-daily-controls{display:flex;align-items:end;gap:10px;flex-wrap:wrap}
+.whatsapp-daily-controls label{display:grid;gap:5px;font-size:12px;font-weight:750}
+.whatsapp-daily-controls input{background:#fff;color:#111;border:1px solid #aaa;padding:9px;border-radius:8px;min-height:44px;font-size:16px}
+.whatsapp-daily-controls button{min-height:44px}
+.whatsapp-daily-values{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-top:15px}
+.whatsapp-daily-values>div{background:white;padding:13px;border-radius:9px;border:1px solid #e1e1e1;display:grid;gap:8px;min-width:0}
+.whatsapp-daily-values small{font-size:11px;color:#555;line-height:1.5}
+.whatsapp-daily-values strong{font-size:18px;overflow-wrap:anywhere}
+.whatsapp-daily-content>p,.whatsapp-daily-placeholder{font-size:11px;line-height:1.6;color:#666;margin:13px 0 0}
+.whatsapp-request-form select{min-height:44px;max-width:100%;width:100%;border:1px solid #aaa;padding:8px;border-radius:8px;background:#fff;color:#171717;font-size:16px}
+@media(max-width:800px){.whatsapp-daily-values{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:550px){.whatsapp-daily-summary{padding:12px}.whatsapp-daily-controls{display:grid;grid-template-columns:1fr;width:100%}.whatsapp-daily-controls button{width:100%}.whatsapp-daily-values strong{font-size:15px}}
