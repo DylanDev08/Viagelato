@@ -60,7 +60,15 @@ export async function POST(request:Request){
 
 async function prepareRequest(request:Request){
  if(!connected())return reply("La recepción de solicitudes todavía no está configurada",503);
- if(!isAllowedAdminMutation(request,process.env.NEXT_PUBLIC_SITE_URL,""))return reply("Origen no permitido",403);
+ // Checkout público: aceptar sólo orígenes comerciales declarados, sin confiar en host/proxy.
+ // El despliegue público puede usarse desde Vercel o el dominio de Render.
+ const publicOrigins=[
+  process.env.NEXT_PUBLIC_SITE_URL,
+  process.env.CHECKOUT_ALLOWED_ORIGINS,
+  "https://viagelato.vercel.app",
+  "https://viagelato-api.onrender.com",
+ ].filter(Boolean).join(",");
+ if(!isAllowedAdminMutation(request,undefined,publicOrigins))return reply("Origen no permitido",403);
  const key=uuid.safeParse(request.headers.get("idempotency-key"));
  if(!key.success)return reply("Falta identificar esta solicitud",400);
  const body=await readJsonBody(request);
