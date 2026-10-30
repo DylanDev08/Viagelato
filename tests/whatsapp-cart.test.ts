@@ -36,7 +36,7 @@ describe("finalización por WhatsApp sin pasarela",()=>{
  });
  it("el retiro no se presenta como despacho gratuito",()=>{
   const text=whatsappCartMessage([{name:"Torta",price:12900,quantity:5}],{...base,shippingMethod:"pickup"});
-  expect(text).toContain("Retiro (a confirmar)");
+  expect(text).toContain("Retiro en el local (horario a confirmar)");
   expect(text).not.toContain("solicitar aplicación de envío sin cargo");
  });
 });
