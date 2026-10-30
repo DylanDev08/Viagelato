@@ -9,7 +9,6 @@ import {SiteShell} from "./site-shell";
 export {SiteHeader as Header} from "./site-header";
 export {SiteFooter as Footer} from "./site-footer";
 
-import {whatsappHref} from "@/lib/whatsapp";
 import {ars,type Banner,type Category,type Product,type Settings} from "@/lib/types";
 
 const HERO_PRODUCTS=[
@@ -23,7 +22,6 @@ export function Storefront({settings,products,banners,demo,catalogItems=CATALOG_
  const visible=featured.length?featured:products.slice(0,4);
  const pricedPreview=storefrontSamples(catalogItems,4);
  const catalogGroups=groupCatalogByType(catalogItems);
- const whatsapp=whatsappHref(settings.whatsapp);
  return <SiteShell settings={settings}><main>
   {demo?<div className="demo-strip">TIENDA EN PREPARACIÓN · Los pedidos permanecen deshabilitados hasta completar la configuración comercial.</div>:null}
   <section className="hero-v2"><div className="hero-grid shell"><div className="hero-copy"><p className="kicker"><Snowflake/>DISTRIBUCIÓN DE CONGELADOS</p><h1>{settings.hero_title}</h1><p className="hero-lead">{settings.hero_subtitle}</p><div className="hero-cta"><Link className="primary-action" href="/catalogo">Explorar catálogo <ArrowRight/></Link><Link className="secondary-action" href="/envios">Zonas de entrega</Link></div></div><div className={`hero-visual ${settings.hero_image_url?"custom-hero":"product-composition"}`}>{settings.hero_image_url?<Image src={settings.hero_image_url} alt="Productos distribuidos por Viagelato" fill priority sizes="(max-width: 960px) 100vw, 46vw" unoptimized/>:<>{HERO_PRODUCTS.map((image,index)=><div className={`hero-product hero-product-${index+1}`} key={image.src}><Image src={image.src} alt={image.alt} fill priority={index===0} sizes="(max-width: 640px) 70vw, 30vw"/></div>)}</>}<div className="temperature-card"><small>ZONA SUR</small><strong>Entrega coordinada.</strong><span>Consultá cobertura y disponibilidad</span></div></div></div><div className="shell hero-facts"><div><strong>Zona Sur</strong><span>Distribución en Buenos Aires</span></div><div><strong>{ars(settings.free_shipping_threshold)}</strong><span>Envío gratis en zonas elegibles</span></div><div><strong>Directa</strong><span>Atención comercial personalizada</span></div></div></section>
