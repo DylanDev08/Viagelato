@@ -36,7 +36,7 @@ describe("panel administrativo",()=>{
   expect(screen.getByLabelText("Nombre del producto")).not.toHaveValue("");
   expect(screen.getByLabelText("Precio de venta (ARS)")).toHaveValue(0);
   expect(screen.getByLabelText("Unidades disponibles")).toHaveValue(0);
-  expect(screen.getByLabelText("Mostrar este producto en la tienda")).not.toBeChecked();
+  expect(screen.getByRole("button",{name:"Publicar en la tienda"})).toBeDisabled();
  });
 
  it("protege una ficha de producto sin guardar antes de cambiar de módulo",async()=>{
@@ -59,7 +59,7 @@ describe("panel administrativo",()=>{
   const user=userEvent.setup();
   const confirm=vi.spyOn(window,"confirm").mockReturnValue(false);
   render(<AdminDashboard initialProducts={[]} initialCategories={[]} initialOrders={[]} initialZones={[]} initialSettings={DEFAULT_SETTINGS} initialBanners={[]}/>);
-  await user.click(screen.getByRole("button",{name:"Configuración"}));
+  await user.click(screen.getByRole("button",{name:"Datos de la tienda"}));
   await user.type(screen.getByLabelText("Nombre comercial")," Nuevo");
   expect(screen.getByText(/Hay cambios en la configuración/)).toBeInTheDocument();
   await user.click(screen.getByRole("button",{name:"Productos"}));
@@ -78,14 +78,15 @@ describe("panel administrativo",()=>{
    await user.type(screen.getByLabelText("Nombre del producto"),"Helado nuevo");
    expect(screen.getByText(/Al guardar, seguirá oculto del catálogo público/)).toBeInTheDocument();
    await user.click(screen.getByRole("button",{name:"Guardar borrador"}));
-   await screen.findByText("Borrador creado correctamente");
+   await screen.findByText("Borrador guardado. Podés seguir editándolo.");
    expect(mockedFetch).toHaveBeenCalledOnce();
    const [url,opts]=mockedFetch.mock.calls[0];
    const body=JSON.parse(opts.body);
    expect(url).toBe("/api/admin/products");
    expect(opts.method).toBe("POST");
    expect(body).toMatchObject({name:"Helado nuevo",slug:"helado-nuevo",active:false});
-   expect(screen.getByLabelText("Nombre del producto")).toHaveValue("");
+   expect(screen.getByLabelText("Nombre del producto")).toHaveValue("Helado nuevo");
+   expect(screen.getByRole("heading",{name:"Editar producto"})).toBeInTheDocument();
   }finally{vi.unstubAllGlobals();}
  });
  it("después de guardar una edición conserva el producto abierto",async()=>{
@@ -101,7 +102,7 @@ describe("panel administrativo",()=>{
    await user.clear(screen.getByLabelText("Nombre del producto"));
    await user.type(screen.getByLabelText("Nombre del producto"),"Vainilla cremosa");
    await user.click(screen.getByRole("button",{name:"Guardar cambios"}));
-   await screen.findByText("Producto actualizado correctamente");
+   await screen.findByText("Borrador guardado. Podés seguir editándolo.");
    expect(mockedFetch).toHaveBeenCalledOnce();
    const [,opts]=mockedFetch.mock.calls[0];
    expect(opts.method).toBe("PATCH");
@@ -135,7 +136,7 @@ describe("panel administrativo",()=>{
   vi.stubGlobal("fetch",fetchMock);
   try{
    render(<AdminDashboard initialProducts={[]} initialCategories={[]} initialOrders={[order]} initialZones={[]} initialSettings={DEFAULT_SETTINGS} initialBanners={[]}/>);
-   await user.click(screen.getByRole("button",{name:"Pedidos"}));
+   await user.click(screen.getByRole("button",{name:"Pedidos online"}));
    expect(screen.getByText("Nuevo")).toBeInTheDocument();
    await user.click(screen.getByRole("button",{name:"Preparar pedido"}));
    await screen.findByText("Estado del pedido actualizado");
@@ -148,11 +149,11 @@ describe("panel administrativo",()=>{
  it("muestra estadísticas y estados vacíos navegables",async()=>{
   const user=userEvent.setup();
   render(<AdminDashboard initialProducts={[]} initialCategories={[]} initialOrders={[]} initialZones={[]} initialSettings={DEFAULT_SETTINGS} initialBanners={[]}/>);
-  expect(screen.getByText("Tu tienda, en un solo lugar")).toBeInTheDocument();
+  expect(screen.getByText("¿Qué necesitás hacer hoy?")).toBeInTheDocument();
   expect(screen.getAllByText("0").length).toBeGreaterThanOrEqual(4);
   await user.click(screen.getByRole("button",{name:"Productos"}));
   expect(screen.getByText("Agregá tu primer producto.")).toBeInTheDocument();
-  await user.click(screen.getByRole("button",{name:"Pedidos"}));
+  await user.click(screen.getByRole("button",{name:"Pedidos online"}));
   expect(screen.getByText(/No hay pedidos todavía/)).toBeInTheDocument();
  });
 });
