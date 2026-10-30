@@ -62,7 +62,7 @@ describe("seguimiento comercial de WhatsApp",()=>{
   expect(screen.getByText("Pago parcial registrado. El pedido no pasará a preparación hasta completar el saldo.")).toBeInTheDocument();
   expect(screen.getByText(/15.400/)).toBeInTheDocument();
   expect(screen.getByRole("button",{name:"Registrar transferencia"})).toBeEnabled();
-  expect(screen.getByText(/Historial de transferencias/)).toBeInTheDocument();
+  expect(screen.getByText(/Historial de cobros/)).toBeInTheDocument();
  });
  it("permite registrar efectivo efectivamente recibido, sin inventar transferencia",async()=>{
   const user=userEvent.setup();
