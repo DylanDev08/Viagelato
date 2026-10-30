@@ -103,6 +103,15 @@ describe("registrar referencia WhatsApp",()=>{
   expect((await POST(make())).status).toBe(409);
   expect(insert).not.toHaveBeenCalled();
  });
+ it("acepta el origen público de Render sin permitir otros sitios",async()=>{
+  const renderRequest=new Request("https://viagelato-api.onrender.com/api/whatsapp-request",{
+   method:"POST",
+   headers:{"Content-Type":"application/json","Idempotency-Key":key,origin:"https://viagelato-api.onrender.com"},
+   body:JSON.stringify(payload)
+  });
+  expect((await POST(renderRequest)).status).toBe(201);
+  expect((await POST(make(payload,{origin:"https://attacker.example"}))).status).toBe(403);
+ });
  it("rechaza origen ajeno, artículos repetidos y carrito inválido antes de escribir",async()=>{
   expect((await POST(make(payload,{origin:"https://evil.example"}))).status).toBe(403);
   expect((await POST(make({...payload,items:[payload.items[0],payload.items[0]]}))).status).toBe(400);
