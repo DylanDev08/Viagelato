@@ -6,7 +6,7 @@ import {connected,privilegedDb} from "@/lib/supabase";
 vi.mock("@/lib/supabase",()=>({connected:vi.fn(()=>true),privilegedDb:vi.fn()}));
 const id="11111111-2222-4333-8444-555555555555",key="22222222-3333-4444-8555-666666666666";
 const payload={customer_name:"Ana Gomez",locality:"Lanús",address:"Av. Mitre 123",notes:"",
- shipping_method:"shipping",items:[{id:"catalog-price-2",quantity:2}]};
+ shipping_method:"shipping",payment_method:"transfer",items:[{id:"catalog-price-2",quantity:2}]};
 const make=(body:unknown=payload,headers:Record<string,string>={})=>new Request("https://viagelato.vercel.app/api/whatsapp-request",{
  method:"POST",headers:{"Content-Type":"application/json","Idempotency-Key":key,origin:"https://viagelato.vercel.app",...headers},
  body:JSON.stringify(body)

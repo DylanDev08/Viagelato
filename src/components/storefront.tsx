@@ -9,7 +9,6 @@ import {SiteShell} from "./site-shell";
 export {SiteHeader as Header} from "./site-header";
 export {SiteFooter as Footer} from "./site-footer";
 
-import {whatsappHref} from "@/lib/whatsapp";
 import {ars,type Banner,type Category,type Product,type Settings} from "@/lib/types";
 
 const HERO_PRODUCTS=[
@@ -23,7 +22,6 @@ export function Storefront({settings,products,banners,demo,catalogItems=CATALOG_
  const visible=featured.length?featured:products.slice(0,4);
  const pricedPreview=storefrontSamples(catalogItems,4);
  const catalogGroups=groupCatalogByType(catalogItems);
- const whatsapp=whatsappHref(settings.whatsapp);
  return <SiteShell settings={settings}><main>
   {demo?<div className="demo-strip">TIENDA EN PREPARACIÓN · Los pedidos permanecen deshabilitados hasta completar la configuración comercial.</div>:null}
   <section className="hero-v2"><div className="hero-grid shell"><div className="hero-copy"><p className="kicker"><Snowflake/>DISTRIBUCIÓN DE CONGELADOS</p><h1>{settings.hero_title}</h1><p className="hero-lead">{settings.hero_subtitle}</p><div className="hero-cta"><Link className="primary-action" href="/catalogo">Explorar catálogo <ArrowRight/></Link><Link className="secondary-action" href="/envios">Zonas de entrega</Link></div></div><div className={`hero-visual ${settings.hero_image_url?"custom-hero":"product-composition"}`}>{settings.hero_image_url?<Image src={settings.hero_image_url} alt="Productos distribuidos por Viagelato" fill priority sizes="(max-width: 960px) 100vw, 46vw" unoptimized/>:<>{HERO_PRODUCTS.map((image,index)=><div className={`hero-product hero-product-${index+1}`} key={image.src}><Image src={image.src} alt={image.alt} fill priority={index===0} sizes="(max-width: 640px) 70vw, 30vw"/></div>)}</>}<div className="temperature-card"><small>ZONA SUR</small><strong>Entrega coordinada.</strong><span>Consultá cobertura y disponibilidad</span></div></div></div><div className="shell hero-facts"><div><strong>Zona Sur</strong><span>Distribución en Buenos Aires</span></div><div><strong>{ars(settings.free_shipping_threshold)}</strong><span>Envío gratis en zonas elegibles</span></div><div><strong>Directa</strong><span>Atención comercial personalizada</span></div></div></section>
@@ -37,11 +35,11 @@ export function Storefront({settings,products,banners,demo,catalogItems=CATALOG_
      <span className="home-type-info"><strong>{group.name}</strong><small>{group.count} presentaciones</small><ArrowRight size={18} aria-hidden="true"/></span>
     </Link>)}
    </div>
-   <div className="home-selected-heading"><div><p className="kicker">EN LA TIENDA</p><h3>Elegí por presentación.</h3></div><p>Cuatro opciones para conocer nuestro catálogo. Explorá todas las variedades y consultá disponibilidad.</p></div>
+   <div className="home-selected-heading"><div><p className="kicker">EN LA TIENDA</p><h3>Elegí por presentación.</h3></div><p>Elegí tus presentaciones favoritas, agregalas al carrito y completá tu pedido en un solo paso.</p></div>
    {visible.length?<div className="home-featured-grid">{visible.map(product=><ProductCard product={product} key={product.id}/>)}</div>:<PricedCatalog items={pricedPreview} compact/>}
    <div className="center-action"><Link className="primary-action" href="/catalogo">Ver todos los productos <ArrowRight size={18}/></Link></div>
   </section>
   <section className="brand-story"><div className="shell story-grid"><div className="story-number">V.</div><div><p className="kicker">VIAGELATO S.A.</p><h2>Logística que cuida lo que vendés.</h2><p>{settings.description}</p><Link className="text-link light-link" href="/nosotros">Conocé nuestra propuesta →</Link></div><div className="story-list"><span>01 <b>Alimentos congelados</b></span><span>02 <b>Zona sur de Buenos Aires</b></span><span>03 <b>Atención comercial directa</b></span></div></div></section>
-  <section className="final-cta shell"><p className="kicker">¿TENÉS UNA CONSULTA?</p><h2>Hablemos de productos,<br/>zonas y entregas.</h2><div>{whatsapp?<a className="primary-action whatsapp-action" href={whatsapp} target="_blank" rel="noopener noreferrer"><MessageCircle/> Consultar por WhatsApp <ArrowRight/></a>:<Link className="primary-action" href="/contacto"><MessageCircle/> Ver formas de contacto <ArrowRight/></Link>}<a className="secondary-action" href={`tel:${settings.phone.replace(/\D/g,"")}`}>{settings.phone}</a></div></section>
+  <section className="final-cta shell"><p className="kicker">HACÉ TU PEDIDO</p><h2>Elegí tus productos<br/>y finalizá desde el carrito.</h2><div><Link className="primary-action" href="/catalogo"><MessageCircle/> Elegir productos <ArrowRight/></Link><a className="secondary-action" href={`tel:${settings.phone.replace(/\D/g,"")}`}>{settings.phone}</a></div></section>
  </main></SiteShell>;
 }
