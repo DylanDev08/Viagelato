@@ -66,6 +66,41 @@ begin
  return true;
 end $$;
 
+-- Mantener la RPC de transferencia; bloquear reutilizar claves de efectivo como transferencias.
+create or replace function public.admin_record_whatsapp_payment(
+ p_request_id uuid,p_actor_user_id uuid,p_amount numeric,p_payment_key uuid,p_transfer_reference text default ''
+) returns boolean language plpgsql security invoker set search_path=public as $
+declare r public.whatsapp_order_requests%rowtype; existing record; new_paid numeric(12,2); new_state text; clean_ref text;
+begin
+ if p_actor_user_id is null or not exists(select 1 from public.admin_users where user_id=p_actor_user_id) then raise exception 'No autorizado'; end if;
+ if p_payment_key is null or p_amount is null or p_amount<=0 or p_amount>100000000 or scale(p_amount)>2 then
+  raise exception 'Importe de transferencia inválido'; end if;
+ clean_ref:=trim(coalesce(p_transfer_reference,''));
+ if length(clean_ref)>100 then raise exception 'Referencia demasiado extensa'; end if;
+ select * into r from public.whatsapp_order_requests where id=p_request_id for update;
+ if not found then return false; end if;
+ select request_id,amount,transfer_reference,payment_method into existing from public.whatsapp_request_payments
+  where idempotency_key=p_payment_key;
+ if found then
+  if existing.request_id<>p_request_id or existing.amount<>p_amount or existing.transfer_reference<>clean_ref or existing.payment_method<>'transfer' then
+   raise exception 'Idempotencia reutilizada con otros datos'; end if;
+  return true;
+ end if;
+ if r.status not in ('confirmed','preparing','shipped','delivered') or not r.stock_confirmed or r.shipping_cost is null then
+  raise exception 'Primero confirmá stock, envío y pedido'; end if;
+ new_paid:=r.amount_paid+p_amount;
+ if new_paid>r.total then raise exception 'La transferencia supera el saldo pendiente'; end if;
+ insert into public.whatsapp_request_payments(request_id,idempotency_key,amount,transfer_reference,payment_method,recorded_by)
+ values(p_request_id,p_payment_key,p_amount,clean_ref,'transfer',p_actor_user_id);
+ new_state:=case when new_paid=r.total then 'paid' else 'partial' end;
+ update public.whatsapp_order_requests set amount_paid=new_paid,payment_status=new_state,
+  paid_at=case when new_state='paid' then now() else null end,updated_at=now()
+ where id=p_request_id;
+ insert into public.whatsapp_request_events(request_id,actor_user_id,action,previous_status,next_status)
+ values(p_request_id,p_actor_user_id,'payment_received',r.payment_status,new_state);
+ return true;
+end $;
+
 create or replace function public.admin_whatsapp_daily_summary(
  p_day date,p_actor_user_id uuid
 ) returns jsonb language plpgsql security invoker set search_path=public as $$
@@ -113,5 +148,7 @@ revoke all on function public.admin_record_whatsapp_cash(uuid,uuid,numeric,uuid)
 revoke all on function public.admin_whatsapp_daily_summary(date,uuid)
  from public,anon,authenticated;
 grant execute on function public.admin_record_whatsapp_cash(uuid,uuid,numeric,uuid) to service_role;
+revoke all on function public.admin_record_whatsapp_payment(uuid,uuid,numeric,uuid,text) from public,anon,authenticated;
+grant execute on function public.admin_record_whatsapp_payment(uuid,uuid,numeric,uuid,text) to service_role;
 grant execute on function public.admin_whatsapp_daily_summary(date,uuid) to service_role;
 commit;
