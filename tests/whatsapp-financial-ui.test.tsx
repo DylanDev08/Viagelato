@@ -23,7 +23,7 @@ describe("seguimiento comercial de WhatsApp",()=>{
   vi.spyOn(window,"confirm").mockReturnValue(true);
   render(<WhatsAppRequests requests={[common]}/>);
   expect(screen.getByText("Saldo pendiente")).toBeInTheDocument();
-  expect(screen.getByRole("button",{name:"Confirmar pedido"})).toBeDisabled();
+  expect(screen.getByRole("button",{name:"Confirmar pedido con el cliente"})).toBeDisabled();
   const save=screen.getByRole("button",{name:"Guardar stock y envío"});
   expect(save).toBeDisabled();
   await user.click(screen.getByRole("checkbox",{name:/Verifiqué que hay stock/}));
@@ -58,11 +58,11 @@ describe("seguimiento comercial de WhatsApp",()=>{
    amount_paid:10000,payment_status:"partial",whatsapp_request_payments:[
     {id:"00000000-0000-4000-8000-000000000001",amount:10000,transfer_reference:"OP-1",created_at:common.created_at}
    ]}]}/>);
-  expect(screen.getByRole("button",{name:"Preparar"})).toBeDisabled();
+  expect(screen.getByRole("button",{name:"Pasar a preparación"})).toBeDisabled();
   expect(screen.getByText("Pago parcial registrado. El pedido no pasará a preparación hasta completar el saldo.")).toBeInTheDocument();
   expect(screen.getByText(/15.400/)).toBeInTheDocument();
-  expect(screen.getByRole("button",{name:"Registrar importe recibido"})).toBeEnabled();
-  expect(screen.getByText(/Ver transferencias registradas/)).toBeInTheDocument();
+  expect(screen.getByRole("button",{name:"Registrar transferencia"})).toBeEnabled();
+  expect(screen.getByText(/Historial de transferencias/)).toBeInTheDocument();
  });
  it("envía importe, referencia e idempotencia sin marcar el total automáticamente",async()=>{
   const user=userEvent.setup();
@@ -72,7 +72,7 @@ describe("seguimiento comercial de WhatsApp",()=>{
   render(<WhatsAppRequests requests={[{...common,status:"confirmed",stock_confirmed:true,shipping_cost:3500,total:25400,amount_paid:10000,payment_status:"partial"}]}/>);
   await user.type(screen.getByRole("spinbutton",{name:/Importe recibido/}),"15400");
   await user.type(screen.getByRole("textbox",{name:/Referencia bancaria/}),"OP-2");
-  await user.click(screen.getByRole("button",{name:"Registrar importe recibido"}));
+  await user.click(screen.getByRole("button",{name:"Registrar transferencia"}));
   expect(send).toHaveBeenCalledOnce();
   const payload=JSON.parse(String(send.mock.calls[0]?.[1]?.body));
   expect(payload).toMatchObject({action:"record_payment",amount:15400,transfer_reference:"OP-2"});
