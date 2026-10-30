@@ -3,15 +3,16 @@ import {useMemo,useRef,useState,type FormEvent} from "react";
 import {useRouter} from "next/navigation";
 import {ars,type WhatsAppRequest} from "@/lib/types";
 import {whatsappRequestReference} from "@/lib/whatsapp-request-rules";
+import {searchWhatsAppRequests,whatsappRequestCounts,type WhatsAppAdminFilter} from "@/lib/admin-whatsapp-ui";
 
 const labels:Record<WhatsAppRequest["status"],string>={
- draft:"WhatsApp preparado",contacted:"Contactado",confirmed:"Confirmado",
+ draft:"Mensaje preparado",contacted:"Contactado",confirmed:"Pedido confirmado",
  preparing:"En preparación",shipped:"En camino",delivered:"Entregado",cancelled:"Cancelado"
 };
 function nextAction(request:WhatsAppRequest){
- if(request.status==="draft")return {action:"contacted",label:"Confirmar que hubo contacto"};
- if(request.status==="contacted")return {action:"confirmed",label:"Confirmar pedido"};
- if(request.status==="confirmed")return {action:"preparing",label:"Preparar"};
+ if(request.status==="draft")return {action:"contacted",label:"Registrar contacto con el cliente"};
+ if(request.status==="contacted")return {action:"confirmed",label:"Confirmar pedido con el cliente"};
+ if(request.status==="confirmed")return {action:"preparing",label:"Pasar a preparación"};
  if(request.status==="preparing")return request.shipping_method==="shipping"?{action:"shipped",label:"Marcar en camino"}:{action:"delivered",label:"Marcar entregado"};
  if(request.status==="shipped")return {action:"delivered",label:"Marcar entregado"};
  return null;
@@ -26,6 +27,7 @@ function RequestCard({request,freeShippingThreshold}:{request:WhatsAppRequest;fr
  const [shipping,setShipping]=useState(request.shipping_method==="pickup"||freeShipping?"0":request.shipping_cost===null?"":String(Number(request.shipping_cost)));
  const [stock,setStock]=useState(request.stock_confirmed);
  const [paymentAmount,setPaymentAmount]=useState("");
+ const [paymentSubmitted,setPaymentSubmitted]=useState(false);
  const [bankReference,setBankReference]=useState("");
  const [busy,setBusy]=useState(false);
  const [error,setError]=useState("");
@@ -37,7 +39,7 @@ function RequestCard({request,freeShippingThreshold}:{request:WhatsAppRequest;fr
  const remaining=finalTotal===null?null:Math.max(0,Math.round((finalTotal-received)*100)/100);
  const termsComplete=request.stock_confirmed&&request.shipping_cost!==null;
  const canEditTerms=(request.status==="contacted"||request.status==="confirmed")&&received===0;
- const canRegisterPayment=["confirmed","preparing","shipped","delivered"].includes(request.status)&&termsComplete&&remaining!==null&&remaining>0;
+ const canRegisterPayment=["confirmed","preparing","shipped","delivered"].includes(request.status)&&termsComplete&&remaining!==null&&remaining>0&&!paymentSubmitted;
  const blockedConfirm=request.status==="contacted"&&!termsComplete;
  const blockedPreparing=request.status==="confirmed"&&(request.payment_status!=="paid"||remaining!==0);
  async function apply(data:Operation,success:string){
@@ -76,7 +78,7 @@ function RequestCard({request,freeShippingThreshold}:{request:WhatsAppRequest;fr
    id:request.id,action:"record_payment",amount,payment_key:lastPayment.current.key,
    transfer_reference:normalizedReference
   },"Transferencia registrada y auditada");
-  if(successful){lastPayment.current=null;setPaymentAmount("");setBankReference("");}
+  if(successful){setPaymentSubmitted(true);setPaymentAmount("");setBankReference("");}
  }
  async function move(action:string){
   if(action==="confirmed"&&!window.confirm("¿El cliente confirmó el pedido y ya verificaste stock y costo final?"))return;
@@ -86,22 +88,23 @@ function RequestCard({request,freeShippingThreshold}:{request:WhatsAppRequest;fr
  }
  return <article className="whatsapp-request-card">
   <header className="whatsapp-request-header">
-   <div><strong>{whatsappRequestReference(request.id)}</strong><small>{new Date(request.created_at).toLocaleString("es-AR")} · {request.customer_name} · {request.locality}</small></div>
-   <span className="status-pill">{labels[request.status]}</span>
+   <div><strong>{request.customer_name}</strong><small>Pedido {whatsappRequestReference(request.id)} · {new Date(request.created_at).toLocaleString("es-AR")}</small><small>{request.shipping_method==="pickup"?"Retiro en el local":"Envío a domicilio"} · {request.locality}</small></div>
+   <div className="whatsapp-request-badges"><span className="status-pill">{labels[request.status]}</span><span className="admin-payment-pill">{request.payment_status==="paid"?"Pago completo":request.payment_status==="partial"?"Pago parcial":"Pago pendiente"}</span></div>
   </header>
-  <div className="whatsapp-request-details">
-   <div>{request.items.map((item,index)=><small key={index}>{item.quantity} × {item.name} · {item.sku||"Sin SKU"} · {ars(item.price*item.quantity)}</small>)}</div>
-   <div>{request.address?<small>Dirección: {request.address}</small>:null}{request.notes?<small>Observaciones: {request.notes}</small>:null}</div>
-  </div>
+  {request.status==="draft"?<p className="whatsapp-request-unconfirmed">El cliente preparó el mensaje de WhatsApp. Todavía no sabemos si lo envió: verificá el contacto antes de confirmar el pedido.</p>:null}
+  <details className="whatsapp-request-products"><summary>Ver productos y datos de entrega ({request.items.length} {request.items.length===1?"producto":"productos"})</summary>
+   <div className="whatsapp-request-details"><div>{request.items.map((item,index)=><small key={index}>{item.quantity} × {item.name} · {item.sku||"Sin SKU"} · {ars(item.price*item.quantity)}</small>)}</div>
+   <div>{request.address?<small>Dirección: {request.address}</small>:null}{request.notes?<small>Observaciones: {request.notes}</small>:null}</div></div>
+  </details>
   <div className="whatsapp-finance-summary">
    <div><small>Productos</small><strong>{ars(Number(request.subtotal))}</strong></div>
    <div><small>Envío confirmado</small><strong>{request.shipping_cost===null?"Pendiente":ars(Number(request.shipping_cost))}</strong></div>
    <div><small>Total final</small><strong>{finalTotal===null?"Pendiente":ars(finalTotal)}</strong></div>
-   <div><small>Transferencias acreditadas</small><strong>{ars(received)}</strong></div>
+   <div><small>Pagos registrados</small><strong>{ars(received)}</strong></div>
    <div><small>Saldo pendiente</small><strong>{remaining===null?"Por definir":ars(remaining)}</strong></div>
   </div>
   {canEditTerms?<form className="whatsapp-request-form" onSubmit={event=>void saveTerms(event)}>
-   <h3>1. Confirmar disponibilidad y envío</h3>
+   <h3>Confirmar stock y entrega</h3>
    <label className="inline-check"><input type="checkbox" checked={stock} onChange={event=>setStock(event.target.checked)} disabled={busy}/> Verifiqué que hay stock disponible para este pedido.</label>
    <label>Costo de envío acordado (ARS)
     <input type="number" inputMode="decimal" min="0" max="10000000" step="0.01" value={shipping}
@@ -113,23 +116,23 @@ function RequestCard({request,freeShippingThreshold}:{request:WhatsAppRequest;fr
   {termsComplete?<p className="hint">Stock y envío verificados manualmente. Este paso no modifica el inventario.</p>:null}
   {request.payment_status==="partial"?<p className="hint">Pago parcial registrado. El pedido no pasará a preparación hasta completar el saldo.</p>:null}
   {canRegisterPayment?<form className="whatsapp-request-form" onSubmit={event=>void registerPayment(event)}>
-   <h3>2. Registrar transferencia acreditada</h3>
+   <h3>Registrar una transferencia recibida</h3>
    <label>Importe recibido (ARS)<input required type="number" inputMode="decimal" min="0.01" step="0.01"
     max={remaining??undefined} placeholder={remaining===null?"":String(remaining)}
     value={paymentAmount} onChange={event=>setPaymentAmount(event.target.value)} disabled={busy}/></label>
    <label>Referencia bancaria (opcional)<input maxLength={100} value={bankReference}
     onChange={event=>setBankReference(event.target.value)} disabled={busy} placeholder="Número de operación, si está disponible"/></label>
-   <button type="submit" className="btn tiny" disabled={busy}>Registrar importe recibido</button>
-   <small>Solo anotá dinero efectivamente acreditado. Si es parcial, el saldo se conserva.</small>
+   <button type="submit" className="btn tiny" disabled={busy||paymentSubmitted}>{paymentSubmitted?"Pago guardado · actualizando":"Registrar transferencia"}</button>
+   <small>Solo registrá transferencias acreditadas y comprobadas. Un pago parcial deja el resto pendiente. Nunca vuelvas a cargar un pago ya registrado.</small>
   </form>:null}
-  {request.whatsapp_request_payments?.length?<details className="whatsapp-payment-history"><summary>Ver transferencias registradas ({request.whatsapp_request_payments.length})</summary>
+  {request.whatsapp_request_payments?.length?<details className="whatsapp-payment-history"><summary>Historial de transferencias ({request.whatsapp_request_payments.length})</summary>
    {request.whatsapp_request_payments.map(payment=><small key={payment.id}>{ars(Number(payment.amount))} · {new Date(payment.created_at).toLocaleString("es-AR")}{payment.transfer_reference?` · Ref. ${payment.transfer_reference}`:""}</small>)}
   </details>:null}
   <div className="whatsapp-request-actions">
    {next?<button className="btn tiny" type="button" disabled={busy||blockedConfirm||blockedPreparing}
     onClick={()=>void move(next.action)}>{next.label}</button>:null}
    {blockedConfirm?<small>Primero guardá stock y costo de envío.</small>:null}
-   {blockedPreparing?<small>Solo podés preparar cuando esté acreditado el total.</small>:null}
+   {blockedPreparing?<small>Para preparar, el pago tiene que estar completo.</small>:null}
    {request.payment_status==="pending"&& !["cancelled","delivered"].includes(request.status)?
     <button type="button" className="btn tiny danger" disabled={busy} onClick={()=>void move("cancel")}>Cancelar</button>:null}
   </div>
@@ -137,25 +140,45 @@ function RequestCard({request,freeShippingThreshold}:{request:WhatsAppRequest;fr
   {notice?<p role="status" className="hint">{notice}</p>:null}
  </article>;
 }
+const filterOptions:{id:WhatsAppAdminFilter;label:string}[]=[
+ {id:"attention",label:"Necesitan atención"},
+ {id:"processing",label:"En curso"},
+ {id:"payment",label:"Con saldo"},
+ {id:"finished",label:"Finalizados"},
+ {id:"all",label:"Todos"}
+];
 export function WhatsAppRequests({requests,freeShippingThreshold=60000}:{requests:WhatsAppRequest[];freeShippingThreshold?:number}){
- const [status,setStatus]=useState("all");
+ const [filter,setFilter]=useState<WhatsAppAdminFilter>("attention");
  const [search,setSearch]=useState("");
- const visible=useMemo(()=>requests.filter(request=>{
-  const found=(request.customer_name+" "+request.locality+" "+whatsappRequestReference(request.id))
-   .toLocaleLowerCase("es").includes(search.trim().toLocaleLowerCase("es"));
-  return found&&(status==="all"||request.status===status);
- }),[requests,search,status]);
- return <section className="panel">
-  <h2>Solicitudes de WhatsApp</h2>
-  <p className="hint">«WhatsApp preparado» no significa que el cliente haya enviado el mensaje. Confirmá el contacto, verificá existencias y acordá el costo de envío antes de pedir una transferencia. Para preparar el pedido, el pago debe estar acreditado en su totalidad.</p>
-  <div className="admin-product-filters">
-   <label>Buscar referencia o cliente<input type="search" value={search} onChange={event=>setSearch(event.target.value)} placeholder="Referencia, nombre o localidad"/></label>
-   <label>Estado<select value={status} onChange={event=>setStatus(event.target.value)}>
-    <option value="all">Todos</option>{Object.entries(labels).map(([key,value])=><option key={key} value={key}>{value}</option>)}
-   </select></label>
+ const counts=useMemo(()=>whatsappRequestCounts(requests),[requests]);
+ const visible=useMemo(()=>searchWhatsAppRequests(requests,search,filter),[requests,search,filter]);
+ return <section className="panel whatsapp-admin-panel">
+  <div className="whatsapp-admin-heading">
+   <div><h2>Pedidos por WhatsApp</h2><p className="hint">Primero verificá que el cliente haya enviado el mensaje. Después confirmá stock, entrega y pagos recibidos.</p></div>
+   <button type="button" className="btn ghost" onClick={()=>{setFilter("attention");setSearch("");}}>Ver pendientes</button>
   </div>
-  <p className="hint" aria-live="polite">{visible.length} de {requests.length} solicitudes recientes</p>
-  <div className="whatsapp-request-list">{visible.map(request=><RequestCard key={request.id} request={request} freeShippingThreshold={freeShippingThreshold}/>)}</div>
-  {!visible.length?<p className="hint">Todavía no hay solicitudes con ese filtro. Las nuevas aparecerán cuando un cliente prepare el mensaje hacia WhatsApp.</p>:null}
+  <div className="whatsapp-admin-metrics" aria-label="Resumen de pedidos recientes">
+   <div><small>Necesitan atención</small><strong>{counts.attention}</strong></div>
+   <div><small>En curso</small><strong>{counts.processing}</strong></div>
+   <div><small>Con saldo pendiente</small><strong>{counts.payment}</strong></div>
+   <div><small>Finalizados</small><strong>{counts.finished}</strong></div>
+  </div>
+  <div className="whatsapp-admin-filters" aria-label="Filtrar pedidos por WhatsApp">
+   {filterOptions.map(option=><button key={option.id} type="button" className={filter===option.id?"active":""}
+    aria-pressed={filter===option.id} onClick={()=>setFilter(option.id)}>{option.label} <span>{counts[option.id]}</span></button>)}
+  </div>
+  <div className="whatsapp-admin-search">
+   <label>Buscar un pedido<input type="search" value={search} onChange={event=>setSearch(event.target.value)}
+    placeholder="Cliente, referencia, producto, SKU o localidad"/></label>
+   {search?<button type="button" className="btn tiny" onClick={()=>setSearch("")}>Limpiar búsqueda</button>:null}
+  </div>
+  <p className="hint" aria-live="polite">{visible.length} resultados · {requests.length} solicitudes recientes cargadas (máximo 100)</p>
+  <div className="whatsapp-request-list">{visible.map(request=><RequestCard key={request.id+":"+request.amount_paid+":"+request.payment_status} request={request} freeShippingThreshold={freeShippingThreshold}/>)}</div>
+  {!visible.length?<div className="whatsapp-admin-empty">
+   <strong>{search?"No encontramos pedidos con esa búsqueda":filter==="attention"?"No hay pedidos que necesiten atención":"No hay pedidos en este estado"}</strong>
+   <p>Probá otra búsqueda o revisá todos los pedidos recientes.</p>
+   <button type="button" className="btn ghost" onClick={()=>{setFilter("all");setSearch("");}}>Mostrar todos</button>
+  </div>:null}
+  <p className="whatsapp-admin-footnote">Los totales corresponden a las últimas 100 solicitudes cargadas, no a todas las ventas históricas. «Mensaje preparado» no confirma que el pedido se haya enviado por WhatsApp.</p>
  </section>;
 }
