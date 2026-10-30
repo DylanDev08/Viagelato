@@ -52,7 +52,7 @@ describe("catálogo comercial agrupado",()=>{
   const user=userEvent.setup();
   render(<AdminDashboard {...props}/>);
   await user.click(screen.getByRole("button",{name:"Productos"}));
-  await user.click(screen.getByRole("button",{name:"Elegir producto del catálogo"}));
+  await user.click(screen.getByRole("button",{name:"Cargar desde catálogo"}));
   const picker=screen.getByRole("region",{name:"Productos del catálogo"});
   expect(within(picker).getByText(/45 opciones del catálogo/)).toBeInTheDocument();
   const item=CATALOG_PRICE_ITEMS[0];
