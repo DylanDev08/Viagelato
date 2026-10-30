@@ -154,3 +154,13 @@
  .admin-mobile-bottom-nav button { font-size: 9px; }
  .admin-side-bottom :is(a,button) { font-size: 10px; padding-inline: 4px; }
 }
+
+/* Panel: ayudas breves y acciones frecuentes sin modificar la estructura. */
+.admin-tab-help{margin:7px 0 0;color:#626262;font-size:13px;line-height:1.55;max-width:680px}
+.admin-quick-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:18px}
+.admin-quick-actions button{min-height:44px;white-space:normal;text-align:center}
+@media(max-width:760px){
+ .admin-tab-help{font-size:12px;line-height:1.5}
+ .admin-quick-actions{display:grid;grid-template-columns:1fr;gap:8px}
+ .admin-quick-actions button{width:100%}
+}
