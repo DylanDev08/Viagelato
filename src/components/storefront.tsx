@@ -37,11 +37,11 @@ export function Storefront({settings,products,banners,demo,catalogItems=CATALOG_
      <span className="home-type-info"><strong>{group.name}</strong><small>{group.count} presentaciones</small><ArrowRight size={18} aria-hidden="true"/></span>
     </Link>)}
    </div>
-   <div className="home-selected-heading"><div><p className="kicker">EN LA TIENDA</p><h3>Elegí por presentación.</h3></div><p>Cuatro opciones para conocer nuestro catálogo. Explorá todas las variedades y consultá disponibilidad.</p></div>
+   <div className="home-selected-heading"><div><p className="kicker">EN LA TIENDA</p><h3>Elegí por presentación.</h3></div><p>Elegí tus presentaciones favoritas, agregalas al carrito y completá tu pedido en un solo paso.</p></div>
    {visible.length?<div className="home-featured-grid">{visible.map(product=><ProductCard product={product} key={product.id}/>)}</div>:<PricedCatalog items={pricedPreview} compact/>}
    <div className="center-action"><Link className="primary-action" href="/catalogo">Ver todos los productos <ArrowRight size={18}/></Link></div>
   </section>
   <section className="brand-story"><div className="shell story-grid"><div className="story-number">V.</div><div><p className="kicker">VIAGELATO S.A.</p><h2>Logística que cuida lo que vendés.</h2><p>{settings.description}</p><Link className="text-link light-link" href="/nosotros">Conocé nuestra propuesta →</Link></div><div className="story-list"><span>01 <b>Alimentos congelados</b></span><span>02 <b>Zona sur de Buenos Aires</b></span><span>03 <b>Atención comercial directa</b></span></div></div></section>
-  <section className="final-cta shell"><p className="kicker">¿TENÉS UNA CONSULTA?</p><h2>Hablemos de productos,<br/>zonas y entregas.</h2><div>{whatsapp?<a className="primary-action whatsapp-action" href={whatsapp} target="_blank" rel="noopener noreferrer"><MessageCircle/> Consultar por WhatsApp <ArrowRight/></a>:<Link className="primary-action" href="/contacto"><MessageCircle/> Ver formas de contacto <ArrowRight/></Link>}<a className="secondary-action" href={`tel:${settings.phone.replace(/\D/g,"")}`}>{settings.phone}</a></div></section>
+  <section className="final-cta shell"><p className="kicker">HACÉ TU PEDIDO</p><h2>Elegí tus productos<br/>y finalizá desde el carrito.</h2><div>{whatsapp?<a className="primary-action whatsapp-action" href={whatsapp} target="_blank" rel="noopener noreferrer"><MessageCircle/> Ver carrito <ArrowRight/></a>:<Link className="primary-action" href="/contacto"><MessageCircle/> Ver formas de contacto <ArrowRight/></Link>}<a className="secondary-action" href={`tel:${settings.phone.replace(/\D/g,"")}`}>{settings.phone}</a></div></section>
  </main></SiteShell>;
 }
