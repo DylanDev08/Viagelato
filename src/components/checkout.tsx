@@ -21,10 +21,10 @@ export function Checkout({products,settings,catalogItems=CATALOG_PRICE_ITEMS}:{p
  const [fullName,setFullName]=useState("");
  const [selectedLocality,setSelectedLocality]=useState("");
  const [otherLocality,setOtherLocality]=useState("");
- const locality=delivery==="pickup"?"Retiro en local":selectedLocality==="other"?otherLocality.trim():selectedLocality||"Zona no indicada";
  const [address,setAddress]=useState("");
  const [notes,setNotes]=useState("");
  const [delivery,setDelivery]=useState<"shipping"|"pickup">("shipping");
+ const locality=delivery==="pickup"?"Retiro en local":selectedLocality==="other"?otherLocality.trim():selectedLocality||"Zona no indicada";
  const [paymentMethod,setPaymentMethod]=useState<"transfer"|"cash">("transfer");
  const [error,setError]=useState("");
  const [busy,setBusy]=useState(false);
