@@ -1,4 +1,5 @@
 import {NextResponse} from "next/server";
+import {readAdminUpload} from "@/lib/admin-body";
 import {adminOrError} from "@/lib/admin";
 import {privilegedDb} from "@/lib/supabase";
 import {MAX_UPLOAD_SIZE,validateUploadedImage} from "@/lib/upload-validation";
@@ -7,8 +8,9 @@ export const runtime="nodejs";
 export async function POST(request:Request){
  const auth=await adminOrError(request);
  if(auth)return auth;
- const form=await request.formData().catch(()=>null);
- const file=form?.get("file");
+ const parsed=await readAdminUpload(request);
+ if(!parsed.ok)return parsed.response;
+ const file=parsed.form.get("file");
  if(!(file instanceof File))return NextResponse.json({error:"Seleccioná una imagen válida"},{status:400});
  if(file.size===0||file.size>MAX_UPLOAD_SIZE)return NextResponse.json({error:"Subí JPG, PNG o WEBP de hasta 3 MB"},{status:400});
 

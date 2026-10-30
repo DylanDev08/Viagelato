@@ -42,6 +42,14 @@ Crear el usuario administrador con Supabase Auth y conceder su UUID en `admin_us
 
 El formulario público requiere Origin propio o el origen canónico configurado. La identificación de IP debe provenir de cabeceras normalizadas por el proxy de confianza; validar ese comportamiento en cada despliegue.
 
+## Capa de seguridad de rutas
+
+Las peticiones administrativas y los checkouts públicos no aceptan cualquier valor de `Host` o `X-Forwarded-Host` como origen autorizado. El guard CSRF comprueba `Origin`, rechaza `Sec-Fetch-Site: cross-site` y sólo admite el dominio canónico y orígenes permitidos expresamente: `https://viagelato.vercel.app`, `https://viagelato-api.onrender.com`, `NEXT_PUBLIC_SITE_URL` y, para operaciones administrativas, `ADMIN_ALLOWED_ORIGINS`. El entorno de desarrollo admite `http://localhost:3000` pero producción no.
+
+Las rutas `/api/admin/*` vuelven a comprobar la sesión y el rol de administrador en el servidor; el middleware no es la autorización definitiva. Las escrituras JSON aceptan como máximo 64 KB y sólo `application/json`; las fotos comprueban el tamaño del multipart durante la lectura antes de parsearlo y siguen validando firma JPG/PNG/WEBP. Las respuestas privadas usan cabeceras anti-cache; las páginas y API aplican `nosniff`, bloqueo de iframes, CSP básica, política de referencias y permisos de dispositivos restringidos. No se añadió `script-src` estricto, pues requeriría manejar nonces con la infraestructura de Next.
+
+Si se despliega una **preview**, registrar su URL exacta en `ADMIN_ALLOWED_ORIGINS` sólo para pruebas internas, no usar comodines. Un error 403 de origen no se debe corregir desactivando el guard. Los límites del formulario complementan el limitador de solicitudes de WhatsApp/checkout, pero **no equivalen a un WAF** ni a protección completa contra abusos de login.
+
 ## Verificación
 
 ```text

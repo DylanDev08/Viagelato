@@ -1,9 +1,25 @@
 /**
- * Orígenes aceptados para escrituras del panel.
+ * CSRF / Fetch Metadata guard shared by the admin and public checkout.
+ * Never trust request.url or forwarded host as an authorization source: both
+ * can reflect an untrusted Host header behind a proxy.
  *
- * En producción el navegador usa viagelato.vercel.app y /api/* se
- * reenvía a Render. Nunca confiar en x-forwarded-host del cliente.
+ * Custom domains / previews must be explicitly configured in
+ * NEXT_PUBLIC_SITE_URL, ADMIN_ALLOWED_ORIGINS or the supplied extraOrigins.
  */
+const officialOrigins=["https://viagelato.vercel.app","https://viagelato-api.onrender.com"] as const;
+
+function parseOrigin(raw:string):string|null{
+ try{
+  const url=new URL(raw.trim());
+  if(url.origin==="null"||url.username||url.password||url.pathname!=="/"||url.search||url.hash)return null;
+  const local=url.hostname==="localhost"||url.hostname==="127.0.0.1";
+  if(url.protocol!=="https:"&&!(local&&url.protocol==="http:"))return null;
+  // Localhost must never be an allowed origin in deployed production.
+  if(local&&process.env.NODE_ENV==="production")return null;
+  return url.origin;
+ }catch{return null;}
+}
+
 export function isAllowedAdminMutation(
  request:Request,
  siteUrl=process.env.NEXT_PUBLIC_SITE_URL,
@@ -12,25 +28,17 @@ export function isAllowedAdminMutation(
  const fetchSite=request.headers.get("sec-fetch-site");
  if(fetchSite==="cross-site")return false;
 
- const originHeader=request.headers.get("origin");
- // Los navegadores envían Origin en mutaciones. Sin él, negar por defecto.
- if(!originHeader)return false;
- let requestedOrigin:string;
- try{
-  const origin=new URL(originHeader);
-  if(origin.origin==="null" || origin.username || origin.password || origin.pathname!=="/" || origin.search || origin.hash)return false;
-  requestedOrigin=origin.origin;
- }catch{return false;}
+ const rawOrigin=request.headers.get("origin");
+ if(!rawOrigin)return false;
+ const requestedOrigin=parseOrigin(rawOrigin);
+ if(!requestedOrigin)return false;
 
- const allowed=new Set<string>();
- for(const raw of [new URL(request.url).origin,siteUrl,...(extraOrigins?.split(",")??[])]){
-  if(!raw)continue;
-  try{
-   const target=new URL(raw.trim());
-   if((target.protocol==="https:"||target.hostname==="localhost"||target.hostname==="127.0.0.1")&&target.username===""&&target.password===""&&target.pathname==="/"&&!target.search&&!target.hash){
-    allowed.add(target.origin);
-   }
-  }catch{ /* configuración inválida: nunca permitir por defecto */ }
+ const configured=[siteUrl,...(extraOrigins?.split(",")??[])];
+ const allowed=new Set([...officialOrigins,...configured].map(raw=>raw?parseOrigin(raw):null).filter((v):v is string=>v!==null));
+ // Local same-origin development requests work only outside production.
+ if(process.env.NODE_ENV!=="production"){
+  allowed.add("http://localhost:3000");
+  allowed.add("http://127.0.0.1:3000");
  }
  return allowed.has(requestedOrigin);
 }

@@ -1,4 +1,5 @@
 import {NextResponse} from "next/server";
+import {readAdminJson} from "@/lib/admin-body";
 import {z} from "zod";
 import {adminOrError} from "@/lib/admin";
 import {privilegedDb} from "@/lib/supabase";
@@ -9,14 +10,16 @@ const failed=()=>NextResponse.json({error:"No se pudo guardar la categoría"},{s
 const invalidId=()=>NextResponse.json({error:"ID de categoría inválido"},{status:400});
 export async function POST(req:Request){
  const auth=await adminOrError(req);if(auth)return auth;
- const parsed=schema.safeParse(await req.json().catch(()=>null));
+ const json=await readAdminJson(req);if(!json.ok)return json.response;
+ const parsed=schema.safeParse(json.data);
  if(!parsed.success)return NextResponse.json({error:"Categoría inválida"},{status:400});
  const {data,error}=await privilegedDb().from("categories").insert(parsed.data).select().single();
  return error?failed():NextResponse.json(data);
 }
 export async function PATCH(req:Request){
  const auth=await adminOrError(req);if(auth)return auth;
- const body=await req.json().catch(()=>null);
+ const json=await readAdminJson(req);if(!json.ok)return json.response;
+ const body=json.data as Record<string,unknown>|null;
  const id=uuid.safeParse(body?.id);
  if(!id.success)return invalidId();
  const payload={...body};delete payload.id;
@@ -29,7 +32,8 @@ export async function PATCH(req:Request){
 }
 export async function DELETE(req:Request){
  const auth=await adminOrError(req);if(auth)return auth;
- const body=await req.json().catch(()=>null);
+ const json=await readAdminJson(req);if(!json.ok)return json.response;
+ const body=json.data as Record<string,unknown>|null;
  const id=uuid.safeParse(body?.id);
  if(!id.success)return invalidId();
  const db=privilegedDb();

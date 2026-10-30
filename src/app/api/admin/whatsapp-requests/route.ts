@@ -1,4 +1,5 @@
 import {NextResponse} from "next/server";
+import {readAdminJson} from "@/lib/admin-body";
 import {z} from "zod";
 import {assertAdmin,privilegedDb} from "@/lib/supabase";
 import {adminRequestError} from "@/lib/admin";
@@ -27,7 +28,8 @@ export async function PATCH(request:Request){
  if(blocked)return blocked;
  let admin;
  try{admin=await assertAdmin();}catch{return NextResponse.json({error:"No autorizado"},{status:401});}
- const parsed=schema.safeParse(await request.json().catch(()=>null));
+ const json=await readAdminJson(request);if(!json.ok)return json.response;
+ const parsed=schema.safeParse(json.data);
  if(!parsed.success)return NextResponse.json({error:"Acción, importe o referencia inválidos"},{status:400});
  const input=parsed.data;
  const db=privilegedDb();
