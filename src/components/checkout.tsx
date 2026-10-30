@@ -24,7 +24,7 @@ export function Checkout({products,settings,catalogItems=CATALOG_PRICE_ITEMS}:{p
  const [address,setAddress]=useState("");
  const [notes,setNotes]=useState("");
  const [delivery,setDelivery]=useState<"shipping"|"pickup">("shipping");
- const locality=delivery==="pickup"?"Retiro en local":selectedLocality==="other"?otherLocality.trim():selectedLocality||"Zona no indicada";
+ const locality=delivery==="pickup"?"Retiro en local":selectedLocality==="other"?(otherLocality.trim()||"Zona no indicada"):selectedLocality||"Zona no indicada";
  const [paymentMethod,setPaymentMethod]=useState<"transfer"|"cash">("transfer");
  const [error,setError]=useState("");
  const [busy,setBusy]=useState(false);
@@ -142,7 +142,7 @@ export function Checkout({products,settings,catalogItems=CATALOG_PRICE_ITEMS}:{p
     {lines.length>30?<p role="alert" className="error">Máximo 30 productos diferentes por solicitud. Quitá algunos para continuar.</p>:null}
     <button type="submit" className="btn primary full cart-submit" disabled={!canRequest||busy}>{busy?"Preparando solicitud…":<>Enviar pedido por WhatsApp <ArrowRight size={18}/></>}</button>
     {prepared?<p role="status">Pedido {prepared.reference} preparado. <a href={prepared.url} rel="noopener noreferrer">Abrir WhatsApp para enviar el mensaje</a>. Si no lo enviás, seguirá pendiente de contacto.</p>:null}
-    <p className="cart-form-footnote"><Truck size={16} aria-hidden="true"/> Confirmaremos stock, costo de envío y el medio de pago seleccionado antes de cerrar el pedido.</p><p className="hint">WhatsApp se abrirá con el mensaje listo para revisar y enviar. El carrito permanece guardado hasta que vos decidas vaciarlo.</p>
+    <p className="cart-form-footnote"><Truck size={16} aria-hidden="true"/> {delivery==="pickup"?"Coordinaremos el horario de retiro y el pago.":"Confirmaremos disponibilidad, envío y pago antes de cerrar el pedido."}</p><p className="hint">WhatsApp se abrirá con el mensaje listo para revisar y enviar. El carrito permanece guardado hasta que vos decidas vaciarlo.</p>
    </form>
   </div>
  </main></SiteShell>;
