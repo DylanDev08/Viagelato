@@ -1,6 +1,6 @@
 import {describe,it,expect} from "vitest";
 import {normalizeWhatsAppRequest,whatsappRequestReference,whatsappRequestSchema} from "@/lib/whatsapp-request-rules";
-const one={customer_name:"Ana Gomez",locality:"Lanús",address:"",notes:"",shipping_method:"shipping" as const,
+const one={customer_name:"Ana Gomez",locality:"Lanús",address:"Calle 123",notes:"",shipping_method:"shipping" as const,payment_method:"transfer" as const,
  items:[{id:"catalog-price-4",quantity:1},{id:"catalog-price-2",quantity:3}]};
 describe("solicitudes comerciales WhatsApp",()=>{
  it("valida artículos y normaliza el orden para idempotencia",()=>{
