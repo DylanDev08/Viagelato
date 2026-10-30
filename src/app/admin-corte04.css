@@ -118,3 +118,18 @@
 .whatsapp-queue-tools .inline-check{display:flex;align-items:center;gap:8px;margin:0}
 .whatsapp-queue-tools .inline-check input{width:18px;height:18px}
 @media(max-width:640px){.whatsapp-queue-summary{gap:7px}.whatsapp-queue-summary>div{padding:11px}.whatsapp-queue-summary strong{font-size:20px}.whatsapp-queue-summary span{font-size:11px}.whatsapp-queue-tools{align-items:stretch}.whatsapp-queue-tools button{min-height:44px}}
+
+/* Admin productos: evita el botón flotante y mantiene una columna estable. */
+.admin-2col{min-width:0}
+.admin-2col>.panel{min-width:0}
+.admin-catalog-import{display:flex!important;flex-direction:column!important;align-items:stretch!important;gap:13px!important;min-width:0;padding:18px;background:#f7f7f7;border:1px solid #e0e0e0;border-radius:12px;margin-bottom:16px}
+.admin-catalog-import>div{min-width:0;max-width:100%}
+.admin-catalog-import>div strong{display:block;font-size:15px;line-height:1.4}
+.admin-catalog-import>div p{font-size:13px;line-height:1.55;overflow-wrap:anywhere;margin:6px 0 0}
+.admin-catalog-import .admin-catalog-cta{box-sizing:border-box;display:flex;justify-content:center;align-items:center;width:100%!important;max-width:100%;min-width:0;min-height:46px;padding:10px 14px;text-align:center;white-space:normal;overflow-wrap:anywhere;border-radius:10px;font-size:13px;line-height:1.4}
+.admin-2col .panel form input,.admin-2col .panel form select,.admin-2col .panel form textarea{box-sizing:border-box;min-width:0;max-width:100%}
+.admin-2col .form-inline>*{min-width:0}
+.admin-2col .admin-list-row{gap:12px;padding-block:16px}
+.admin-2col .admin-list-row .grow{min-width:0}
+.admin-2col .admin-item-state{font-size:10px;padding:4px 8px;font-weight:700}
+@media(max-width:760px){.admin-catalog-import{padding:15px}.admin-2col .admin-list-row{gap:9px;padding-block:13px}.admin-catalog-import .admin-catalog-cta{min-height:48px}}
