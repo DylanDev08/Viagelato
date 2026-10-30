@@ -71,7 +71,7 @@ export async function POST(request:Request){
  const hash=fingerprint(input);
  const {data:settings,error:settingsError}=await db.from("site_settings").select("whatsapp,free_shipping_threshold,pickup_enabled").eq("id",true).single();
  if(settingsError||!settings)return reply("No encontramos la configuración comercial",503);
- if(input.shipping_method==="pickup"&&!settings.pickup_enabled)return reply("El retiro no está habilitado",409);
+ // El cliente puede solicitar retiro; Viagelato confirma disponibilidad y horario por WhatsApp.
  if(!whatsappHref(settings.whatsapp,"Prueba")?.includes("?text="))return reply("El WhatsApp comercial debe configurarse con un número válido",503);
  // Buscar primero la idempotencia: si el catálogo cambió o se ocultó un producto,
  // la solicitud existente debe conservar sus precios y líneas originales.
@@ -119,8 +119,10 @@ export async function POST(request:Request){
  if(!Number.isFinite(subtotal)||subtotal<=0||subtotal>1e9)return reply("El subtotal no es válido",400);
  if(input.expected_subtotal!==undefined&&Math.abs(input.expected_subtotal-subtotal)>0.01)
   return reply("Los precios cambiaron. Actualizá el carrito para revisarlos antes de enviar el pedido.",409);
+ const paymentLabel=input.payment_method==="cash"?"Efectivo":"Transferencia bancaria";
+ const requestNotes=`Medio de pago elegido: ${paymentLabel}${input.notes?`\nObservaciones: ${input.notes}`:""}`;
  const insert={idempotency_key:key.data,request_fingerprint:hash,customer_name:input.customer_name,
-  locality:input.locality,address:input.address,notes:input.notes,shipping_method:input.shipping_method,
+  locality:input.locality,address:input.address,notes:requestNotes,shipping_method:input.shipping_method,
   items:safeLines,subtotal};
  const {data:created,error:insertError}=await db.from("whatsapp_order_requests")
   .upsert(insert,{onConflict:"idempotency_key",ignoreDuplicates:true}).select(snapshotFields).maybeSingle();
