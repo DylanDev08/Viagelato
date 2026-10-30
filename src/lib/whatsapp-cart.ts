@@ -40,7 +40,7 @@ export function whatsappCartMessage(lines:WhatsAppCartLine[],info:WhatsAppChecko
   items,
   "",
   `Subtotal de productos: ${ars(subtotal)}`,
-  freeShipping?`Envío: solicitar aplicación de envío sin cargo desde ${ars(info.freeShippingThreshold)} en zona elegible; sujeto a confirmación.`:"Envío: costo y cobertura a confirmar por WhatsApp.",
+  info.shippingMethod==="pickup"?"Retiro en el local: horario y disponibilidad a confirmar.":freeShipping?`Envío: solicitar aplicación de envío sin cargo desde ${ars(info.freeShippingThreshold)} en zona elegible; sujeto a confirmación.`:"Envío: costo y cobertura a confirmar por WhatsApp.",
   "Total final: a confirmar con Viagelato antes de transferir.",
   "¿Me confirman stock, fecha de entrega o retiro y los detalles para pagar con el medio elegido?",
   "Este mensaje solicita el pedido; no implica pago ni confirmación automática."
