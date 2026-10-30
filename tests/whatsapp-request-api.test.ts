@@ -18,10 +18,13 @@ describe("registrar referencia WhatsApp",()=>{
  const insert=vi.fn();
  const priorRead=vi.fn(async():Promise<{data:Record<string,unknown>|null;error:null}>=>({data:null,error:null}));
  const catalogRead=vi.fn(async()=>({data:[{slug:"excel-fila-2",name:"Palitos de agua",sku:"VIA-CAT-2",presentation:"Caja x24",price:21900}],error:null}));
+ const productRead=vi.fn();
  beforeEach(()=>{
   vi.clearAllMocks();vi.mocked(connected).mockReturnValue(true);
   process.env.SUPABASE_SERVICE_ROLE_KEY="abcdefghijklmnopqrstuvwxyz0123456789SERVICE";
   process.env.CHECKOUT_RATE_LIMIT_SALT="test-only-salt";
+  rpc.mockResolvedValue({data:true,error:null});
+  productRead.mockResolvedValue({data:[{id,name:"Helado",sku:"VIA-PUBLIC",presentation:"Caja",price:1200,stock:2}],error:null});
   priorRead.mockResolvedValue({data:null,error:null});
   catalogRead.mockResolvedValue({data:[{slug:"excel-fila-2",name:"Palitos de agua",sku:"VIA-CAT-2",presentation:"Caja x24",price:21900}],error:null});
   insert.mockImplementation((input:Record<string,unknown>)=>{
@@ -33,7 +36,7 @@ describe("registrar referencia WhatsApp",()=>{
    from:vi.fn((table:string)=>{
     if(table==="site_settings")return {select:()=>({eq:()=>({single:async()=>({data:{whatsapp:"+5491140962202",free_shipping_threshold:60000,pickup_enabled:false},error:null})})})};
     if(table==="whatsapp_order_requests")return {select:()=>({eq:()=>({maybeSingle:priorRead})}),upsert:insert};
-    if(table==="products")return {select:()=>({eq:()=>({in:catalogRead})})};
+    if(table==="products")return {select:()=>({eq:()=>({in:catalogRead}),in:()=>({eq:()=>({eq:()=>({gt:productRead})})})})};
     throw Error("Tabla inesperada: "+table);
    })
   } as unknown as ReturnType<typeof privilegedDb>);
@@ -110,5 +113,34 @@ describe("registrar referencia WhatsApp",()=>{
   vi.mocked(connected).mockReturnValue(false);
   expect((await POST(make())).status).toBe(503);
   expect(insert).not.toHaveBeenCalled();
+ });
+ it("rechaza stock agotado y cantidades superiores al stock de productos publicados",async()=>{
+  for(const stock of [0,1]){
+   productRead.mockResolvedValue({data:[{id,name:"Helado",price:1200,stock}],error:null});
+   expect((await POST(make({...payload,items:[{id,quantity:2}]}))).status).toBe(409);
+  }
+  expect(insert).not.toHaveBeenCalled();
+ });
+ it("acepta cantidades disponibles sin reservar stock",async()=>{
+  const response=await POST(make({...payload,items:[{id,quantity:2}]}));
+  expect(response.status).toBe(201);expect((await response.json()).subtotal).toBe(2400);
+  expect(rpc).toHaveBeenCalledExactlyOnceWith("consume_checkout_attempt",expect.anything());
+ });
+ it("responde JSON seguro cuando falla la red de Supabase",async()=>{
+  rpc.mockRejectedValueOnce(new Error("private backend detail"));
+  const response=await POST(make());
+  expect(response.status).toBe(503);expect(await response.text()).not.toContain("private backend detail");
+  expect(response.headers.get("cache-control")).toBe("no-store");
+ });
+ it("rechaza falta de origen y exceso de cuerpo antes de consultar la base",async()=>{
+  const noOrigin=make();noOrigin.headers.delete("origin");
+  expect((await POST(noOrigin)).status).toBe(403);
+  expect((await POST(make({...payload,notes:"ñ".repeat(9000)}))).status).toBe(413);
+  expect(rpc).not.toHaveBeenCalled();
+ });
+ it("suma importes en centavos para no crear diferencias por flotantes",async()=>{
+  catalogRead.mockResolvedValue({data:[{slug:"excel-fila-2",name:"Helado",sku:"TEST",presentation:"Caja",price:0.1}],error:null});
+  const response=await POST(make({...payload,items:[{id:"catalog-price-2",quantity:3}],expected_subtotal:0.3}));
+  expect(response.status).toBe(201);expect((await response.json()).subtotal).toBe(0.3);
  });
 });

@@ -1,5 +1,6 @@
 import type {Metadata} from "next";
 import {CartProvider} from "@/components/cart";
+import {publicSiteUrl} from "@/lib/seo";
 import "./globals.css";
 import "./storefront.css";
 import "./provisional.css";
@@ -14,8 +15,8 @@ import "./admin-mobile-access.css";
 import "./grouped-catalog.css";
 import "./storefront-refresh.css";
 
-const siteUrl=process.env.NEXT_PUBLIC_SITE_URL;
-const indexingEnabled=process.env.ENABLE_INDEXING==="true";
+const siteUrl=publicSiteUrl();
+const indexingEnabled=process.env.ENABLE_INDEXING==="true"&&siteUrl!==null;
 export const metadata:Metadata={
  metadataBase:siteUrl?new URL(siteUrl):undefined,
  title:{default:"Viagelato | Logística y distribución",template:"%s | Viagelato"},

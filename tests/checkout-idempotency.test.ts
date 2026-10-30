@@ -1,6 +1,6 @@
 import {createHash,webcrypto} from "node:crypto";
-import {describe,expect,it} from "vitest";
-import {CHECKOUT_KEY_STORAGE,checkoutRequestFingerprint,clearCheckoutKey,getOrCreateCheckoutKey} from "@/lib/checkout-idempotency";
+import {describe,expect,it,vi} from "vitest";
+import {CHECKOUT_KEY_STORAGE,checkoutRequestFingerprint,clearCheckoutKey,getOrCreateCheckoutKey,checkoutKeyStorage} from "@/lib/checkout-idempotency";
 import {normalizeCatalogText} from "@/lib/catalog-search";
 
 function memoryStorage(){
@@ -14,6 +14,13 @@ function memoryStorage(){
 const one="00000000-0000-4000-8000-800000000001";
 const two="00000000-0000-4000-8000-800000000002";
 describe("clave de idempotencia del checkout",()=>{
+ it("conserva reintentos cuando el acceso a sessionStorage arroja un error",()=>{
+  vi.spyOn(window,"sessionStorage","get").mockImplementation(()=>{throw new Error("SecurityError");});
+  clearCheckoutKey(checkoutKeyStorage);
+  expect(getOrCreateCheckoutKey("e".repeat(64),checkoutKeyStorage,()=>one)).toBe(one);
+  expect(getOrCreateCheckoutKey("e".repeat(64),checkoutKeyStorage,()=>two)).toBe(one);
+  clearCheckoutKey(checkoutKeyStorage);
+ });
  it("calcula una huella SHA-256 sin guardar el cuerpo del pedido",async()=>{
   const body=JSON.stringify({name:"Cliente de prueba",items:[{id:1,quantity:1}]});
   const fingerprint=await checkoutRequestFingerprint(body,{subtle:webcrypto.subtle as unknown as SubtleCrypto});

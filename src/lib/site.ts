@@ -1,6 +1,7 @@
 import {connected,publicDb} from "./supabase";
+import {cache} from "react";
 import {DEFAULT_SETTINGS,type Settings,type Product,type Category,type ShippingZone,type Banner} from "./types";
-export async function getStore(){
+export const getStore=cache(async()=>{
  if(!connected()) return {settings:DEFAULT_SETTINGS,products:[] as Product[],categories:[] as Category[],zones:[] as ShippingZone[],banners:[] as Banner[],demo:true,checkoutEnabled:false};
  const db=publicDb();
  const [s,p,c,z,b]=await Promise.all([
@@ -10,9 +11,10 @@ export async function getStore(){
   db.from("shipping_zones").select("*").eq("active",true).eq("ready",true).not("cost","is",null),
   db.from("banners").select("*").eq("active",true).order("sort_order")
  ]);
- if(p.error) throw new Error("No se pudo leer el catálogo: "+p.error.message);
+ if([s,p,c,z,b].some(result=>result.error)||!s.data)
+  throw new Error("No pudimos cargar la información de la tienda. Volvé a intentar en unos minutos.");
  return {settings:{...DEFAULT_SETTINGS,...s.data} as Settings,products:(p.data||[]) as Product[],categories:(c.data||[]) as Category[],zones:(z.data||[]) as ShippingZone[],banners:(b.data||[]) as Banner[],demo:false,checkoutEnabled:process.env.ENABLE_CHECKOUT==="true"};
-}
+});
 
 export async function getProductBySlug(slug:string){
  const store=await getStore();

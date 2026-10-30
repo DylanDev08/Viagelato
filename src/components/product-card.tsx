@@ -6,13 +6,15 @@ import {ArrowUpRight,Box,Check,Plus} from "lucide-react";
 import {useState} from "react";
 import {useCart} from "./cart";
 import {ars,type Product} from "@/lib/types";
+import {productQuantityLimit} from "@/lib/product-availability";
 
 export function ProductCard({product}:{product:Product}){
  const {add,items}=useCart();
  const inCart=items.find(item=>item.id===product.id)?.quantity??0;
- const remaining=Math.max(0,99-inCart);
+ const limit=productQuantityLimit(product);
+ const remaining=Math.max(0,limit-inCart);
  const [added,setAdded]=useState(false);
- function addProduct(){if(remaining<=0)return;add(product.id,1,99);setAdded(true);window.setTimeout(()=>setAdded(false),1600);}
+ function addProduct(){if(remaining<=0)return;add(product.id,1,limit);setAdded(true);window.setTimeout(()=>setAdded(false),1600);}
  return <article className="catalog-card">
   <Link className="catalog-art" href={`/productos/${product.slug}`} aria-label={`Ver ${product.name}`}>
    {product.image_url?<Image src={product.image_url} alt={product.name} fill sizes="(max-width: 640px) 100vw, (max-width: 1000px) 50vw, 33vw" unoptimized/>:<div className="product-placeholder"><Box/><span>Imagen a cargar</span></div>}
@@ -20,7 +22,7 @@ export function ProductCard({product}:{product:Product}){
    <ArrowUpRight className="card-arrow"/>
   </Link>
   <div className="catalog-body">
-   <p className="availability">Stock a confirmar por WhatsApp</p>
+   <p className="availability">{limit===0?"Sin stock disponible":"Disponibilidad sujeta a confirmación final"}</p>
    <Link href={`/productos/${product.slug}`}><h3>{product.name}</h3></Link>
    {product.presentation&&<p className="presentation">{product.presentation}</p>}
    {product.description?.trim()&&<p className="catalog-description">{product.description}</p>}

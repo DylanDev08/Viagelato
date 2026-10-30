@@ -9,7 +9,8 @@
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "test:db": "node tests/integration/postgres/run.mjs"
   },
   "dependencies": {
     "@supabase/ssr": "0.6.1",

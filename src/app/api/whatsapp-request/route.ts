@@ -5,6 +5,8 @@ import {connected,privilegedDb} from "@/lib/supabase";
 import {whatsappCartMessage,type WhatsAppCartLine} from "@/lib/whatsapp-cart";
 import {normalizeWhatsAppRequest,whatsappRequestSchema,whatsappRequestReference} from "@/lib/whatsapp-request-rules";
 import {whatsappHref} from "@/lib/whatsapp";
+import {readJsonBody,RequestBodyError} from "@/lib/request-body";
+import {isAllowedAdminMutation} from "@/lib/admin-origin";
 
 export const runtime="nodejs";
 const reply=(error:string,status:number)=>NextResponse.json({error},{status,headers:{"Cache-Control":"no-store"}});
@@ -49,16 +51,19 @@ function preparedResponse(record:RequestSnapshot,settings:CommercialSettings,cre
 }
 
 export async function POST(request:Request){
+ try{return await prepareRequest(request);}
+ catch(error){
+  if(error instanceof RequestBodyError)return reply(error.message,error.status);
+  return reply("No pudimos preparar la solicitud. Volvé a intentar con el mismo carrito.",503);
+ }
+}
+
+async function prepareRequest(request:Request){
  if(!connected())return reply("La recepción de solicitudes todavía no está configurada",503);
- if(request.headers.get("sec-fetch-site")==="cross-site")return reply("Origen no permitido",403);
- const origin=request.headers.get("origin");
- if(origin){try{if(new URL(origin).origin!==new URL(request.url).origin)return reply("Origen no permitido",403);}catch{return reply("Origen no permitido",403);}}
- if(!request.headers.get("content-type")?.toLowerCase().startsWith("application/json"))return reply("El cuerpo debe enviarse como JSON",415);
+ if(!isAllowedAdminMutation(request,process.env.NEXT_PUBLIC_SITE_URL,""))return reply("Origen no permitido",403);
  const key=uuid.safeParse(request.headers.get("idempotency-key"));
  if(!key.success)return reply("Falta identificar esta solicitud",400);
- const raw=await request.text().catch(()=>"");
- if(!raw||raw.length>16000)return reply("Solicitud demasiado extensa o vacía",413);
- let body:unknown;try{body=JSON.parse(raw);}catch{return reply("Formato de solicitud inválido",400);}
+ const body=await readJsonBody(request);
  const parsed=whatsappRequestSchema.safeParse(body);
  if(!parsed.success)return reply("Revisá tu nombre, localidad y productos",400);
  const input=normalizeWhatsAppRequest(parsed.data);
@@ -67,7 +72,7 @@ export async function POST(request:Request){
   p_key_hash:rateKey(request),p_idempotency_key:key.data,p_limit:8,p_window_minutes:10
  });
  if(rateError)return reply("No pudimos validar la seguridad de la solicitud",503);
- if(!allowed)return reply("Demasiados intentos. Volvé a intentarlo en unos minutos.",429);
+ if(!allowed)return NextResponse.json({error:"Demasiados intentos. Volvé a intentarlo en unos minutos."},{status:429,headers:{"Cache-Control":"no-store","Retry-After":"600"}});
  const hash=fingerprint(input);
  const {data:settings,error:settingsError}=await db.from("site_settings").select("whatsapp,free_shipping_threshold,pickup_enabled").eq("id",true).single();
  if(settingsError||!settings)return reply("No encontramos la configuración comercial",503);
@@ -104,10 +109,15 @@ export async function POST(request:Request){
  const ids=input.items.filter(item=>!source.has(item.id)).map(item=>item.id);
  if(ids.length){
   if(!ids.every(id=>uuid.safeParse(id).success))return reply("Hay productos no disponibles",409);
-  const {data:products,error:productError}=await db.from("products").select("id,name,sku,presentation,price")
+  const {data:products,error:productError}=await db.from("products").select("id,name,sku,presentation,price,stock")
     .in("id",ids).eq("active",true).eq("commercially_verified",true).gt("price",0);
   if(productError||!products||products.length!==ids.length)return reply("El carrito contiene productos que ya no están disponibles",409);
-  for(const product of products)source.set(product.id,{name:product.name,sku:product.sku??"",presentation:product.presentation??"",price:Number(product.price)});
+  for(const product of products){
+   const quantity=input.items.find(item=>item.id===product.id)!.quantity;
+   if(!Number.isFinite(Number(product.price))||Number(product.price)<=0||!Number.isInteger(product.stock)||product.stock<quantity)
+    return reply("Hay productos sin stock suficiente o sin precio vigente. Revisá el carrito.",409);
+   source.set(product.id,{name:product.name,sku:product.sku??"",presentation:product.presentation??"",price:Number(product.price)});
+  }
  }
  const lines=input.items.map(item=>{
   const product=source.get(item.id);
@@ -115,7 +125,7 @@ export async function POST(request:Request){
  });
  if(lines.some(line=>!line))return reply("Actualizá el carrito antes de continuar",409);
  const safeLines=lines.filter(line=>line!==null);
- const subtotal=safeLines.reduce((sum,line)=>sum+line.price*line.quantity,0);
+ const subtotal=safeLines.reduce((sum,line)=>sum+Math.round(line.price*100)*line.quantity,0)/100;
  if(!Number.isFinite(subtotal)||subtotal<=0||subtotal>1e9)return reply("El subtotal no es válido",400);
  if(input.expected_subtotal!==undefined&&Math.abs(input.expected_subtotal-subtotal)>0.01)
   return reply("Los precios cambiaron. Actualizá el carrito para revisarlos antes de enviar el pedido.",409);
