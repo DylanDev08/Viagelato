@@ -9,18 +9,24 @@ export default function Login(){
  const[email,setEmail]=useState("");
  const[password,setPassword]=useState("");
  const[error,setError]=useState("");
+ const[adminUnavailable,setAdminUnavailable]=useState(false);
  const[busy,setBusy]=useState(false);
  const[showPassword,setShowPassword]=useState(false);
  const router=useRouter();
 
  async function submit(e:FormEvent){
   e.preventDefault();if(busy)return;
-  setBusy(true);setError("");
+  setBusy(true);setError("");setAdminUnavailable(false);
   try{
    const client=browserDb();
    const {error:signInError}=await client.auth.signInWithPassword({email:email.trim(),password});
    if(signInError)throw new Error("No se pudo ingresar. Revisá el email y la contraseña.");
    const response=await fetch("/api/admin/session",{cache:"no-store",credentials:"same-origin"});
+   if(response.status===503){
+    await client.auth.signOut();
+    setAdminUnavailable(true);
+    throw new Error("Este entorno no tiene habilitada la verificación administrativa.");
+   }
    if(response.status===401||response.status===403){
     await client.auth.signOut();
     throw new Error("La cuenta ingresó correctamente, pero no tiene permiso de administrador.");
@@ -40,6 +46,7 @@ export default function Login(){
   <label>Contraseña<div className="admin-password-input"><input type={showPassword?"text":"password"} autoComplete="current-password" value={password} onChange={e=>setPassword(e.target.value)} required/><button className="admin-password-toggle" type="button" aria-label={showPassword?"Ocultar contraseña":"Mostrar contraseña"} aria-pressed={showPassword} onClick={()=>setShowPassword(value=>!value)}>{showPassword?<EyeOff size={20} aria-hidden="true"/>:<Eye size={20} aria-hidden="true"/>}</button></div></label>
   <p className="auth-help"><Link href="/recuperar-acceso">¿Olvidaste tu contraseña? Recuperar acceso</Link></p>
   {error&&<p className="error" role="alert">{error}</p>}
+  {adminUnavailable&&<p className="auth-help">Si estás en un enlace de prueba, ingresá desde <a href="https://viagelato.vercel.app/login">la tienda principal de Viagelato</a>. No hace falta crear otra cuenta.</p>}
   <button disabled={busy} className="btn primary full">{busy?"Verificando acceso…":"Ingresar"}</button>
   <Link href="/">← Volver a la tienda</Link>
  </form></main>;
