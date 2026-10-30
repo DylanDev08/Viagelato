@@ -144,8 +144,8 @@ export function AdminDashboard({initialProducts,initialCategories,initialOrders,
  <p className="admin-editor-guide">Completá nombre, precio y foto. Guardá el borrador para seguir después o publicá cuando tengas los datos confirmados.</p>
  {productHasChanges&&<p className="admin-unsaved" role="status">Tenés cambios sin guardar en esta ficha.</p>}
  <div className="admin-catalog-import">
-  <div><strong>Crear producto en segundos</strong><p>Elegí uno de los productos que ya figuran en el catálogo. Cargamos nombre, precio, código, descripción y foto automáticamente. El stock se confirma aparte.</p></div>
-  <button type="button" className="btn primary" aria-expanded={showCatalogPicker} aria-controls="admin-catalog-picker" onClick={()=>setShowCatalogPicker(value=>!value)}>{showCatalogPicker?"Cerrar catálogo":"Elegir producto del catálogo"}</button>
+  <div><strong>Cargar desde el catálogo</strong><p>Seleccioná un producto existente para completar nombre, precio, código, descripción y foto. Después, confirmá el stock.</p></div>
+  <button type="button" className="btn primary admin-catalog-cta" aria-expanded={showCatalogPicker} aria-controls="admin-catalog-picker" onClick={()=>setShowCatalogPicker(value=>!value)}>{showCatalogPicker?"Cerrar catálogo":"Cargar desde catálogo"}</button>
  </div>
  {showCatalogPicker&&<section id="admin-catalog-picker" aria-label="Productos del catálogo" className="admin-catalog-picker">
   <div className="admin-product-filters">
@@ -187,7 +187,7 @@ export function AdminDashboard({initialProducts,initialCategories,initialOrders,
  <label>Nombre del producto<input required maxLength={160} value={draft.name} onChange={e=>{updateDraft("name",e.target.value);if(!draft.id)updateDraft("slug",slugify(e.target.value));}}/></label>
  <div className="form-inline">
   <label>Precio de venta (ARS)<input required type="number" min="0" max="1000000000" step="0.01" value={draft.price} onChange={e=>updateDraft("price",Number(e.target.value))}/></label>
-  <label>Unidades disponibles<input aria-label="Unidades disponibles" required type="number" min="0" max="10000000" step="1" value={draft.stock} onChange={e=>updateDraft("stock",Number(e.target.value))}/><small>0 si todavía no verificaste el stock.</small></label>
+  <label>Stock disponible<input aria-label="Unidades disponibles" required type="number" min="0" max="10000000" step="1" value={draft.stock} onChange={e=>updateDraft("stock",Number(e.target.value))}/><small>Si todavía no lo verificaste, dejalo en 0.</small></label>
  </div>
  <label>Categoría<select value={draft.category_id||""} onChange={e=>updateDraft("category_id",e.target.value||null)}><option value="">Sin categoría</option>{initialCategories.map(c=><option key={c.id} value={c.id}>{c.name}</option>)}</select></label>
  {draft.name&&!draft.category_id?<p className="hint">Si este tipo todavía no figura como categoría del panel, podés crearla en «Categorías» antes de publicar.</p>:null}
