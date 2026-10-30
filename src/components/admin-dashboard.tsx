@@ -99,10 +99,11 @@ export function AdminDashboard({initialProducts,initialCategories,initialOrders,
   },true,"Producto oculto correctamente");
  }
  function startProduct(value:Draft){
-  if(productHasChanges&&!window.confirm("Hay cambios sin guardar. ¿Descartarlos y abrir otra ficha?"))return;
+  if(productHasChanges&&!window.confirm("Hay cambios sin guardar. ¿Descartarlos y abrir otra ficha?"))return false;
   const snapshot={...value};
   setDraft(snapshot);setSavedDraft({...snapshot});
   setNotice("");setNoticeError(false);
+  return true;
  }
 
  const [showCatalogPicker,setShowCatalogPicker]=useState(false),[catalogQuery,setCatalogQuery]=useState(""),[catalogType,setCatalogType]=useState("all");
@@ -136,7 +137,7 @@ export function AdminDashboard({initialProducts,initialCategories,initialOrders,
  const candidateResults=useMemo(()=>PROVISIONAL_PRODUCT_ASSETS.filter(asset=>
   normalizeCatalogText(`${asset.name} ${asset.category}`).includes(normalizeCatalogText(candidateQuery))
  ),[candidateQuery]);
- const savedSkus=useMemo(()=>new Set(initialProducts.map(p=>p.sku?.toLowerCase()).filter(Boolean)),[initialProducts]);
+ const productsBySku=useMemo(()=>new Map(initialProducts.filter(p=>p.sku?.trim()).map(p=>[p.sku!.trim().toLowerCase(),p])),[initialProducts]);
  const catalogTypes=useMemo(()=>[...new Set(CATALOG_PRICE_ITEMS.map(item=>item.category))],[ ]);
  const catalogMatches=useMemo(()=>CATALOG_PRICE_ITEMS.filter(item=>
   (catalogType==="all"||item.category===catalogType)&&
@@ -173,16 +174,16 @@ export function AdminDashboard({initialProducts,initialCategories,initialOrders,
    <label>Buscar producto o SKU<input type="search" value={catalogQuery} onChange={e=>setCatalogQuery(e.target.value)} placeholder="Nombre, sabor o código"/></label>
    <label>Tipo de producto<select value={catalogType} onChange={e=>setCatalogType(e.target.value)}><option value="all">Todos los tipos</option>{catalogTypes.map(type=><option key={type} value={type}>{type}</option>)}</select></label>
   </div>
-  <p className="hint">{catalogMatches.length} opciones del catálogo. Las que ya existen en el panel no se duplican.</p>
+  <p className="hint">{catalogMatches.length} opciones del catálogo. Los productos ya cargados se abren para editar, sin duplicarlos.</p>
   <div className="admin-catalog-options">{catalogMatches.map(item=>{
-   const used=savedSkus.has(item.sku.toLowerCase());
-   return <button type="button" key={item.sourceRow} disabled={busy||used} aria-label={used?`${item.name} ya cargado`:`Cargar ${item.name}`} onClick={()=>{
-     startProduct(draftFromPricedCatalog(item,initialCategories));
+   const existing=productsBySku.get(item.sku.toLowerCase());
+   return <button type="button" key={item.sourceRow} disabled={busy} aria-label={existing?`Editar producto ${item.name}`:`Cargar ${item.name}`} onClick={()=>{
+     if(!startProduct(existing?{...existing,price:Number(existing.price),stock:Number(existing.stock)}:draftFromPricedCatalog(item,initialCategories)))return;
      setShowCatalogPicker(false);
    }}>
     <span className="admin-catalog-item-photo">{item.image?<Image src={item.image} alt="" fill sizes="66px"/>:"Sin foto"}</span>
     <span><strong>{item.name}</strong><small>{item.presentation} · {ars(item.price)}</small><small>{item.category}</small></span>
-    <b>{used?"Ya cargado":"Elegir"}</b>
+    <b>{existing?"Editar existente":"Elegir"}</b>
    </button>;
   })}</div>
   {!catalogMatches.length?<p className="hint">No se encontraron productos con ese filtro.</p>:null}
