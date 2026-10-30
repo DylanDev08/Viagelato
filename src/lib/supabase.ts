@@ -29,6 +29,7 @@ export async function assertAdmin(){
  const {data:{user},error}=await client.auth.getUser();
  if(error || !user) throw new Error("No autorizado");
  const {data:admin,error:roleError}=await privilegedDb().from("admin_users").select("user_id").eq("user_id",user.id).maybeSingle();
- if(roleError || !admin) throw new Error("No tenés permiso de administrador");
+ if(roleError) throw new Error("No se pudo verificar el permiso administrativo");
+ if(!admin) throw new Error("No tenés permiso de administrador");
  return user;
 }
