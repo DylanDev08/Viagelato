@@ -114,14 +114,14 @@ export function Checkout({products,settings,catalogItems=CATALOG_PRICE_ITEMS}:{p
       <p><span>Subtotal de productos</span><strong>{ars(subtotal)}</strong></p>
       <p><span>{delivery==="pickup"?"Retiro":"Envío"}</span><strong>{delivery==="pickup"?"En el local":promo?"Promoción a confirmar":"A coordinar"}</strong></p>
       <hr/>
-      <p><span>Total final</span><strong>Se confirma por WhatsApp</strong></p>
+      <p><span>Total final</span><strong>A confirmar</strong></p>
      </div>
      <p className="hint">Precios por caja, balde o presentación completa. El equipo confirmará stock y entrega.</p>
     </section>
    </div>
    <form className="panel cart-form-panel" onSubmit={sendRequest}>
     <div className="cart-form-heading"><p className="kicker">PASO 02</p><MessageCircle size={22} aria-hidden="true"/><h2>Enviar pedido por WhatsApp</h2></div>
-    <p className="hint">Completá tus datos para preparar el pedido con todos los productos del carrito. Viagelato confirmará por WhatsApp la disponibilidad, entrega y forma de pago elegida.</p>
+    <p className="hint">Completá tus datos y enviá el carrito completo. Confirmaremos los detalles por WhatsApp.</p>
     <label>Nombre y apellido<input required minLength={2} maxLength={120} autoComplete="name" value={fullName} onChange={e=>setFullName(e.target.value)}/></label>
     <label>Entrega<select value={delivery} onChange={e=>setDelivery(e.target.value as "shipping"|"pickup")}><option value="shipping">Envío a domicilio</option><option value="pickup">Retiro en el local</option></select></label>
     {delivery==="shipping"?<label>Zona de entrega (opcional)<select value={selectedLocality} onChange={e=>setSelectedLocality(e.target.value)}>
@@ -142,7 +142,7 @@ export function Checkout({products,settings,catalogItems=CATALOG_PRICE_ITEMS}:{p
     {lines.length>30?<p role="alert" className="error">Máximo 30 productos diferentes por solicitud. Quitá algunos para continuar.</p>:null}
     <button type="submit" className="btn primary full cart-submit" disabled={!canRequest||busy}>{busy?"Preparando solicitud…":<>Enviar pedido por WhatsApp <ArrowRight size={18}/></>}</button>
     {prepared?<p role="status">Pedido {prepared.reference} preparado. <a href={prepared.url} rel="noopener noreferrer">Abrir WhatsApp para enviar el mensaje</a>. Si no lo enviás, seguirá pendiente de contacto.</p>:null}
-    <p className="cart-form-footnote"><Truck size={16} aria-hidden="true"/> {delivery==="pickup"?"Coordinaremos el horario de retiro y el pago.":"Confirmaremos disponibilidad, envío y pago antes de cerrar el pedido."}</p><p className="hint">WhatsApp se abrirá con el mensaje listo para revisar y enviar. El carrito permanece guardado hasta que vos decidas vaciarlo.</p>
+    <p className="cart-form-footnote"><Truck size={16} aria-hidden="true"/> {delivery==="pickup"?"Coordinaremos el horario de retiro y el pago.":"Confirmaremos disponibilidad, envío y pago antes de cerrar el pedido."}</p><p className="hint">Se abrirá WhatsApp con tu pedido listo para enviar. Tus productos seguirán en el carrito.</p>
    </form>
   </div>
  </main></SiteShell>;
