@@ -18,7 +18,7 @@ type Tab="overview"|"products"|"categories"|"zones"|"banners"|"settings"|"orders
 type Draft=Pick<Product,"name"|"slug"|"description"|"price"|"stock"|"image_url"|"category_id"|"sku"|"presentation"|"featured"|"commercially_verified"|"catalog_visible"|"active"> & {id?:string};
 const empty:Draft={name:"",slug:"",description:"",price:0,stock:0,image_url:null,category_id:null,sku:"",presentation:"",featured:false,commercially_verified:false,catalog_visible:false,active:false};
 const nav:{id:Tab;label:string;icon:typeof Package}[]=[
- {id:"overview",label:"Resumen",icon:LayoutDashboard},{id:"products",label:"Productos",icon:Package},{id:"categories",label:"Categorías",icon:Layers},{id:"orders",label:"Pedidos",icon:ShoppingBag},{id:"requests",label:"WhatsApp",icon:MessageCircle},{id:"zones",label:"Zonas de envío",icon:Truck},{id:"banners",label:"Banners",icon:ImageIcon},{id:"settings",label:"Configuración",icon:Settings}
+ {id:"overview",label:"Resumen",icon:LayoutDashboard},{id:"products",label:"Productos",icon:Package},{id:"categories",label:"Categorías",icon:Layers},{id:"orders",label:"Pedidos online",icon:ShoppingBag},{id:"requests",label:"Pedidos por WhatsApp",icon:MessageCircle},{id:"zones",label:"Zonas de envío",icon:Truck},{id:"banners",label:"Imágenes de portada",icon:ImageIcon},{id:"settings",label:"Datos de la tienda",icon:Settings}
 ];
 const mobileMainTabs:Tab[]=["overview","products","requests","orders"];
 const mobileMoreTabs:Tab[]=["categories","zones","banners","settings"];
@@ -60,11 +60,50 @@ export function AdminDashboard({initialProducts,initialCategories,initialOrders,
   return true;
  }
  function changeTab(next:Tab){if(next!==tab&&!canLeaveEditor(next))return;setTab(next);setMobileMoreOpen(false);}
+ async function saveProduct(mode:"save"|"publish") {
+  const next:Draft={...draft,price:Number(draft.price),stock:Number(draft.stock),
+   active:mode==="publish"?true:Boolean(draft.active),
+   catalog_visible:mode==="publish"?false:Boolean(draft.catalog_visible)};
+  const issues=[...(!next.name.trim()||next.name.trim().length<2?["nombre del producto"]:[]),...(!/^[a-z0-9-]{2,160}$/.test(next.slug)?["enlace de la ficha"]:[]),...publicationMissingFields(next)];
+  if(next.active&&issues.length){
+   setNoticeError(true);
+   setNotice("Para publicar, completá: "+issues.join(", ")+".");
+   return;
+  }
+  await act(async()=>{
+   const saved=await request("products",next.id?"PATCH":"POST",next);
+   // La respuesta debe confirmar los campos comerciales. No indicar éxito si no persistieron.
+   if(!saved||typeof saved.id!=="string"||Number(saved.price)!==next.price||
+      Number(saved.stock)!==next.stock||Boolean(saved.active)!==next.active||
+      Boolean(saved.catalog_visible)!==next.catalog_visible||
+      (saved.image_url||null)!==(next.image_url?.trim()||null)){
+    throw new Error("El servidor no confirmó precio, stock, foto y visibilidad. Actualizá el panel antes de intentar nuevamente.");
+   }
+   const persisted:Draft={...next,...saved,price:Number(saved.price),stock:Number(saved.stock)};
+   setDraft(persisted);
+   setSavedDraft({...persisted});
+  },true,mode==="publish"?"Producto publicado correctamente":next.active?"Producto actualizado en la tienda":next.catalog_visible?"Producto guardado y visible en el catálogo":"Borrador guardado. Podés seguir editándolo.");
+ }
+ async function hideProduct(product:Product){
+  if(busy)return;
+  if(draft.id===product.id&&productHasChanges&&
+     !window.confirm("Hay cambios sin guardar en esta ficha. ¿Descartarlos para ocultar el producto?"))return;
+  if(!window.confirm(`¿Ocultar «${product.name}»? Dejará de aparecer en la tienda.`))return;
+  await act(async()=>{
+   await request("products","DELETE",{id:product.id});
+   if(draft.id===product.id){
+    const hidden:Draft={...product,price:Number(product.price),stock:Number(product.stock),
+      active:false,catalog_visible:false};
+    setDraft(hidden);setSavedDraft({...hidden});
+   }
+  },true,"Producto oculto correctamente");
+ }
  function startProduct(value:Draft){
-  if(productHasChanges&&!window.confirm("Hay cambios sin guardar. ¿Descartarlos y abrir otra ficha?"))return;
+  if(productHasChanges&&!window.confirm("Hay cambios sin guardar. ¿Descartarlos y abrir otra ficha?"))return false;
   const snapshot={...value};
   setDraft(snapshot);setSavedDraft({...snapshot});
   setNotice("");setNoticeError(false);
+  return true;
  }
 
  const [showCatalogPicker,setShowCatalogPicker]=useState(false),[catalogQuery,setCatalogQuery]=useState(""),[catalogType,setCatalogType]=useState("all");
@@ -90,11 +129,15 @@ export function AdminDashboard({initialProducts,initialCategories,initialOrders,
  }
  function uploader(field:"product"|"logo"|"hero"|"banner"){return <label className="upload-label"><UploadCloud size={16}/> Subir imagen<input type="file" accept="image/png,image/jpeg,image/webp" hidden disabled={busy} onChange={e=>{const f=e.target.files?.[0];e.target.value="";if(f)void upload(f,field);}}/></label>}
  async function logout(){if(!canLeaveEditor("overview"))return;await browserDb().auth.signOut();router.replace("/login");router.refresh();}
- const publicationIssues=publicationMissingFields(draft);
+ const publicationIssues=[
+  ...(!draft.name.trim()||draft.name.trim().length<2?["nombre del producto"]:[]),
+  ...(!/^[a-z0-9-]{2,160}$/.test(draft.slug)?["enlace de la ficha"]:[]),
+  ...publicationMissingFields(draft)
+ ];
  const candidateResults=useMemo(()=>PROVISIONAL_PRODUCT_ASSETS.filter(asset=>
   normalizeCatalogText(`${asset.name} ${asset.category}`).includes(normalizeCatalogText(candidateQuery))
  ),[candidateQuery]);
- const savedSkus=useMemo(()=>new Set(initialProducts.map(p=>p.sku?.toLowerCase()).filter(Boolean)),[initialProducts]);
+ const productsBySku=useMemo(()=>new Map(initialProducts.filter(p=>p.sku?.trim()).map(p=>[p.sku!.trim().toLowerCase(),p])),[initialProducts]);
  const catalogTypes=useMemo(()=>[...new Set(CATALOG_PRICE_ITEMS.map(item=>item.category))],[ ]);
  const catalogMatches=useMemo(()=>CATALOG_PRICE_ITEMS.filter(item=>
   (catalogType==="all"||item.category===catalogType)&&
@@ -117,30 +160,30 @@ export function AdminDashboard({initialProducts,initialCategories,initialOrders,
   return matchesQuery&&matchesStatus;
  }),[initialProducts,productQuery,productStatus]);
  return <div className="admin-shell"><aside className="admin-side"><h2>Viagelato<span>Administración</span></h2><nav aria-label="Panel de administración">{nav.map(n=><button key={n.id} disabled={busy} aria-pressed={tab===n.id} onClick={()=>changeTab(n.id)} className={tab===n.id?"active":""}><n.icon size={18}/>{n.label}</button>)}</nav><div className="admin-side-bottom"><Link href="/" target="_blank" rel="noreferrer"><ExternalLink size={17}/> Ver tienda como cliente</Link><button disabled={busy} onClick={logout}><LogOut size={17}/> Cerrar sesión</button></div></aside>
- <main className="admin-main" aria-busy={busy}><div className="admin-bar"><div><small>PANEL DE ADMINISTRACIÓN</small><h1>{nav.find(n=>n.id===tab)?.label}</h1></div><Link href="/" target="_blank" rel="noreferrer" className="btn ghost"><ExternalLink size={17}/> Vista cliente</Link></div>{notice&&<div className={`notification ${noticeError?"notification-error":""}`} role={noticeError?"alert":"status"} aria-live="polite">{notice}</div>}
- {tab==="overview"&&<><div className="stats"><article><small>Publicados con stock validado</small><strong>{initialProducts.filter(p=>p.active).length}</strong></article><article><small>Catálogo para consulta</small><strong>{initialProducts.filter(p=>p.catalog_visible).length}</strong></article><article><small>Borradores</small><strong>{initialProducts.filter(p=>!p.active&&!p.catalog_visible).length}</strong></article><article><small>Solicitudes WhatsApp</small><strong>{initialWhatsAppRequests.length}</strong></article><article><small>Stock bajo (≤5)</small><strong>{initialProducts.filter(p=>p.active&&p.stock<=5).length}</strong></article></div><section className="panel"><h2>Tu tienda, en un solo lugar</h2><p>Empezá por Productos: podés cargar fotos, completar datos y guardar borradores sin que aparezcan en la tienda. Cuando estén revisados, vas a poder publicarlos.</p><button className="btn primary" onClick={()=>changeTab("products")}>Ver productos</button></section></>}
+ <main className="admin-main" aria-busy={busy}><div className="admin-bar"><div><small>PANEL DE ADMINISTRACIÓN</small><h1>{nav.find(n=>n.id===tab)?.label}</h1><p className="admin-tab-help">{({overview:"Consultá el estado de la tienda y elegí qué gestionar.",products:"Cargá productos, revisá precios y decidí cuáles se muestran.",categories:"Organizá los productos para que los clientes los encuentren fácilmente.",orders:"Revisá las compras realizadas mediante el sistema de pedidos online.",requests:"Gestioná los pedidos preparados para WhatsApp y su seguimiento.",zones:"Configurá dónde hacés entregas y sus condiciones.",banners:"Cambiá las imágenes promocionales que aparecen en la tienda.",settings:"Actualizá los datos de contacto, medios de pago y contenido comercial."} satisfies Record<Tab,string>)[tab]}</p></div><Link href="/" target="_blank" rel="noreferrer" className="btn ghost"><ExternalLink size={17}/> Vista cliente</Link></div>{notice&&<div className={`notification ${noticeError?"notification-error":""}`} role={noticeError?"alert":"status"} aria-live="polite">{notice}</div>}
+ {tab==="overview"&&<><div className="stats"><article><small>Productos publicados</small><strong>{initialProducts.filter(p=>p.active).length}</strong></article><article><small>Catálogo para consulta</small><strong>{initialProducts.filter(p=>p.catalog_visible).length}</strong></article><article><small>Borradores</small><strong>{initialProducts.filter(p=>!p.active&&!p.catalog_visible).length}</strong></article><article><small>Solicitudes WhatsApp</small><strong>{initialWhatsAppRequests.length}</strong></article><article><small>Stock bajo (≤5)</small><strong>{initialProducts.filter(p=>p.active&&p.stock<=5).length}</strong></article></div><section className="panel"><h2>¿Qué necesitás hacer hoy?</h2><p>Empezá por Productos: podés cargar fotos, completar datos y guardar borradores sin que aparezcan en la tienda. Cuando estén revisados, vas a poder publicarlos.</p><div className="admin-quick-actions"><button className="btn primary" onClick={()=>changeTab("products")}>Administrar productos</button><button className="btn ghost" onClick={()=>changeTab("requests")}>Ver pedidos de WhatsApp</button><button className="btn ghost" onClick={()=>changeTab("zones")}>Configurar entregas</button></div></section></>}
  {tab==="products"&&<div className="admin-2col"><div className="panel"><h2>{draft.id?"Editar producto":"Agregar producto"}</h2>
- <p className="admin-editor-guide">Elegí un producto del catálogo o ingresá su nombre, precio y stock. Guardalo como borrador y publicalo después de revisar la información.</p>
+ <p className="admin-editor-guide">Completá nombre, precio y foto. Guardá el borrador para seguir después o publicá cuando tengas los datos confirmados.</p>
  {productHasChanges&&<p className="admin-unsaved" role="status">Tenés cambios sin guardar en esta ficha.</p>}
  <div className="admin-catalog-import">
-  <div><strong>Crear producto en segundos</strong><p>Elegí uno de los productos que ya figuran en el catálogo. Cargamos nombre, precio, código, descripción y foto automáticamente. El stock se confirma aparte.</p></div>
-  <button type="button" className="btn primary" aria-expanded={showCatalogPicker} aria-controls="admin-catalog-picker" onClick={()=>setShowCatalogPicker(value=>!value)}>{showCatalogPicker?"Cerrar catálogo":"Elegir producto del catálogo"}</button>
+  <div><strong>Cargar desde el catálogo</strong><p>Seleccioná un producto existente para completar nombre, precio, código, descripción y foto. Después, confirmá el stock.</p></div>
+  <button type="button" className="btn primary admin-catalog-cta" aria-expanded={showCatalogPicker} aria-controls="admin-catalog-picker" onClick={()=>setShowCatalogPicker(value=>!value)}>{showCatalogPicker?"Cerrar catálogo":"Cargar desde catálogo"}</button>
  </div>
  {showCatalogPicker&&<section id="admin-catalog-picker" aria-label="Productos del catálogo" className="admin-catalog-picker">
   <div className="admin-product-filters">
    <label>Buscar producto o SKU<input type="search" value={catalogQuery} onChange={e=>setCatalogQuery(e.target.value)} placeholder="Nombre, sabor o código"/></label>
    <label>Tipo de producto<select value={catalogType} onChange={e=>setCatalogType(e.target.value)}><option value="all">Todos los tipos</option>{catalogTypes.map(type=><option key={type} value={type}>{type}</option>)}</select></label>
   </div>
-  <p className="hint">{catalogMatches.length} opciones del catálogo. Las que ya existen en el panel no se duplican.</p>
+  <p className="hint">{catalogMatches.length} opciones del catálogo. Los productos ya cargados se abren para editar, sin duplicarlos.</p>
   <div className="admin-catalog-options">{catalogMatches.map(item=>{
-   const used=savedSkus.has(item.sku.toLowerCase());
-   return <button type="button" key={item.sourceRow} disabled={busy||used} aria-label={used?`${item.name} ya cargado`:`Cargar ${item.name}`} onClick={()=>{
-     startProduct(draftFromPricedCatalog(item,initialCategories));
+   const existing=productsBySku.get(item.sku.toLowerCase());
+   return <button type="button" key={item.sourceRow} disabled={busy} aria-label={existing?`Editar producto ${item.name}`:`Cargar ${item.name}`} onClick={()=>{
+     if(!startProduct(existing?{...existing,price:Number(existing.price),stock:Number(existing.stock)}:draftFromPricedCatalog(item,initialCategories)))return;
      setShowCatalogPicker(false);
    }}>
     <span className="admin-catalog-item-photo">{item.image?<Image src={item.image} alt="" fill sizes="66px"/>:"Sin foto"}</span>
     <span><strong>{item.name}</strong><small>{item.presentation} · {ars(item.price)}</small><small>{item.category}</small></span>
-    <b>{used?"Ya cargado":"Elegir"}</b>
+    <b>{existing?"Editar existente":"Elegir"}</b>
    </button>;
   })}</div>
   {!catalogMatches.length?<p className="hint">No se encontraron productos con ese filtro.</p>:null}
@@ -162,18 +205,11 @@ export function AdminDashboard({initialProducts,initialCategories,initialOrders,
  })}</div>
  {candidateResults.length===0&&<p>No hay imágenes con esa búsqueda.</p>}
  </section>}
- <form onSubmit={(e:FormEvent)=>{e.preventDefault();void act(async()=>{
-  const editing=Boolean(draft.id);
-  const saved=await request("products",editing?"PATCH":"POST",{...draft,price:Number(draft.price),stock:Number(draft.stock)});
-  if(editing){
-   const updated:Draft={...saved,price:Number(saved.price),stock:Number(saved.stock)};
-   setDraft(updated);setSavedDraft({...updated});
-  }else{setDraft({...empty});setSavedDraft({...empty});}
- },true,draft.active?"Producto publicado correctamente":draft.id?"Producto actualizado correctamente":"Borrador creado correctamente");}}>
- <label>Nombre del producto<input required value={draft.name} onChange={e=>{updateDraft("name",e.target.value);if(!draft.id)updateDraft("slug",slugify(e.target.value));}}/></label>
+ <form onSubmit={(e:FormEvent)=>{e.preventDefault();void saveProduct("save");}}>
+ <label>Nombre del producto<input required maxLength={160} value={draft.name} onChange={e=>{updateDraft("name",e.target.value);if(!draft.id)updateDraft("slug",slugify(e.target.value));}}/></label>
  <div className="form-inline">
-  <label>Precio de venta (ARS)<input required type="number" min="0" step="0.01" value={draft.price} onChange={e=>updateDraft("price",Number(e.target.value))}/></label>
-  <label>Unidades disponibles<input aria-label="Unidades disponibles" required type="number" min="0" step="1" value={draft.stock} onChange={e=>updateDraft("stock",Number(e.target.value))}/><small>0 si todavía no verificaste el stock.</small></label>
+  <label>Precio de venta (ARS)<input required type="number" min="0" max="1000000000" step="0.01" value={draft.price} onChange={e=>updateDraft("price",Number(e.target.value))}/></label>
+  <label>Stock disponible<input aria-label="Unidades disponibles" required type="number" min="0" max="10000000" step="1" value={draft.stock} onChange={e=>updateDraft("stock",Number(e.target.value))}/><small>Si todavía no lo verificaste, dejalo en 0.</small></label>
  </div>
  <label>Categoría<select value={draft.category_id||""} onChange={e=>updateDraft("category_id",e.target.value||null)}><option value="">Sin categoría</option>{initialCategories.map(c=><option key={c.id} value={c.id}>{c.name}</option>)}</select></label>
  {draft.name&&!draft.category_id?<p className="hint">Si este tipo todavía no figura como categoría del panel, podés crearla en «Categorías» antes de publicar.</p>:null}
@@ -184,8 +220,22 @@ export function AdminDashboard({initialProducts,initialCategories,initialOrders,
   <label>Dirección del producto<input required value={draft.slug} onChange={e=>updateDraft("slug",e.target.value)}/><small>Se completa automáticamente al ingresar un nombre.</small></label>
  </details>
  <div className="admin-draft-preview" aria-label="Resumen de la ficha"><div className="admin-draft-art">{draft.image_url?<Image src={draft.image_url} alt="" fill sizes="120px" unoptimized/>:"Sin imagen"}</div><div><small>ESTADO · {draft.active?"PUBLICACIÓN VERIFICADA":draft.catalog_visible?"VISIBLE PARA CONSULTA · STOCK PENDIENTE":"OCULTO DE LA TIENDA"}</small><strong>{draft.name||"Nuevo producto"}</strong><span>{draft.price>0?ars(draft.price):"Precio a confirmar"} · {draft.stock>0?`Stock: ${draft.stock}`:"Stock sin confirmar"}</span></div></div><div className="admin-photo-upload"><p><strong>Foto del producto</strong><small>Subí una foto JPG, PNG o WEBP de hasta 3 MB.</small></p>{uploader("product")}<details className="admin-advanced"><summary>¿Tenés un enlace a la foto?</summary><label>URL de imagen<input value={draft.image_url||""} onChange={e=>updateDraft("image_url",e.target.value)} placeholder="https://... o /catalogo/..."/></label></details></div>
- <label className="inline-check"><input type="checkbox" checked={Boolean(draft.featured)} onChange={e=>updateDraft("featured",e.target.checked)}/> Mostrar como destacado en la tienda</label><label className="inline-check"><input type="checkbox" checked={Boolean(draft.catalog_visible)} disabled={!/^excel-fila-[1-9][0-9]*$/.test(draft.slug)} onChange={e=>updateDraft("catalog_visible",e.target.checked)}/> Mostrar en el catálogo para consulta (sin afirmar stock). Podés editar precio, descripción y foto desde acá.</label><label className="inline-check"><input type="checkbox" checked={Boolean(draft.commercially_verified)} onChange={e=>updateDraft("commercially_verified",e.target.checked)}/> Revisé el precio, la información y la disponibilidad</label><label className="inline-check"><input type="checkbox" checked={draft.active} onChange={e=>updateDraft("active",e.target.checked)}/> Mostrar este producto en la tienda</label><p className="hint">{draft.active?"Publicación comercial verificada.":draft.catalog_visible?"La presentación será visible para consulta; la disponibilidad se confirmará manualmente.":"Al guardar, seguirá oculto del catálogo público."} Para publicar se necesita SKU, foto, descripción, precio y datos verificados.</p>{publicationIssues.length>0&&<p className="admin-readiness" role="status">Pendiente para publicar: {publicationIssues.join(", ")}.</p>}<div className="button-row"><button disabled={busy||(draft.active&&publicationIssues.length>0)} className="btn primary">{draft.id?"Guardar cambios":draft.active?"Agregar y publicar":"Guardar borrador"}</button><button type="button" className="btn ghost" onClick={()=>startProduct({...empty})}>{draft.id?"Cancelar edición":"Vaciar formulario"}</button></div></form></div>
- <div className="panel"><div className="admin-list-heading"><h2>Productos cargados</h2><button type="button" className="btn ghost" disabled={busy} onClick={()=>startProduct({...empty})}>+ Nuevo producto</button></div><p className="admin-list-guide">Oculto = no aparece en la tienda. Visible para consulta = se puede agregar al carrito, sin stock garantizado. Publicado = verificado.</p><div className="admin-product-filters"><label>Buscar producto o SKU<input aria-label="Buscar producto o SKU" type="search" value={productQuery} onChange={e=>setProductQuery(e.target.value)} placeholder="Nombre, SKU o URL"/></label><label>Estado<select aria-label="Filtrar productos por estado" value={productStatus} onChange={e=>setProductStatus(e.target.value as typeof productStatus)}><option value="all">Todos</option><option value="published">Publicados</option><option value="hidden">Borradores</option><option value="pending">Pendientes de revisar</option></select></label></div><p className="admin-count" aria-live="polite">{filteredProducts.length} de {initialProducts.length} productos</p><div className="admin-list">{filteredProducts.map(p=><article key={p.id} className="admin-list-row"><div className="mini-art">{p.image_url?<Image src={p.image_url} alt={p.name} fill sizes="56px" unoptimized/>:"📦"}</div><div className="grow"><strong>{p.name}</strong><small>{p.price>0?ars(Number(p.price)):"Precio pendiente"} · {p.stock} unidades</small><span className={`admin-item-state ${p.active?"live":"draft"}`}>{p.active?"Publicado":p.catalog_visible?"Visible para consulta":p.commercially_verified?"Borrador":"Pendiente de revisar"}</span></div><button className="btn tiny" onClick={()=>startProduct({...p,price:Number(p.price),stock:Number(p.stock)})}>Editar</button>{(p.active||p.catalog_visible)&&<button className="btn tiny danger" onClick={()=>{if(confirm("¿Ocultar este producto? Dejará de verse en la tienda."))void act(()=>request("products","DELETE",{id:p.id}));}}>Ocultar</button>}</article>)}{!initialProducts.length?<p>Agregá tu primer producto.</p>:!filteredProducts.length?<p>No se encontraron productos con esos filtros. <button className="admin-reset-filter" type="button" onClick={()=>{setProductQuery("");setProductStatus("all");}}>Limpiar filtros</button></p>:null}</div></div></div>}
+ <div className="admin-product-publish" aria-label="Publicación del producto">
+  <strong>Estado actual: {draft.active?"Publicado en la tienda":draft.catalog_visible?"Visible en el catálogo":"Borrador oculto"}</strong>
+  <p>{draft.active?"Al guardar, los cambios se actualizarán en la tienda.":draft.catalog_visible?"Al guardar, esta presentación importada se mostrará en el catálogo; confirmaremos stock al recibir el pedido.":"Podés guardar ahora y completar los datos antes de publicar."}</p>
+  <label className="inline-check"><input type="checkbox" checked={Boolean(draft.commercially_verified)} onChange={e=>updateDraft("commercially_verified",e.target.checked)}/> Confirmé precio, descripción y disponibilidad</label>
+  <details className="admin-advanced admin-product-extra"><summary>Opciones adicionales de visibilidad</summary>
+   <label className="inline-check"><input type="checkbox" checked={Boolean(draft.featured)} onChange={e=>updateDraft("featured",e.target.checked)}/> Destacar en la portada</label>
+   <label className="inline-check"><input type="checkbox" checked={Boolean(draft.catalog_visible)} disabled={!/^excel-fila-[1-9][0-9]*$/.test(draft.slug)||draft.active} onChange={e=>updateDraft("catalog_visible",e.target.checked)}/> Mostrar presentación importada en el catálogo aunque el stock esté por confirmar</label>
+  </details>
+  {publicationIssues.length>0&&!draft.active?<p className="admin-readiness" role="status">Para publicar falta: {publicationIssues.join(", ")}.</p>:null}
+ </div>
+ <div className="admin-product-actions">
+  <button type="submit" disabled={busy||(draft.active&&publicationIssues.length>0)} className="btn primary">{draft.id?"Guardar cambios":draft.catalog_visible?"Guardar y mostrar en catálogo":"Guardar borrador"}</button>
+  {!draft.active?<button type="button" className="btn ghost" disabled={busy||publicationIssues.length>0} onClick={()=>void saveProduct("publish")}>Publicar en la tienda</button>:null}
+  <button type="button" className="btn ghost" disabled={busy} onClick={()=>startProduct({...empty})}>{draft.id?"Dejar de editar":"Limpiar formulario"}</button>
+ </div></form></div>
+ <div className="panel"><div className="admin-list-heading"><h2>Productos cargados</h2><button type="button" className="btn ghost" disabled={busy} onClick={()=>startProduct({...empty})}>+ Nuevo producto</button></div><p className="admin-list-guide">Oculto = no aparece en la tienda. Visible para consulta = se puede agregar al carrito, sin stock garantizado. Publicado = verificado.</p><div className="admin-product-filters"><label>Buscar producto o SKU<input aria-label="Buscar producto o SKU" type="search" value={productQuery} onChange={e=>setProductQuery(e.target.value)} placeholder="Nombre, SKU o URL"/></label><label>Estado<select aria-label="Filtrar productos por estado" value={productStatus} onChange={e=>setProductStatus(e.target.value as typeof productStatus)}><option value="all">Todos</option><option value="published">Publicados</option><option value="hidden">Borradores</option><option value="pending">Pendientes de revisar</option></select></label></div><p className="admin-count" aria-live="polite">{filteredProducts.length} de {initialProducts.length} productos</p><div className="admin-list">{filteredProducts.map(p=><article key={p.id} className="admin-list-row"><div className="mini-art">{p.image_url?<Image src={p.image_url} alt={p.name} fill sizes="56px" unoptimized/>:"📦"}</div><div className="grow"><strong>{p.name}</strong><small>{p.price>0?ars(Number(p.price)):"Precio pendiente"} · {p.stock} unidades</small><span className={`admin-item-state ${p.active?"live":"draft"}`}>{p.active?"Publicado":p.catalog_visible?"Visible para consulta":p.commercially_verified?"Borrador":"Pendiente de revisar"}</span></div><button className="btn tiny" onClick={()=>startProduct({...p,price:Number(p.price),stock:Number(p.stock)})}>Editar</button>{(p.active||p.catalog_visible)&&<button className="btn tiny danger" disabled={busy} onClick={()=>void hideProduct(p)}>Ocultar</button>}</article>)}{!initialProducts.length?<p>Agregá tu primer producto.</p>:!filteredProducts.length?<p>No se encontraron productos con esos filtros. <button className="admin-reset-filter" type="button" onClick={()=>{setProductQuery("");setProductStatus("all");}}>Limpiar filtros</button></p>:null}</div></div></div>}
  {tab==="categories"&&<div className="panel narrow"><h2>Categorías</h2><p className="hint">Organizá los productos por grupo. Para eliminar una categoría, primero mové sus productos a otra.</p><form onSubmit={e=>{e.preventDefault();void act(async()=>{await request("categories",newCat.id?"PATCH":"POST",newCat);setNewCat({id:"",name:"",slug:""});});}}><label>Nombre<input required value={newCat.name} onChange={e=>setNewCat(v=>({...v,name:e.target.value,slug:v.id?v.slug:slugify(e.target.value)}))}/></label><details className="admin-advanced"><summary>Editar la dirección de la categoría (opcional)</summary><label>Dirección de la categoría<input required value={newCat.slug} onChange={e=>setNewCat(v=>({...v,slug:e.target.value}))}/><small>Se genera sola. Si la categoría ya existe, se conserva su enlace para no romper vínculos.</small></label></details><button disabled={busy} className="btn primary">{newCat.id?"Guardar categoría":"Crear categoría"}</button>{newCat.id&&<button type="button" className="btn ghost" onClick={()=>setNewCat({id:"",name:"",slug:""})}>Cancelar edición</button>}</form><div className="admin-list">{initialCategories.map(c=><div className="admin-list-row" key={c.id}><strong className="grow">{c.name} <small className="hint">({initialProducts.filter(p=>p.category_id===c.id).length} productos)</small></strong><button className="btn tiny" onClick={()=>setNewCat({id:c.id,name:c.name,slug:c.slug})}>Editar</button><button className="btn tiny danger" disabled={busy||initialProducts.some(p=>p.category_id===c.id)} title={initialProducts.some(p=>p.category_id===c.id)?"Mové sus productos antes de eliminarla":undefined} onClick={()=>{if(confirm("¿Eliminar esta categoría?"))void act(()=>request("categories","DELETE",{id:c.id}));}}>Eliminar</button></div>)}</div></div>}
  {tab==="zones"&&<div className="panel narrow"><h2>Configurar zona de entrega</h2><p className="hint">Elegí dónde repartís y confirmá la tarifa antes de activarla.</p><form onSubmit={e=>{e.preventDefault();void act(()=>request("zones",zoneId?"PATCH":"POST",{...(zoneId?{id:zoneId}:{}),name:zoneName,postal_codes:zoneCodes.split(",").map(x=>x.trim().toUpperCase()).filter(Boolean),cost:zoneCost===""?null:Number(zoneCost),free_shipping_eligible:zoneFree,ready:zoneReady,active:zoneReady}));}}><label>Zona o barrio<input required value={zoneName} onChange={e=>setZoneName(e.target.value)} placeholder="Ej.: Lomas de Zamora"/></label><label>Códigos postales separados por comas<input value={zoneCodes} onChange={e=>setZoneCodes(e.target.value)} placeholder="1832, B1832"/></label><label>Tarifa bajo el umbral (ARS)<input required={zoneReady} min="0" type="number" value={zoneCost} onChange={e=>setZoneCost(e.target.value)}/></label><label className="inline-check"><input type="checkbox" checked={zoneFree} onChange={e=>setZoneFree(e.target.checked)}/> Elegible para envío gratis desde el umbral</label><label className="inline-check"><input type="checkbox" checked={zoneReady} onChange={e=>setZoneReady(e.target.checked)}/> Tarifa y cobertura verificadas; activar zona</label><p className="hint">Una tarifa vacía significa pendiente. El valor 0 sólo debe usarse si la entrega es realmente gratuita por debajo del umbral.</p><button className="btn primary" disabled={busy}>{zoneId?"Guardar zona":"Agregar zona"}</button>{zoneId&&<button type="button" className="btn ghost" onClick={()=>{setZoneId("");setZoneName("");setZoneCodes("");setZoneCost("");setZoneReady(false);setZoneFree(false)}}>Cancelar edición</button>}</form><h3>Zonas configuradas</h3><div className="admin-list">{initialZones.map(z=><div key={z.id} className="admin-list-row"><div className="grow"><strong>{z.name}</strong><small>{z.cost===null?"Tarifa pendiente":ars(Number(z.cost))} · {z.free_shipping_eligible?"Elegible para gratis":"Sin envío gratis"} · {z.active?"Activa":"Inactiva"}</small></div><button className="btn tiny" onClick={()=>{setZoneId(z.id);setZoneName(z.name);setZoneCodes(z.postal_codes.join(", "));setZoneCost(z.cost===null?"":String(z.cost));setZoneReady(Boolean(z.ready));setZoneFree(Boolean(z.free_shipping_eligible))}}>Editar</button><button className="btn tiny danger" onClick={()=>{if(confirm(`¿Desactivar la zona ${z.name}? Dejará de aparecer como opción de envío.`))void act(()=>request("zones","DELETE",{id:z.id}));}}>Desactivar</button></div>)}</div></div>}
  {tab==="banners"&&<div className="panel narrow"><h2>Banner promocional</h2><form onSubmit={e=>{e.preventDefault();void act(async()=>{await request("banners",banner.id?"PATCH":"POST",banner);setBanner({id:"",title:"",subtitle:"",image_url:"",href:"/catalogo",active:true,sort_order:0});});}}><label>Título<input required value={banner.title} onChange={e=>setBanner(v=>({...v,title:e.target.value}))}/></label><label>Texto<input value={banner.subtitle} onChange={e=>setBanner(v=>({...v,subtitle:e.target.value}))}/></label><label>Enlace<input value={banner.href} onChange={e=>setBanner(v=>({...v,href:e.target.value}))}/></label><label>URL de imagen<input value={banner.image_url} onChange={e=>setBanner(v=>({...v,image_url:e.target.value}))}/></label>{uploader("banner")}{banner.image_url&&<Image className="upload-preview" src={banner.image_url} width={180} height={130} unoptimized alt="Banner"/>}<button className="btn primary" disabled={busy}>{banner.id?"Guardar banner":"Crear banner"}</button>{banner.id&&<button type="button" className="btn ghost" onClick={()=>setBanner({id:"",title:"",subtitle:"",image_url:"",href:"/catalogo",active:true,sort_order:0})}>Cancelar edición</button>}</form><div className="admin-list">{initialBanners.map(b=><div key={b.id} className="admin-list-row"><div className="grow"><strong>{b.title}</strong><small>{b.subtitle}</small></div><button className="btn tiny" onClick={()=>setBanner({...b,image_url:b.image_url||""})}>Editar</button><button className="btn tiny danger" onClick={()=>{if(confirm("¿Eliminar este banner?"))void act(()=>request("banners","DELETE",{id:b.id}));}}>Eliminar</button></div>)}</div></div>}

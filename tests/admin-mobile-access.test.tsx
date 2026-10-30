@@ -48,8 +48,8 @@ describe("menú rápido administrativo",()=>{
   const bar=screen.getByRole("navigation",{name:"Accesos rápidos de administración"});
   await user.click(within(bar).getByRole("button",{name:"Acceso rápido: Productos"}));
   expect(screen.getByRole("heading",{name:"Productos",level:1})).toBeInTheDocument();
-  await user.click(within(bar).getByRole("button",{name:"Acceso rápido: WhatsApp"}));
-  expect(screen.getByRole("heading",{name:"WhatsApp",level:1})).toBeInTheDocument();
+  await user.click(within(bar).getByRole("button",{name:"Acceso rápido: Pedidos por WhatsApp"}));
+  expect(screen.getByRole("heading",{name:"Pedidos por WhatsApp",level:1})).toBeInTheDocument();
  });
  it("Más expone los otros módulos y se cierra al elegir uno",async()=>{
   const user=userEvent.setup();
@@ -76,7 +76,7 @@ describe("menú rápido administrativo",()=>{
   render(<AdminDashboard {...props}/>);
   await user.click(screen.getByRole("button",{name:"Acceso rápido: Productos"}));
   await user.type(screen.getByLabelText("Nombre del producto"),"Copa helada");
-  await user.click(screen.getByRole("button",{name:"Acceso rápido: Pedidos"}));
+  await user.click(screen.getByRole("button",{name:"Acceso rápido: Pedidos online"}));
   expect(confirm).toHaveBeenCalledOnce();
   expect(screen.getByRole("heading",{name:"Productos",level:1})).toBeInTheDocument();
  });

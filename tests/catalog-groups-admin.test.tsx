@@ -4,6 +4,7 @@ import {describe,expect,it,vi} from "vitest";
 import {CATALOG_PRICE_ITEMS} from "@/lib/catalog-prices";
 import {groupCatalogByType,storefrontSamples,categoryCatalogHref,CATALOG_TYPES} from "@/lib/catalog-groups";
 import {draftFromPricedCatalog} from "@/lib/catalog-product-draft";
+import {productSchema} from "@/lib/admin-rules";
 import {PricedCatalog} from "@/components/priced-catalog";
 import {CartProvider} from "@/components/cart";
 import {AdminDashboard} from "@/components/admin-dashboard";
@@ -46,13 +47,31 @@ describe("catálogo comercial agrupado",()=>{
    price:item.price,stock:0,image_url:item.image,active:false,
    commercially_verified:false,category_id:null
   });
-  expect(draft.slug).toContain("via-");
+  expect(draft.slug).toBe(`excel-fila-${item.sourceRow}`);
+  expect(productSchema.safeParse({...draft,catalog_visible:true}).success).toBe(true);
+ });
+ it("permite editar fichas ya importadas sin duplicar el SKU ni perder stock y precio",async()=>{
+  const user=userEvent.setup();
+  const item=CATALOG_PRICE_ITEMS[0];
+  const existing={...draftFromPricedCatalog(item,[]),
+   id:"00000000-0000-4000-8000-000000000033",stock:7,price:item.price+500,
+   catalog_visible:true,commercially_verified:false};
+  render(<AdminDashboard {...props} initialProducts={[existing]}/>);
+  await user.click(screen.getByRole("button",{name:"Productos"}));
+  await user.click(screen.getByRole("button",{name:"Cargar desde catálogo"}));
+  const picker=screen.getByRole("region",{name:"Productos del catálogo"});
+  await user.click(within(picker).getByRole("button",{name:`Editar producto ${item.name}`}));
+  expect(screen.getByRole("heading",{name:"Editar producto"})).toBeInTheDocument();
+  expect(screen.getByLabelText("Precio de venta (ARS)")).toHaveValue(item.price+500);
+  expect(screen.getByLabelText("Unidades disponibles")).toHaveValue(7);
+  expect(screen.getByText("Estado actual: Visible en el catálogo")).toBeInTheDocument();
+  expect(screen.queryByRole("region",{name:"Productos del catálogo"})).not.toBeInTheDocument();
  });
  it("el admin permite seleccionar un producto existente para prellenar la ficha",async()=>{
   const user=userEvent.setup();
   render(<AdminDashboard {...props}/>);
   await user.click(screen.getByRole("button",{name:"Productos"}));
-  await user.click(screen.getByRole("button",{name:"Elegir producto del catálogo"}));
+  await user.click(screen.getByRole("button",{name:"Cargar desde catálogo"}));
   const picker=screen.getByRole("region",{name:"Productos del catálogo"});
   expect(within(picker).getByText(/45 opciones del catálogo/)).toBeInTheDocument();
   const item=CATALOG_PRICE_ITEMS[0];
@@ -60,7 +79,7 @@ describe("catálogo comercial agrupado",()=>{
   expect(screen.getByLabelText("Nombre del producto")).toHaveValue(item.name);
   expect(screen.getByLabelText("Precio de venta (ARS)")).toHaveValue(item.price);
   expect(screen.getByLabelText("Unidades disponibles")).toHaveValue(0);
-  expect(screen.getByLabelText("Mostrar este producto en la tienda")).not.toBeChecked();
-  expect(screen.getByText(/Pendiente para publicar/)).toBeInTheDocument();
+  expect(screen.getByRole("button",{name:"Publicar en la tienda"})).toBeDisabled();
+  expect(screen.getByText(/Para publicar falta/)).toBeInTheDocument();
  });
 });
