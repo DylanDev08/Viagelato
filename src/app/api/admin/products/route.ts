@@ -1,4 +1,5 @@
 import {NextResponse} from "next/server";
+import {readAdminJson} from "@/lib/admin-body";
 import {z} from "zod";
 import {adminOrError,productSchema} from "@/lib/admin";
 import {privilegedDb} from "@/lib/supabase";
@@ -12,14 +13,16 @@ function failed(code?:string){
 const invalidId=()=>NextResponse.json({error:"El identificador del producto no es válido"},{status:400});
 export async function POST(req:Request){
  const auth=await adminOrError(req);if(auth)return auth;
- const parsed=productSchema.safeParse(await req.json().catch(()=>null));
+ const json=await readAdminJson(req);if(!json.ok)return json.response;
+ const parsed=productSchema.safeParse(json.data);
  if(!parsed.success)return NextResponse.json({error:"Datos inválidos",issues:parsed.error.issues},{status:400});
  const {data,error}=await privilegedDb().from("products").insert(normalizeProductWrite(parsed.data)).select().single();
  return error?failed(error.code):NextResponse.json(data);
 }
 export async function PATCH(req:Request){
  const auth=await adminOrError(req);if(auth)return auth;
- const body=await req.json().catch(()=>null);
+ const json=await readAdminJson(req);if(!json.ok)return json.response;
+ const body=json.data as Record<string,unknown>|null;
  const parsedId=uuid.safeParse(body?.id);
  if(!parsedId.success)return invalidId();
  const payload={...body};
@@ -33,7 +36,8 @@ export async function PATCH(req:Request){
 }
 export async function DELETE(req:Request){
  const auth=await adminOrError(req);if(auth)return auth;
- const body=await req.json().catch(()=>null);
+ const json=await readAdminJson(req);if(!json.ok)return json.response;
+ const body=json.data as Record<string,unknown>|null;
  const parsedId=uuid.safeParse(body?.id);
  if(!parsedId.success)return invalidId();
  const {data,error}=await privilegedDb().from("products").update({active:false,catalog_visible:false}).eq("id",parsedId.data).select("id").maybeSingle();
