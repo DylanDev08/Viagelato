@@ -116,12 +116,12 @@ export function Checkout({products,settings,catalogItems=CATALOG_PRICE_ITEMS}:{p
       <hr/>
       <p><span>Total final</span><strong>Se confirma por WhatsApp</strong></p>
      </div>
-     <p className="hint">Los precios corresponden a cajas, baldes o envases completos. No se reserva mercadería hasta que Viagelato confirme tu solicitud.</p>
+     <p className="hint">Precios por caja, balde o presentación completa. El equipo confirmará stock y entrega.</p>
     </section>
    </div>
    <form className="panel cart-form-panel" onSubmit={sendRequest}>
     <div className="cart-form-heading"><p className="kicker">PASO 02</p><MessageCircle size={22} aria-hidden="true"/><h2>Enviar pedido por WhatsApp</h2></div>
-    <p className="hint">Completá tus datos para preparar el pedido con todos los productos del carrito. Viagelato confirmará por WhatsApp la disponibilidad, el envío y la transferencia.</p>
+    <p className="hint">Completá tus datos para preparar el pedido con todos los productos del carrito. Viagelato confirmará por WhatsApp la disponibilidad, entrega y forma de pago elegida.</p>
     <label>Nombre y apellido<input required minLength={2} maxLength={120} autoComplete="name" value={fullName} onChange={e=>setFullName(e.target.value)}/></label>
     <label>Localidad<select required value={selectedLocality} onChange={e=>setSelectedLocality(e.target.value)}>
      <option value="">Elegí tu localidad</option>
