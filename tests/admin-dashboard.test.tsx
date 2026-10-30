@@ -70,7 +70,7 @@ describe("panel administrativo",()=>{
  it("guarda un producto nuevo como borrador sin publicarlo",async()=>{
   const user=userEvent.setup();
   const id="00000000-0000-4000-8000-000000000007";
-  const mockedFetch=vi.fn().mockResolvedValue({ok:true,json:async()=>({id,name:"Helado nuevo",active:false})});
+  const mockedFetch=vi.fn().mockImplementation(async (_url:string,options:{body:string})=>({ok:true,json:async()=>({...JSON.parse(options.body),id})}));
   vi.stubGlobal("fetch",mockedFetch);
   try{
    render(<AdminDashboard initialProducts={[]} initialCategories={[]} initialOrders={[]} initialZones={[]} initialSettings={DEFAULT_SETTINGS} initialBanners={[]}/>);
@@ -138,6 +138,46 @@ describe("panel administrativo",()=>{
    expect(JSON.parse(options.body)).toMatchObject({id:product.id,active:true,catalog_visible:false});
    expect(screen.getByText("Estado actual: Publicado en la tienda")).toBeInTheDocument();
   }finally{vi.unstubAllGlobals();}
+ });
+ it("no informa guardado exitoso si el servidor devuelve precios o stock distintos",async()=>{
+  const user=userEvent.setup();
+  const id="00000000-0000-4000-8000-000000000031";
+  const product={id,name:"Helado chocolate",slug:"helado-chocolate",description:"",price:100,stock:2,image_url:null,
+   category_id:null,sku:null,presentation:null,active:false,featured:false,commercially_verified:false,catalog_visible:false};
+  const mockedFetch=vi.fn().mockResolvedValue({ok:true,json:async()=>({...product,price:100})});
+  vi.stubGlobal("fetch",mockedFetch);
+  try{
+   render(<AdminDashboard initialProducts={[product]} initialCategories={[]} initialOrders={[]} initialZones={[]} initialSettings={DEFAULT_SETTINGS} initialBanners={[]}/>);
+   await user.click(screen.getByRole("button",{name:"Productos"}));
+   await user.click(screen.getByRole("button",{name:"Editar"}));
+   await user.clear(screen.getByRole("spinbutton",{name:"Precio de venta (ARS)"}));
+   await user.type(screen.getByRole("spinbutton",{name:"Precio de venta (ARS)"}),"150");
+   await user.click(screen.getByRole("button",{name:"Guardar cambios"}));
+   expect(await screen.findByRole("alert")).toHaveTextContent(/no confirmó precio, stock, foto y visibilidad/);
+   expect(screen.getByText(/Tenés cambios sin guardar/)).toBeInTheDocument();
+  }finally{vi.unstubAllGlobals();}
+ });
+ it("al ocultar la ficha que se está editando también actualiza el estado del editor",async()=>{
+  const user=userEvent.setup();
+  const id="00000000-0000-4000-8000-000000000032";
+  const product={id,name:"Helado frutilla",slug:"helado-frutilla",description:"Producto con stock confirmado para distribuir.",
+   price:1000,stock:3,image_url:"/catalogo/helado.webp",category_id:null,sku:"FRU-01",presentation:"Caja",
+   active:true,featured:false,commercially_verified:true,catalog_visible:false};
+  const mockedFetch=vi.fn().mockResolvedValue({ok:true,json:async()=>({ok:true})});
+  vi.stubGlobal("fetch",mockedFetch);
+  const confirm=vi.spyOn(window,"confirm").mockReturnValue(true);
+  try{
+   render(<AdminDashboard initialProducts={[product]} initialCategories={[]} initialOrders={[]} initialZones={[]} initialSettings={DEFAULT_SETTINGS} initialBanners={[]}/>);
+   await user.click(screen.getByRole("button",{name:"Productos"}));
+   await user.click(screen.getByRole("button",{name:"Editar"}));
+   await user.click(screen.getByRole("button",{name:"Ocultar"}));
+   expect(confirm).toHaveBeenCalled();
+   await screen.findByText("Producto oculto correctamente");
+   expect(screen.getByText("Estado actual: Borrador oculto")).toBeInTheDocument();
+   expect(screen.queryByText("Tenés cambios sin guardar en esta ficha.")).not.toBeInTheDocument();
+   expect(JSON.parse(mockedFetch.mock.calls[0][1].body)).toEqual({id});
+   expect(mockedFetch.mock.calls[0][1].method).toBe("DELETE");
+  }finally{confirm.mockRestore();vi.unstubAllGlobals();}
  });
  it("mantiene el enlace de una categoría al corregir su nombre",async()=>{
   const user=userEvent.setup();
