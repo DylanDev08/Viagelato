@@ -7,9 +7,9 @@ import type {CandidateProductDraft} from "./catalog-draft";
 export function draftFromPricedCatalog(item:CatalogPriceItem,categories:Pick<Category,"id"|"name">[]):CandidateProductDraft{
  const category=categories.find(c=>normalizeCatalogText(c.name)===normalizeCatalogText(item.category));
  const name=item.name.trim().slice(0,160);
- const slugBase=normalizeCatalogText(name).replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"").slice(0,135).replace(/-+$/g,"");
  return {
-  name,slug:`${slugBase||"producto"}-via-${item.sourceRow}`,
+  // El catálogo consultable y el checkout usan este slug canónico para buscar precios vigentes.
+  name,slug:`excel-fila-${item.sourceRow}`,
   description:item.description.slice(0,2000),
   price:item.price,
   stock:0,
