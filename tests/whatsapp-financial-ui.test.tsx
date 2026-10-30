@@ -64,6 +64,22 @@ describe("seguimiento comercial de WhatsApp",()=>{
   expect(screen.getByRole("button",{name:"Registrar transferencia"})).toBeEnabled();
   expect(screen.getByText(/Historial de transferencias/)).toBeInTheDocument();
  });
+ it("permite registrar efectivo efectivamente recibido, sin inventar transferencia",async()=>{
+  const user=userEvent.setup();
+  const send=vi.fn(async (_input:RequestInfo|URL,_init?:RequestInit)=>({ok:true,json:async()=>({updated:true})}));
+  vi.stubGlobal("fetch",send);
+  vi.spyOn(window,"confirm").mockReturnValue(true);
+  render(<WhatsAppRequests requests={[{...common,status:"confirmed",stock_confirmed:true,shipping_cost:0,total:21900,amount_paid:0,payment_status:"pending"}]}/>);
+  await user.selectOptions(screen.getByRole("combobox",{name:"Cómo pagó el cliente"}),"cash");
+  expect(screen.queryByRole("textbox",{name:/Referencia bancaria/})).not.toBeInTheDocument();
+  await user.type(screen.getByRole("spinbutton",{name:/Importe recibido/}),"21900");
+  await user.click(screen.getByRole("button",{name:"Registrar efectivo recibido"}));
+  expect(send).toHaveBeenCalledOnce();
+  const body=JSON.parse(String(send.mock.calls[0]?.[1]?.body));
+  expect(body).toMatchObject({action:"record_cash",amount:21900});
+  expect(body).not.toHaveProperty("transfer_reference");
+  expect(screen.queryByRole("button",{name:"Registrar efectivo recibido"})).not.toBeInTheDocument();
+ });
  it("envía importe, referencia e idempotencia sin marcar el total automáticamente",async()=>{
   const user=userEvent.setup();
   const send=vi.fn(async (_input:RequestInfo|URL,_init?:RequestInit)=>({ok:true,json:async()=>({updated:true})}));
