@@ -102,7 +102,7 @@ export type WhatsAppRequest={
  shipping_cost:number|null;
  total:number|null;
  amount_paid:number;
- whatsapp_request_payments?:{id:string;amount:number;transfer_reference:string;created_at:string}[];
+ whatsapp_request_payments?:{id:string;amount:number;transfer_reference:string;payment_method?:"transfer"|"cash";created_at:string}[];
  created_at:string;
  updated_at:string;
 };

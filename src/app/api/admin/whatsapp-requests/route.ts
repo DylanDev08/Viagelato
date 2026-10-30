@@ -20,7 +20,13 @@ const paymentAction=z.object({
  payment_key:z.uuid(),
  transfer_reference:z.string().trim().max(100).default(""),
 }).strict();
-const schema=z.discriminatedUnion("action",[statusAction,termsAction,paymentAction]);
+const cashAction=z.object({
+ id:z.uuid(),
+ action:z.literal("record_cash"),
+ amount:z.number().finite().positive().max(100000000),
+ payment_key:z.uuid(),
+}).strict();
+const schema=z.discriminatedUnion("action",[statusAction,termsAction,paymentAction,cashAction]);
 
 export async function PATCH(request:Request){
  const blocked=adminRequestError(request);
@@ -41,6 +47,11 @@ export async function PATCH(request:Request){
    p_request_id:input.id,p_actor_user_id:admin.id,
    p_amount:input.amount,p_payment_key:input.payment_key,
    p_transfer_reference:input.transfer_reference
+  });
+ }else if(input.action==="record_cash"){
+  result=await db.rpc("admin_record_whatsapp_cash",{
+   p_request_id:input.id,p_actor_user_id:admin.id,
+   p_amount:input.amount,p_payment_key:input.payment_key
   });
  }else{
   result=await db.rpc("admin_update_whatsapp_request",{
