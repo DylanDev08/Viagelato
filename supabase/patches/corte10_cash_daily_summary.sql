@@ -69,7 +69,7 @@ end $$;
 -- Mantener la RPC de transferencia; bloquear reutilizar claves de efectivo como transferencias.
 create or replace function public.admin_record_whatsapp_payment(
  p_request_id uuid,p_actor_user_id uuid,p_amount numeric,p_payment_key uuid,p_transfer_reference text default ''
-) returns boolean language plpgsql security invoker set search_path=public as $
+) returns boolean language plpgsql security invoker set search_path=public as $$
 declare r public.whatsapp_order_requests%rowtype; existing record; new_paid numeric(12,2); new_state text; clean_ref text;
 begin
  if p_actor_user_id is null or not exists(select 1 from public.admin_users where user_id=p_actor_user_id) then raise exception 'No autorizado'; end if;
