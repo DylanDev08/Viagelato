@@ -140,22 +140,27 @@ function RequestCard({request,freeShippingThreshold}:{request:WhatsAppRequest;fr
 export function WhatsAppRequests({requests,freeShippingThreshold=60000}:{requests:WhatsAppRequest[];freeShippingThreshold?:number}){
  const [status,setStatus]=useState("all");
  const [search,setSearch]=useState("");
+ const [onlyPending,setOnlyPending]=useState(false);
+ const pendingStatuses=new Set<WhatsAppRequest["status"]>(["draft","contacted","confirmed","preparing","shipped"]);
+ const pendingCount=requests.filter(request=>pendingStatuses.has(request.status)).length;
  const visible=useMemo(()=>requests.filter(request=>{
-  const found=(request.customer_name+" "+request.locality+" "+whatsappRequestReference(request.id))
+  const found=(request.customer_name+" "+request.locality+" "+whatsappRequestReference(request.id)+" "+request.items.map(item=>item.name+" "+(item.sku||"")).join(" "))
    .toLocaleLowerCase("es").includes(search.trim().toLocaleLowerCase("es"));
-  return found&&(status==="all"||request.status===status);
- }),[requests,search,status]);
+  return found&&(status==="all"||request.status===status)&&(!onlyPending||pendingStatuses.has(request.status));
+ }),[requests,search,status,onlyPending]);
  return <section className="panel">
-  <h2>Solicitudes de WhatsApp</h2>
-  <p className="hint">«WhatsApp preparado» no significa que el cliente haya enviado el mensaje. Confirmá el contacto, verificá existencias y acordá el costo de envío antes de pedir una transferencia. Para preparar el pedido, el pago debe estar acreditado en su totalidad.</p>
+  <h2>Pedidos recibidos por WhatsApp</h2>
+  <p className="hint">Una solicitud preparada no confirma que el cliente haya enviado el WhatsApp. Registrá el contacto, verificá stock y envío, y después confirmá los pagos efectivamente acreditados.</p>
+  <div className="whatsapp-queue-summary" aria-label="Resumen de solicitudes"><div><strong>{pendingCount}</strong><span>Para seguir</span></div><div><strong>{requests.filter(r=>r.status==="delivered").length}</strong><span>Entregados</span></div><div><strong>{requests.filter(r=>r.status==="cancelled").length}</strong><span>Cancelados</span></div></div>
+  <div className="whatsapp-queue-tools"><label className="inline-check"><input type="checkbox" checked={onlyPending} onChange={event=>setOnlyPending(event.target.checked)}/> Solo pedidos pendientes</label><button type="button" className="btn tiny" disabled={status==="all"&&!onlyPending&&!search} onClick={()=>{setSearch("");setStatus("all");setOnlyPending(false)}}>Limpiar filtros</button></div>
   <div className="admin-product-filters">
-   <label>Buscar referencia o cliente<input type="search" value={search} onChange={event=>setSearch(event.target.value)} placeholder="Referencia, nombre o localidad"/></label>
+   <label>Buscar referencia o cliente<input type="search" value={search} onChange={event=>setSearch(event.target.value)} placeholder="Nombre, referencia, localidad o producto"/></label>
    <label>Estado<select value={status} onChange={event=>setStatus(event.target.value)}>
     <option value="all">Todos</option>{Object.entries(labels).map(([key,value])=><option key={key} value={key}>{value}</option>)}
    </select></label>
   </div>
   <p className="hint" aria-live="polite">{visible.length} de {requests.length} solicitudes recientes</p>
   <div className="whatsapp-request-list">{visible.map(request=><RequestCard key={request.id} request={request} freeShippingThreshold={freeShippingThreshold}/>)}</div>
-  {!visible.length?<p className="hint">Todavía no hay solicitudes con ese filtro. Las nuevas aparecerán cuando un cliente prepare el mensaje hacia WhatsApp.</p>:null}
+  {!visible.length?<p className="hint">{requests.length?"No hay pedidos con esos filtros. Probá limpiar los filtros para ver todos.":"Todavía no hay solicitudes. Aparecerán cuando un cliente prepare su pedido por WhatsApp."}</p>:null}
  </section>;
 }
