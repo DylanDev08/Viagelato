@@ -4,6 +4,13 @@
  */
 export const CHECKOUT_KEY_STORAGE="viagelato-checkout-idempotency:v2";
 type CheckoutKeyStorage=Pick<Storage,"getItem"|"setItem"|"removeItem">;
+const volatileStorage=new Map<string,string>();
+/** Some browsers throw when accessing sessionStorage itself. Keep retries stable in memory too. */
+export const checkoutKeyStorage:CheckoutKeyStorage={
+ getItem(key){try{return sessionStorage.getItem(key)??volatileStorage.get(key)??null;}catch{return volatileStorage.get(key)??null;}},
+ setItem(key,value){volatileStorage.set(key,value);try{sessionStorage.setItem(key,value);}catch{/* memory fallback */}},
+ removeItem(key){volatileStorage.delete(key);try{sessionStorage.removeItem(key);}catch{/* memory fallback */}},
+};
 const uuidPattern=/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 const fingerprintPattern=/^[a-f0-9]{64}$/i;
 
