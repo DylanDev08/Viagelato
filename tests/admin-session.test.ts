@@ -20,6 +20,14 @@ describe("sesión administrativa",()=>{
   expect(assertAdmin).not.toHaveBeenCalled();
   expect(response.headers.get("cache-control")).toContain("no-store");
  });
+ it("devuelve 403 si el usuario no figura en admin_users",async()=>{
+  vi.mocked(assertAdmin).mockRejectedValue(new Error("No tenés permiso de administrador"));
+  expect((await GET()).status).toBe(403);
+ });
+ it("devuelve 503 cuando Supabase no puede consultar la tabla administrativa",async()=>{
+  vi.mocked(assertAdmin).mockRejectedValue(new Error("No se pudo verificar el permiso administrativo"));
+  expect((await GET()).status).toBe(503);
+ });
  it("niega acceso cuando no hay sesión o autorización",async()=>{
   vi.mocked(assertAdmin).mockResolvedValue(null as unknown as Awaited<ReturnType<typeof assertAdmin>>);
   const r=await GET();
