@@ -93,6 +93,31 @@ describe("registrar referencia WhatsApp",()=>{
   expect(response.status).toBe(503);
   expect(insert).not.toHaveBeenCalled();
  });
+ it("guarda preferencia de efectivo y la comunica en WhatsApp",async()=>{
+  const response=await POST(make({...payload,payment_preference:"cash_on_delivery",notes:"Entregar después de las 18"}));
+  expect(response.status).toBe(201);
+  expect(insert).toHaveBeenCalledWith(expect.objectContaining({notes:"Forma de pago preferida: Efectivo al recibir\nEntregar después de las 18"}),expect.anything());
+  const message=decodeURIComponent((await response.json()).whatsapp_url);
+  expect(message).toContain("Forma de pago preferida: Efectivo al recibir");
+  expect(message).toContain("Observaciones: Entregar después de las 18");
+  expect(message).not.toContain("Observaciones: Forma de pago preferida");
+ });
+ it("reabre la misma solicitud y conserva la preferencia original",async()=>{
+  const incoming={...payload,payment_preference:"transfer"};
+  priorRead.mockResolvedValue({data:{
+   id,status:"draft",request_fingerprint:fingerprint(incoming),
+   customer_name:incoming.customer_name,locality:incoming.locality,address:incoming.address,
+   notes:"Forma de pago preferida: Transferencia\nTimbre rojo",shipping_method:"shipping",subtotal:43800,
+   items:[{id:"catalog-price-2",name:"Palitos",sku:"VIA-CAT-2",presentation:"Caja x24",price:21900,quantity:2}]
+  },error:null});
+  const response=await POST(make(incoming));
+  expect(response.status).toBe(200);
+  const message=decodeURIComponent((await response.json()).whatsapp_url);
+  expect(message).toContain("Forma de pago preferida: Transferencia");
+  expect(message).toContain("Observaciones: Timbre rojo");
+  expect(message).not.toContain("Observaciones: Forma de pago preferida");
+  expect(insert).not.toHaveBeenCalled();
+ });
  it("rechaza precio obsoleto sin registrar un pedido, incluso con WhatsApp configurado",async()=>{
   catalogRead.mockResolvedValue({data:[{slug:"excel-fila-2",name:"Palitos de agua",sku:"VIA-CAT-2",presentation:"Caja x24",price:32500}],error:null});
   const res=await POST(make({...payload,expected_subtotal:43800}));
