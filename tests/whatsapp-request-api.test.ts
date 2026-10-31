@@ -19,7 +19,7 @@ describe("registrar referencia WhatsApp",()=>{
  const priorRead=vi.fn(async():Promise<{data:Record<string,unknown>|null;error:null}>=>({data:null,error:null}));
  const catalogRead=vi.fn(async()=>({data:[{slug:"excel-fila-2",name:"Palitos de agua",sku:"VIA-CAT-2",presentation:"Caja x24",price:21900}],error:null}));
  const productRead=vi.fn();
- const shippingRead=vi.fn(async()=>({data:[],error:null}));
+ const shippingRead=vi.fn(async():Promise<{data:Record<string,unknown>[]|null;error:{message:string}|null}>=>({data:[],error:null}));
  beforeEach(()=>{
   vi.clearAllMocks();vi.mocked(connected).mockReturnValue(true);
   process.env.SUPABASE_SERVICE_ROLE_KEY="abcdefghijklmnopqrstuvwxyz0123456789SERVICE";
