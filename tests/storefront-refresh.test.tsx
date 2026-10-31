@@ -31,7 +31,7 @@ describe("actualización visual y datos comerciales",()=>{
   expect(within(section).queryByPlaceholderText("Buscar productos o sabores")).not.toBeInTheDocument();
  });
  it("prioriza productos y el recorrido de compra antes que el mensaje institucional",()=>{
-  const {container}=render(<CartProvider><Storefront settings={DEFAULT_SETTINGS} products={[]} categories={[]} banners={[]} demo={false}/></CartProvider>);
+  const {container}=render(<CartProvider><Storefront settings={{...DEFAULT_SETTINGS,hero_title:"Frío bien distribuido. Productos que llegan mejor.",hero_subtitle:"Logística y distribución con entregas coordinadas por zona."}} products={[]} categories={[]} banners={[]} demo={false}/></CartProvider>);
   expect(screen.getByRole("heading",{level:1})).toHaveTextContent("Helados y congelados para tu negocio.");
   expect(screen.getByRole("link",{name:/Ver productos y precios/})).toHaveAttribute("href","/catalogo");
   expect(screen.getByRole("link",{name:"Cómo comprar"})).toHaveAttribute("href","#como-comprar");
