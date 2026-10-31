@@ -15,6 +15,7 @@ import "./admin-mobile-access.css";
 import "./grouped-catalog.css";
 import "./storefront-refresh.css";
 import "./commercial-refinement.css";
+import "./checkout-totals.css";
 
 const siteUrl=publicSiteUrl();
 const indexingEnabled=process.env.ENABLE_INDEXING==="true"&&siteUrl!==null;

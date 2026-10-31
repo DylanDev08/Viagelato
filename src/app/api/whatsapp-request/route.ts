@@ -3,6 +3,8 @@ import {NextResponse} from "next/server";
 import {z} from "zod";
 import {connected,privilegedDb} from "@/lib/supabase";
 import {whatsappCartMessage,type WhatsAppCartLine} from "@/lib/whatsapp-cart";
+import {quoteShipping} from "@/lib/shipping-quote";
+import type {ShippingZone} from "@/lib/types";
 import {normalizeWhatsAppRequest,whatsappRequestSchema,whatsappRequestReference} from "@/lib/whatsapp-request-rules";
 import {whatsappHref} from "@/lib/whatsapp";
 import {readJsonBody,RequestBodyError} from "@/lib/request-body";
@@ -26,7 +28,7 @@ type RequestSnapshot={
 type CommercialSettings={whatsapp:string;free_shipping_threshold:number;pickup_enabled:boolean};
 const snapshotFields="id,request_fingerprint,status,customer_name,locality,address,notes,shipping_method,items,subtotal";
 
-function preparedResponse(record:RequestSnapshot,settings:CommercialSettings,created:boolean){
+function preparedResponse(record:RequestSnapshot,settings:CommercialSettings,zones:ShippingZone[],created:boolean){
  if(record.status!=="draft"&&record.status!=="contacted"){
   return NextResponse.json({
    error:"Esta solicitud ya fue gestionada. Revisá el carrito y volvé a preparar una nueva solicitud.",
@@ -36,16 +38,17 @@ function preparedResponse(record:RequestSnapshot,settings:CommercialSettings,cre
  // Al reintentar, siempre usar el precio, cantidades y datos guardados en la primera solicitud.
  // De otro modo una actualización del catálogo podría cambiar el WhatsApp sin cambiar el pedido.
  const reference=whatsappRequestReference(record.id);
+ const shipping=quoteShipping({subtotal:Number(record.subtotal),locality:record.locality,method:record.shipping_method,freeShippingThreshold:Number(settings.free_shipping_threshold),zones});
  const message=[
   "Referencia: "+reference,
   whatsappCartMessage(record.items,{
    name:record.customer_name,locality:record.locality,address:record.address,notes:record.notes,
-   shippingMethod:record.shipping_method,freeShippingThreshold:Number(settings.free_shipping_threshold)
+   shippingMethod:record.shipping_method,freeShippingThreshold:Number(settings.free_shipping_threshold),shippingQuote:shipping
   })
  ].join("\n");
  const whatsapp_url=whatsappHref(settings.whatsapp,message);
  if(!whatsapp_url)return reply("No se pudo preparar el vínculo de WhatsApp",503);
- return NextResponse.json({reference,whatsapp_url,status:record.status,subtotal:Number(record.subtotal)},{
+ return NextResponse.json({reference,whatsapp_url,status:record.status,subtotal:Number(record.subtotal),shipping_cost:shipping.shippingCost,total:shipping.total,shipping_kind:shipping.kind},{
   status:created?201:200,headers:{"Cache-Control":"no-store"}
  });
 }
@@ -78,6 +81,9 @@ async function prepareRequest(request:Request){
  if(settingsError||!settings)return reply("No encontramos la configuración comercial",503);
  if(input.shipping_method==="pickup"&&!settings.pickup_enabled)return reply("El retiro no está habilitado",409);
  if(!whatsappHref(settings.whatsapp,"Prueba")?.includes("?text="))return reply("El WhatsApp comercial debe configurarse con un número válido",503);
+ const {data:zones,error:zonesError}=await db.from("shipping_zones").select("name,cost,active,ready,free_shipping_eligible").eq("active",true).eq("ready",true).not("cost","is",null);
+ if(zonesError)return reply("No pudimos verificar las tarifas de entrega. Intentá nuevamente.",503);
+ const shippingZones=(zones??[]) as ShippingZone[];
  // Buscar primero la idempotencia: si el catálogo cambió o se ocultó un producto,
  // la solicitud existente debe conservar sus precios y líneas originales.
  const {data:prior,error:priorError}=await db.from("whatsapp_order_requests").select(snapshotFields)
@@ -85,7 +91,7 @@ async function prepareRequest(request:Request){
  if(priorError)return reply("No se pudo revisar esta solicitud",503);
  if(prior){
   if(prior.request_fingerprint!==hash)return reply("Esta solicitud cambió. Revisá el carrito e intentá otra vez.",409);
-  return preparedResponse(prior as RequestSnapshot,settings,false);
+  return preparedResponse(prior as RequestSnapshot,settings,shippingZones,false);
  }
  const source=new Map<string,{name:string;sku:string;presentation:string;price:number}>();
  // Revalidar cada fila del catálogo en Supabase: nunca cotizar desde el JSON
@@ -142,5 +148,5 @@ async function prepareRequest(request:Request){
   record=existing.data;
  }
  if(record.request_fingerprint!==hash)return reply("Esta solicitud cambió. Revisá el carrito e intentá otra vez.",409);
- return preparedResponse(record as RequestSnapshot,settings,Boolean(created));
+ return preparedResponse(record as RequestSnapshot,settings,shippingZones,Boolean(created));
 }

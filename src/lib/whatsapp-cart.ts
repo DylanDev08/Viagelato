@@ -1,5 +1,6 @@
 import {CATALOG_PRICE_ITEMS,type CatalogPriceItem} from "./catalog-prices";
-import {ars,DELIVERY_AREAS} from "./types";
+import {ars} from "./types";
+import {quoteShipping,type ShippingQuote} from "./shipping-quote";
 
 export const catalogCartId=(row:number)=>`catalog-price-${row}`;
 
@@ -12,6 +13,7 @@ export type WhatsAppCartLine={name:string;sku?:string|null;presentation?:string|
 export type WhatsAppCheckoutDetails={
  name:string;locality:string;address:string;notes:string;
  shippingMethod:"shipping"|"pickup";freeShippingThreshold:number;
+ shippingQuote?:ShippingQuote;
 };
 
 export function whatsappCartMessage(lines:WhatsAppCartLine[],info:WhatsAppCheckoutDetails){
@@ -26,8 +28,9 @@ export function whatsappCartMessage(lines:WhatsAppCartLine[],info:WhatsAppChecko
   const sku=item.sku?.trim()? ` [${display(item.sku,100)}]`:"";
   return `${i+1}. ${display(item.name,160)}${presentation}${sku} — ${item.quantity} x ${ars(item.price)} = ${ars(item.price*item.quantity)}`;
  }).join("\n");
- const eligible=DELIVERY_AREAS.some(area=>area===locality);
- const freeShipping=info.shippingMethod==="shipping"&&eligible&&subtotal>=info.freeShippingThreshold;
+ const quote=info.shippingQuote??quoteShipping({
+  subtotal,locality,method:info.shippingMethod,freeShippingThreshold:info.freeShippingThreshold,zones:[]
+ });
  return [
   "Hola Viagelato, quiero realizar este pedido y coordinar el pago por WhatsApp.",
   `Nombre: ${name}`,
@@ -40,8 +43,12 @@ export function whatsappCartMessage(lines:WhatsAppCartLine[],info:WhatsAppChecko
   items,
   "",
   `Subtotal de productos: ${ars(subtotal)}`,
-  freeShipping?`Envío: solicitar aplicación de envío sin cargo desde ${ars(info.freeShippingThreshold)} en zona elegible; sujeto a confirmación.`:"Envío: costo y cobertura a confirmar por WhatsApp.",
-  "Total final: a confirmar con Viagelato antes de transferir.",
+  quote.kind==="free"?"Envío: gratis (zona habilitada y mínimo alcanzado).":
+   quote.kind==="pickup"?"Envío: retiro sin cargo.":
+   quote.kind==="priced"?`Envío a ${locality}: ${ars(quote.shippingCost??0)} (tarifa vigente).`:
+   "Envío: pendiente de cotizar y confirmar cobertura por WhatsApp.",
+  quote.total!==null?`Total estimado de productos y envío: ${ars(quote.total)}.`:
+   `Total de productos: ${ars(subtotal)}. Total final con envío: a confirmar.`,
   "¿Me confirman stock, fecha de entrega y datos para realizar la transferencia?",
   "Este mensaje solicita el pedido; no implica pago ni confirmación automática."
  ].join("\n");

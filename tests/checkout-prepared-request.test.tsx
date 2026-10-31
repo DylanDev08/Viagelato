@@ -20,8 +20,8 @@ describe("mensaje preparado y selección vigente",()=>{
   const user=userEvent.setup();
   render(<CartProvider><Checkout products={[]} zones={[]} settings={DEFAULT_SETTINGS} demo={false} checkoutEnabled={false}/></CartProvider>);
   await user.type(screen.getByLabelText("Nombre y apellido"),"Ana Gomez");
-  await user.selectOptions(screen.getByLabelText("Localidad"),"Lanús");
-  await user.click(screen.getByRole("button",{name:/Preparar pedido en WhatsApp/}));
+  await user.selectOptions(screen.getByLabelText("Zona de entrega"),"Lanús");
+  await user.click(screen.getByRole("button",{name:/Pagar por WhatsApp/}));
   await waitFor(()=>expect(send).toHaveBeenCalledOnce());
   expect(screen.getByLabelText("Nombre y apellido")).toBeDisabled();
   expect(screen.getByRole("button",{name:/Vaciar carrito/})).toBeDisabled();

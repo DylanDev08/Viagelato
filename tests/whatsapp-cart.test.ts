@@ -18,16 +18,16 @@ describe("finalización por WhatsApp sin pasarela",()=>{
   expect(text).toContain("VIA-PAL-002-X36");
   expect(text).toContain("Ana Gomez");
   expect(text).toContain("Av. Mitre 123");
-  expect(text).toContain("envío sin cargo");
-  expect(text).toContain("Total final: a confirmar");
+  expect(text).toContain("Envío: gratis");
+  expect(text).toContain("Total estimado de productos y envío");
   expect(text).toContain("no implica pago ni confirmación");
   const url=whatsappHref("+5491140962202",text);
   expect(decodeURIComponent(url||"")).toContain("Caja de 36 unidades");
  });
  it("no promete envío gratis por debajo del mínimo o fuera de zonas",()=>{
   const lines=[{name:"Torta",price:12900,quantity:1}];
-  expect(whatsappCartMessage(lines,base)).toContain("costo y cobertura a confirmar");
-  expect(whatsappCartMessage([{...lines[0],quantity:5}],{...base,locality:"CABA"})).toContain("costo y cobertura a confirmar");
+  expect(whatsappCartMessage(lines,base)).toContain("pendiente de cotizar y confirmar cobertura");
+  expect(whatsappCartMessage([{...lines[0],quantity:5}],{...base,locality:"CABA"})).toContain("pendiente de cotizar y confirmar cobertura");
  });
  it("no permite solicitudes vacías o cantidades incorrectas",()=>{
   expect(()=>whatsappCartMessage([],base)).toThrow("vacío");
