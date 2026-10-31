@@ -85,3 +85,20 @@
  .refined-shopping-steps article{padding:12px 8px}
 }
 @media(prefers-reduced-motion:reduce){.priced-catalog .priced-card{transition:none}.priced-catalog .priced-card:hover{transform:none}}
+
+/* Navegación móvil y carrito: acciones de compra antes de accesos internos. */
+@media(max-width:960px){
+ .mobile-nav .mobile-shop-entry{display:flex;gap:10px;align-items:center;background:#161a19;color:#fff;border-radius:10px;padding-inline:16px;margin:10px 0 12px;font-weight:800;min-height:48px}
+ .mobile-nav .mobile-shop-entry svg{flex-shrink:0}
+ .mobile-nav .mobile-shop-entry:focus-visible{outline:3px solid #447b73;outline-offset:3px}
+}
+.checkout-refresh .cart-page-heading{max-width:840px}
+.checkout-refresh .cart-page-heading>p:last-child{max-width:650px}
+.checkout-refresh .cart-empty .primary-action{border-radius:10px;max-width:100%;text-align:center}
+.checkout-refresh .cart-products-panel,.checkout-refresh .cart-summary-panel{border-radius:16px}
+.checkout-refresh .cart-checkout-tools .text-link{min-height:42px;display:inline-flex;align-items:center}
+@media(max-width:640px){
+ .checkout-refresh .cart-empty{min-height:240px;padding:28px 16px}
+ .checkout-refresh .cart-empty .primary-action{width:100%}
+ .checkout-refresh .cart-summary-panel{padding:20px}
+}
