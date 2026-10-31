@@ -45,7 +45,6 @@ export function Checkout({products,zones,settings,catalogItems=CATALOG_PRICE_ITE
  const missing=items.length-lines.length;
  const shipping=quoteShipping({subtotal,locality,method:delivery,freeShippingThreshold:Number(settings.free_shipping_threshold),zones});
  const canRequest=!unavailable&&missing===0&&lines.length>0&&lines.length<=30&&fullName.trim().length>=2&&locality.trim().length>=2;
- const promo=shipping.kind==="free";
 
  async function sendRequest(event:React.FormEvent<HTMLFormElement>){
   event.preventDefault();
