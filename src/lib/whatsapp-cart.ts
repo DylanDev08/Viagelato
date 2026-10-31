@@ -1,6 +1,7 @@
 import {CATALOG_PRICE_ITEMS,type CatalogPriceItem} from "./catalog-prices";
 import {ars} from "./types";
 import {quoteShipping,type ShippingQuote} from "./shipping-quote";
+import type {PaymentPreference} from "./whatsapp-request-rules";
 
 export const catalogCartId=(row:number)=>`catalog-price-${row}`;
 
@@ -14,6 +15,7 @@ export type WhatsAppCheckoutDetails={
  name:string;locality:string;address:string;notes:string;
  shippingMethod:"shipping"|"pickup";freeShippingThreshold:number;
  shippingQuote?:ShippingQuote;
+ paymentPreference?:PaymentPreference;
 };
 
 export function whatsappCartMessage(lines:WhatsAppCartLine[],info:WhatsAppCheckoutDetails){
@@ -37,6 +39,7 @@ export function whatsappCartMessage(lines:WhatsAppCartLine[],info:WhatsAppChecko
   `Entrega: ${info.shippingMethod==="pickup"?"Retiro (a confirmar)":"Envío a domicilio"}`,
   `Localidad: ${locality}`,
   ...(info.shippingMethod==="shipping"&&display(info.address,250)?[`Dirección: ${display(info.address,250)}`]:[]),
+  ...(info.paymentPreference?[`Forma de pago preferida: ${info.paymentPreference==="transfer"?"Transferencia":"Efectivo al recibir (a confirmar con Viagelato)"}`]:[]),
   ...(display(info.notes,350)?[`Observaciones: ${display(info.notes,350)}`]:[]),
   "",
   "Productos (precio por caja o presentación):",
@@ -49,7 +52,7 @@ export function whatsappCartMessage(lines:WhatsAppCartLine[],info:WhatsAppChecko
    "Envío: pendiente de cotizar y confirmar cobertura por WhatsApp.",
   quote.total!==null?`Total estimado de productos y envío: ${ars(quote.total)}.`:
    `Total de productos: ${ars(subtotal)}. Total final con envío: a confirmar.`,
-  "¿Me confirman stock, fecha de entrega y datos para realizar la transferencia?",
+  info.paymentPreference==="cash_on_delivery"?"¿Me confirman stock, fecha de entrega y si puedo pagar en efectivo al recibir?":"¿Me confirman stock, fecha de entrega y datos para realizar la transferencia?",
   "Este mensaje solicita el pedido; no implica pago ni confirmación automática."
  ].join("\n");
 }
