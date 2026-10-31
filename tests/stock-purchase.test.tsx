@@ -21,7 +21,7 @@ describe("stock administrado y cantidades del carrito",()=>{
   localStorage.setItem("viagelato-cart:v1",JSON.stringify([{id:product.id,quantity:2}]));
   render(<CartProvider><Checkout products={[product]} zones={[]} catalogItems={[]} settings={DEFAULT_SETTINGS} demo={false} checkoutEnabled={false}/></CartProvider>);
   expect(await screen.findByRole("alert")).toHaveTextContent("superan el stock");
-  expect(screen.getByRole("button",{name:/Preparar pedido/})).toBeDisabled();
+  expect(screen.getByRole("button",{name:/Pagar por WhatsApp/})).toBeDisabled();
  });
  it("no ofrece agregar un producto sin stock",()=>{
   render(<CartProvider><ProductCard product={{...product,stock:0}}/></CartProvider>);
