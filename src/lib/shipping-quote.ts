@@ -32,7 +32,7 @@ export function quoteShipping(input:{
  const covered=DELIVERY_AREAS.some(area=>normalized(area)===target)||Boolean(configured);
  const freeEligible=configured?configured.free_shipping_eligible===true:DELIVERY_AREAS.some(area=>normalized(area)===target);
  const threshold=Number(freeShippingThreshold);
- if(freeEligible&&Number.isFinite(threshold)&&threshold>0&&subtotal>=threshold)
+ if(freeEligible&&Number.isFinite(threshold)&&threshold>=0&&subtotal>0&&subtotal>=threshold)
   return {kind:"free",covered:true,shippingCost:0,total:currencyAmount(subtotal)};
  if(configured){
   const shippingCost=currencyAmount(Number(configured.cost));
