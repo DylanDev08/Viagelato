@@ -24,6 +24,8 @@ export function quoteShipping(input:{
  if(method==="pickup")return {kind:"pickup",covered:true,shippingCost:0,total:currencyAmount(subtotal)};
  if(!locality.trim())return {kind:"unselected",covered:false,shippingCost:null,total:null};
  const target=normalized(locality);
+ // El acuerdo comercial indica que Capital Federal siempre se cotiza por WhatsApp.
+ if(target==="capital federal"||target==="caba")return {kind:"pending",covered:false,shippingCost:null,total:null};
  const configured=zones.find(zone=>
   zone.active===true&&zone.ready===true&&zone.cost!==null&&
   Number.isFinite(Number(zone.cost))&&Number(zone.cost)>=0&&
