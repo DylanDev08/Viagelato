@@ -132,8 +132,6 @@ export function Checkout({products,zones,settings,catalogItems=CATALOG_PRICE_ITE
     </select></label>
     {selectedLocality==="other"?<label>Escribí tu localidad<input disabled={busy} required minLength={2} maxLength={100} autoComplete="address-level2" aria-label="Escribí tu localidad" value={otherLocality} onChange={e=>setOtherLocality(e.target.value)} placeholder="Por ejemplo: Quilmes" aria-describedby="other-locality-help"/><small id="other-locality-help">Esta zona requiere cotización de envío y confirmación de cobertura.</small></label>:null}
     {settings.pickup_enabled?<label>Entrega<select disabled={busy} value={delivery} onChange={e=>setDelivery(e.target.value as "shipping"|"pickup")}><option value="shipping">Envío a domicilio</option><option value="pickup">Consultar retiro</option></select></label>:null}
-    {delivery==="shipping"?<label>Dirección de entrega (opcional)<input disabled={busy} maxLength={250} autoComplete="street-address" value={address} onChange={e=>setAddress(e.target.value)} placeholder="Calle, altura y piso"/></label>:null}
-    <label>Observaciones (opcional)<textarea disabled={busy} maxLength={350} rows={3} value={notes} onChange={e=>setNotes(e.target.value)} placeholder="Horarios, preferencias de sabores, etc."/></label>
     <section className="cart-price-breakdown" aria-label="Resumen y total del pedido" aria-live="polite">
      <div className="cart-price-breakdown-title"><h3>Tu total</h3><span>{count} {count===1?"presentación":"presentaciones"}</span></div>
      <div className="cart-price-row"><span>Productos</span><strong>{ars(subtotal)}</strong></div>
@@ -142,6 +140,9 @@ export function Checkout({products,zones,settings,catalogItems=CATALOG_PRICE_ITE
      <div className="cart-price-total"><span>{shipping.total!==null?"Total del pedido":"Total de productos"}</span><strong>{ars(shipping.total??subtotal)}</strong></div>
      {shipping.total===null?<p className="cart-total-pending" role="status">{shipping.kind==="unselected"?"Seleccioná tu zona para calcular el envío.":shipping.covered?"Todavía no hay una tarifa de envío cargada para esta zona. El costo se confirma por WhatsApp.":"Esta localidad está fuera de las zonas indicadas. Consultaremos cobertura y envío por WhatsApp."} El total final será el subtotal más el envío confirmado.</p>:<p className="cart-total-ready">{shipping.kind==="free"?"Tu compra tiene envío gratuito en esta zona.":shipping.kind==="pickup"?"Retiro sin costo de envío.":"Total calculado con la tarifa de entrega configurada."} Confirmamos la disponibilidad antes del pago.</p>}
     </section>
+    {delivery==="shipping"?<label>Dirección de entrega (opcional)<input disabled={busy} maxLength={250} autoComplete="street-address" value={address} onChange={e=>setAddress(e.target.value)} placeholder="Calle, altura y piso"/></label>:null}
+    <label>Observaciones (opcional)<textarea disabled={busy} maxLength={350} rows={3} value={notes} onChange={e=>setNotes(e.target.value)} placeholder="Horarios, preferencias de sabores, etc."/></label>
+
     <div className="whatsapp-payment-info">
      <strong>Pago por transferencia, coordinado por WhatsApp</strong>
      <p>{shipping.kind==="free"?`Tu compra alcanza el envío gratuito desde ${ars(Number(settings.free_shipping_threshold))} en la zona seleccionada.`:shipping.kind==="priced"?`El envío a ${locality} está cotizado en ${ars(shipping.shippingCost??0)}.`:delivery==="pickup"?"No se agrega costo de envío al retiro.":shipping.kind==="pending"?"El costo de envío se confirma por WhatsApp. No se suma una tarifa estimada sin verificar.":"Elegí tu zona para saber si corresponde envío gratuito o una tarifa."}</p>
