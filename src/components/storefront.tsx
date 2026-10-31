@@ -38,7 +38,7 @@ export function Storefront({settings,products,banners,demo,catalogItems=CATALOG_
    <div className="section-title"><div><p className="kicker">ELEGÍ TUS PRODUCTOS</p><h2>Helados para tu negocio,<br/>listos para elegir.</h2></div><p>Consultá precios por caja o presentación. Sumá todo al carrito y confirmamos disponibilidad por WhatsApp.</p></div>
    <div className="home-selected-heading"><div><p className="kicker">PARA EMPEZAR</p><h3>Encontrá tu próxima compra.</h3></div><p>Una selección de nuestras seis líneas. Podés armar un pedido con productos de distintas categorías.</p></div>
    {visible.length?<div className="home-featured-grid">{visible.map(product=><ProductCard product={product} key={product.id}/>)}</div>:<PricedCatalog items={pricedPreview} compact/>}
-   <div className="center-action"><Link className="primary-action" href="/catalogo">Ver los 45 productos <ArrowRight size={18}/></Link></div>
+   <div className="center-action"><Link className="primary-action" href="/catalogo">Ver {catalogItems.length} productos <ArrowRight size={18}/></Link></div>
    <div className="home-type-intro"><div><p className="kicker">COMPRÁ POR CATEGORÍA</p><h3>¿Qué tipo de helado buscás?</h3></div><p>Entrá directamente a la línea que necesitás.</p></div>
    <div className="home-type-grid">
     {catalogGroups.map(group=><Link href={categoryCatalogHref(group.name)} key={group.name} className="home-type-card">
