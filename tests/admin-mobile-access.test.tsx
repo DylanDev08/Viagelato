@@ -15,14 +15,15 @@ afterEach(()=>vi.restoreAllMocks());
 const props={initialProducts:[],initialCategories:[],initialOrders:[],initialZones:[],initialSettings:DEFAULT_SETTINGS,initialBanners:[]};
 
 describe("entrada de administración desde celular",()=>{
- it("incluye un acceso directo en el menú móvil y lo cierra al entrar",async()=>{
+ it("prioriza la compra en el menú móvil y lo cierra al entrar al carrito",async()=>{
   const user=userEvent.setup();
   render(<CartProvider><SiteHeader settings={DEFAULT_SETTINGS}/></CartProvider>);
   const overlay=document.getElementById("mobile-navigation") as HTMLElement;
-  expect(within(overlay).getByText("Acceso administración")).toHaveAttribute("href","/admin");
-  expect(within(overlay).getByText("Acceso administración")).toHaveAttribute("tabindex","-1");
+  expect(within(overlay).getByText("Ver mi carrito")).toHaveAttribute("href","/carrito");
+  expect(within(overlay).getByText("Ver mi carrito")).toHaveAttribute("tabindex","-1");
+  expect(within(overlay).queryByText("Acceso administración")).not.toBeInTheDocument();
   await user.click(screen.getByRole("button",{name:"Abrir menú"}));
-  await user.click(within(overlay).getByRole("link",{name:"Acceso administración"}));
+  await user.click(within(overlay).getByRole("link",{name:"Ver mi carrito"}));
   expect(overlay).toHaveAttribute("aria-hidden","true");
  });
  it("deja un acceso alternativo en el pie sin saltarse la autenticación",()=>{

@@ -30,11 +30,20 @@ describe("precios del catálogo Viagelato de Excel",()=>{
   const sample=CATALOG_PRICE_ITEMS.slice(0,3);
   render(<CartProvider><PricedCatalog items={sample}/></CartProvider>);
   expect(screen.getByText("3 productos con precio por presentación")).toBeInTheDocument();
-  expect(screen.getAllByText("PRECIO FINAL POR PRESENTACIÓN")).toHaveLength(3);
+  expect(screen.getAllByText("PRECIO POR PRESENTACIÓN")).toHaveLength(3);
   await user.click(screen.getByRole("button",{name:`Agregar ${sample[0].name} al carrito`}));
   expect(screen.getByRole("link",{name:/En carrito: 1/})).toHaveAttribute("href","/carrito");
   await user.type(screen.getByPlaceholderText("Buscar productos o sabores"),"limon");
   expect(screen.getByText("1 producto con precio por presentación")).toBeInTheDocument();
   expect(screen.getByRole("link",{name:/Ver ficha y precio de Palitos de agua/})).toHaveAttribute("href","/catalogo/vista/44");
  });
+ it("muestra tarjetas comerciales breves conservando el acceso a los detalles",()=>{
+  const item=CATALOG_PRICE_ITEMS[0];
+  render(<CartProvider><PricedCatalog items={[item]}/></CartProvider>);
+  expect(screen.getByRole("link",{name:`Ver ficha y precio de ${item.name}`})).toBeInTheDocument();
+  expect(screen.getByText("Ver detalles del producto")).toBeInTheDocument();
+  expect(screen.getByRole("button",{name:`Agregar ${item.name} al carrito`})).toBeInTheDocument();
+  expect(screen.queryByText(item.description)).not.toBeInTheDocument();
+ });
+
 });

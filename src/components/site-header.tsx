@@ -27,7 +27,7 @@ export function SiteHeader({settings}:{settings:Settings}){
   <div className="shell header-row">
    <Link className="site-brand" href="/" aria-label={`${settings.name}, inicio`} onClick={()=>setOpen(false)}>
     <Image src={settings.logo_url||"/viagelato-logo.png"} alt="" width={42} height={42} unoptimized={Boolean(settings.logo_url)}/>
-    <span><strong>VIAGELATO</strong><small>LOGÍSTICA &amp; DISTRIBUCIÓN</small></span>
+    <span><strong>VIAGELATO</strong><small>HELADOS &amp; CONGELADOS</small></span>
    </Link>
    <nav className="desktop-nav" aria-label="Navegación principal">
     {links.map(link=><Link key={link.href} href={link.href}>{link.label}</Link>)}
@@ -38,7 +38,7 @@ export function SiteHeader({settings}:{settings:Settings}){
    </div>
   </div>
   <div id="mobile-navigation" className={`mobile-nav ${open?"is-open":""}`} aria-hidden={!open}>
-   <nav className="shell" aria-label="Navegación mobile">{links.map(link=><Link key={link.href} href={link.href} onClick={()=>setOpen(false)} tabIndex={open?0:-1}>{link.label}</Link>)}<Link className="mobile-admin-entry" href="/admin" onClick={()=>setOpen(false)} tabIndex={open?0:-1}>Acceso administración</Link></nav>
+   <nav className="shell" aria-label="Navegación mobile">{links.map(link=><Link key={link.href} href={link.href} onClick={()=>setOpen(false)} tabIndex={open?0:-1}>{link.label}</Link>)}<Link className="mobile-shop-entry" href="/carrito" onClick={()=>setOpen(false)} tabIndex={open?0:-1}><ShoppingBag size={18} aria-hidden="true"/> Ver mi carrito</Link></nav>
   </div>
  </header>;
 }
