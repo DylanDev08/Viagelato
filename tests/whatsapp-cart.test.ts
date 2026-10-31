@@ -29,6 +29,13 @@ describe("finalización por WhatsApp sin pasarela",()=>{
   expect(whatsappCartMessage(lines,base)).toContain("pendiente de cotizar y confirmar cobertura");
   expect(whatsappCartMessage([{...lines[0],quantity:5}],{...base,locality:"CABA"})).toContain("pendiente de cotizar y confirmar cobertura");
  });
+ it("explica preferencia de efectivo sin declararlo abonado",()=>{
+  const message=whatsappCartMessage([{name:"Torta",price:12900,quantity:1}],{...base,paymentPreference:"cash_on_delivery"});
+  expect(message).toContain("Forma de pago preferida: Efectivo al recibir");
+  expect(message).toContain("si puedo pagar en efectivo al recibir");
+  expect(message).not.toContain("datos para realizar la transferencia");
+  expect(message).toContain("no implica pago ni confirmación");
+ });
  it("no permite solicitudes vacías o cantidades incorrectas",()=>{
   expect(()=>whatsappCartMessage([],base)).toThrow("vacío");
   expect(()=>whatsappCartMessage([{name:"Torta",price:12900,quantity:0}],base)).toThrow("cantidades");
