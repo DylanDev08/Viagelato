@@ -13,6 +13,9 @@ const termsAction=z.object({
  stock_confirmed:z.literal(true),
  shipping_cost:z.number().finite().min(0).max(10000000),
 }).strict();
+const cashAction=z.object({
+ id:z.uuid(),action:z.literal("record_cash"),amount:z.number().finite().positive().max(100000000),payment_key:z.uuid()
+}).strict();
 const paymentAction=z.object({
  id:z.uuid(),
  action:z.literal("record_payment"),
@@ -20,7 +23,7 @@ const paymentAction=z.object({
  payment_key:z.uuid(),
  transfer_reference:z.string().trim().max(100).default(""),
 }).strict();
-const schema=z.discriminatedUnion("action",[statusAction,termsAction,paymentAction]);
+const schema=z.discriminatedUnion("action",[statusAction,termsAction,paymentAction,cashAction]);
 
 export async function PATCH(request:Request){
  const blocked=adminRequestError(request);
@@ -35,6 +38,10 @@ export async function PATCH(request:Request){
  if(input.action==="confirm_terms"){
   result=await db.rpc("admin_confirm_whatsapp_terms",{
    p_request_id:input.id,p_actor_user_id:admin.id,p_stock_confirmed:true,p_shipping_cost:input.shipping_cost
+  });
+ }else if(input.action==="record_cash"){
+  result=await db.rpc("admin_record_whatsapp_cash",{
+   p_request_id:input.id,p_actor_user_id:admin.id,p_amount:input.amount,p_payment_key:input.payment_key
   });
  }else if(input.action==="record_payment"){
   result=await db.rpc("admin_record_whatsapp_payment",{
