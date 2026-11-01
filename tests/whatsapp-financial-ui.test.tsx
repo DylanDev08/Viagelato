@@ -72,6 +72,7 @@ describe("seguimiento comercial de WhatsApp",()=>{
   const order={...common,payment_preference:"cash_on_delivery" as const,status:"confirmed" as const,
    stock_confirmed:true,shipping_cost:3500,total:25400,amount_paid:0,payment_status:"pending" as const};
   const {rerender}=render(<WhatsAppRequests requests={[order]}/>);
+  await user.click(screen.getByRole("button",{name:/Todos 1/}));
   expect(screen.getByText("Pago solicitado: Efectivo al recibir (a confirmar)")).toBeInTheDocument();
   expect(screen.getByRole("button",{name:"Preparar"})).toBeEnabled();
   await user.click(screen.getByRole("button",{name:"Preparar"}));

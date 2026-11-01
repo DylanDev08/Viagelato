@@ -3,9 +3,10 @@ import {useMemo,useRef,useState,type FormEvent} from "react";
 import {useRouter} from "next/navigation";
 import {ars,type WhatsAppRequest} from "@/lib/types";
 import {whatsappRequestReference,paymentFromNotes} from "@/lib/whatsapp-request-rules";
+import {searchWhatsAppRequests,whatsappRequestCounts,type WhatsAppAdminFilter} from "@/lib/admin-whatsapp-ui";
 
 const labels:Record<WhatsAppRequest["status"],string>={
- draft:"WhatsApp preparado",contacted:"Contactado",confirmed:"Confirmado",
+ draft:"Mensaje preparado",contacted:"Contactado",confirmed:"Pedido confirmado",
  preparing:"En preparación",shipped:"En camino",delivered:"Entregado",cancelled:"Cancelado"
 };
 function nextAction(request:WhatsAppRequest){
@@ -100,13 +101,16 @@ function RequestCard({request,freeShippingThreshold}:{request:WhatsAppRequest;fr
  }
  return <article className="whatsapp-request-card">
   <header className="whatsapp-request-header">
-   <div><strong>{whatsappRequestReference(request.id)}</strong><small>{new Date(request.created_at).toLocaleString("es-AR")} · {request.customer_name} · {request.locality}</small></div>
-   <span className="status-pill">{labels[request.status]}</span>
+   <div className="whatsapp-request-identity"><strong>{request.customer_name}</strong><small>Solicitud {whatsappRequestReference(request.id)} · {new Date(request.created_at).toLocaleString("es-AR")}</small><small>{request.shipping_method==="pickup"?"Retiro":"Envío"} · {request.locality}</small></div>
+   <div className="whatsapp-request-badges"><span className="status-pill">{labels[request.status]}</span><span className="admin-payment-pill">{request.payment_status==="paid"?"Cobrado":request.payment_status==="partial"?"Cobro parcial":cashOnDelivery?"Efectivo al recibir":"Pago pendiente"}</span></div>
   </header>
-  <div className="whatsapp-request-details">
-   <div>{request.items.map((item,index)=><small key={index}>{item.quantity} × {item.name} · {item.sku||"Sin SKU"} · {ars(item.price*item.quantity)}</small>)}</div>
-   <div>{request.address?<small>Dirección: {request.address}</small>:null}{legacyPayment.notes?<small>Observaciones: {legacyPayment.notes}</small>:null}<small>Pago solicitado: {cashOnDelivery?"Efectivo al recibir (a confirmar)":"Transferencia bancaria"}</small></div>
-  </div>
+  {request.status==="draft"?<p className="whatsapp-request-unconfirmed">El cliente preparó el mensaje, pero eso no confirma que lo haya enviado por WhatsApp. Verificá el contacto antes de aceptar el pedido.</p>:null}
+  <details className="whatsapp-request-products"><summary>Productos y datos de entrega ({request.items.length} {request.items.length===1?"producto":"productos"})</summary>
+   <div className="whatsapp-request-details">
+    <div>{request.items.map((item,index)=><small key={index}>{item.quantity} × {item.name} · {item.sku||"Sin SKU"} · {ars(item.price*item.quantity)}</small>)}</div>
+    <div>{request.address?<small>Dirección: {request.address}</small>:null}{legacyPayment.notes?<small>Observaciones: {legacyPayment.notes}</small>:null}<small>Pago solicitado: {cashOnDelivery?"Efectivo al recibir (a confirmar)":"Transferencia bancaria"}</small></div>
+   </div>
+  </details>
   <div className="whatsapp-finance-summary">
    <div><small>Productos</small><strong>{ars(Number(request.subtotal))}</strong></div>
    <div><small>Envío confirmado</small><strong>{request.shipping_cost===null?"Pendiente":ars(Number(request.shipping_cost))}</strong></div>
@@ -153,30 +157,43 @@ function RequestCard({request,freeShippingThreshold}:{request:WhatsAppRequest;fr
   {notice?<p role="status" className="hint">{notice}</p>:null}
  </article>;
 }
+const filterOptions:{id:WhatsAppAdminFilter;label:string}[]=[
+ {id:"attention",label:"Necesitan atención"},
+ {id:"processing",label:"En curso"},
+ {id:"payment",label:"Con saldo"},
+ {id:"finished",label:"Finalizados"},
+ {id:"all",label:"Todos"}
+];
 export function WhatsAppRequests({requests,freeShippingThreshold=60000}:{requests:WhatsAppRequest[];freeShippingThreshold?:number}){
- const [status,setStatus]=useState("all");
+ const [filter,setFilter]=useState<WhatsAppAdminFilter>("attention");
  const [search,setSearch]=useState("");
- const [onlyPending,setOnlyPending]=useState(false);
- const pendingStatuses=new Set<WhatsAppRequest["status"]>(["draft","contacted","confirmed","preparing","shipped"]);
- const pendingCount=requests.filter(request=>pendingStatuses.has(request.status)).length;
- const visible=useMemo(()=>requests.filter(request=>{
-  const found=(request.customer_name+" "+request.locality+" "+whatsappRequestReference(request.id)+" "+request.items.map(item=>item.name+" "+(item.sku||"")).join(" "))
-   .toLocaleLowerCase("es").includes(search.trim().toLocaleLowerCase("es"));
-  return found&&(status==="all"||request.status===status)&&(!onlyPending||pendingStatuses.has(request.status));
- }),[requests,search,status,onlyPending]);
- return <section className="panel">
-  <h2>Pedidos recibidos por WhatsApp</h2>
-  <p className="hint">Una solicitud preparada no confirma que el cliente haya enviado el WhatsApp. Registrá el contacto, verificá stock y envío, y después confirmá los pagos efectivamente acreditados.</p>
-  <div className="whatsapp-queue-summary" aria-label="Resumen de solicitudes"><div><strong>{pendingCount}</strong><span>Para seguir</span></div><div><strong>{requests.filter(r=>r.status==="delivered").length}</strong><span>Entregados</span></div><div><strong>{requests.filter(r=>r.status==="cancelled").length}</strong><span>Cancelados</span></div></div>
-  <div className="whatsapp-queue-tools"><label className="inline-check"><input type="checkbox" checked={onlyPending} onChange={event=>setOnlyPending(event.target.checked)}/> Solo pedidos pendientes</label><button type="button" className="btn tiny" disabled={status==="all"&&!onlyPending&&!search} onClick={()=>{setSearch("");setStatus("all");setOnlyPending(false)}}>Limpiar filtros</button></div>
-  <div className="admin-product-filters">
-   <label>Buscar referencia o cliente<input type="search" value={search} onChange={event=>setSearch(event.target.value)} placeholder="Nombre, referencia, localidad o producto"/></label>
-   <label>Estado<select value={status} onChange={event=>setStatus(event.target.value)}>
-    <option value="all">Todos</option>{Object.entries(labels).map(([key,value])=><option key={key} value={key}>{value}</option>)}
-   </select></label>
+ const counts=useMemo(()=>whatsappRequestCounts(requests),[requests]);
+ const visible=useMemo(()=>searchWhatsAppRequests(requests,search,filter),[requests,search,filter]);
+ return <section className="panel whatsapp-admin-panel">
+  <div className="whatsapp-admin-heading"><div><h2>Pedidos por WhatsApp</h2><p className="hint">Primero verificá el contacto, después stock y entrega. Registrá pagos únicamente cuando el dinero se reciba.</p></div>
+   <button type="button" className="btn ghost" onClick={()=>{setFilter("attention");setSearch("");}}>Ver pendientes</button>
   </div>
-  <p className="hint" aria-live="polite">{visible.length} de {requests.length} solicitudes recientes</p>
+  <div className="whatsapp-admin-metrics" aria-label="Resumen de pedidos recientes">
+   <div><small>Necesitan atención</small><strong>{counts.attention}</strong></div>
+   <div><small>En curso</small><strong>{counts.processing}</strong></div>
+   <div><small>Con saldo pendiente</small><strong>{counts.payment}</strong></div>
+   <div><small>Finalizados</small><strong>{counts.finished}</strong></div>
+  </div>
+  <div className="whatsapp-admin-filters" aria-label="Filtrar pedidos por WhatsApp">
+   {filterOptions.map(option=><button type="button" key={option.id} className={filter===option.id?"active":""}
+    aria-pressed={filter===option.id} onClick={()=>setFilter(option.id)}>{option.label} <span>{counts[option.id]}</span></button>)}
+  </div>
+  <div className="whatsapp-admin-search">
+   <label>Buscar un pedido<input type="search" value={search} onChange={event=>setSearch(event.target.value)}
+    placeholder="Cliente, referencia, localidad, producto o SKU"/></label>
+   {search?<button type="button" className="btn tiny" onClick={()=>setSearch("")}>Limpiar búsqueda</button>:null}
+  </div>
+  <p className="hint" aria-live="polite">{visible.length} resultados · {requests.length} solicitudes recientes cargadas (máximo 100)</p>
   <div className="whatsapp-request-list">{visible.map(request=><RequestCard key={request.id} request={request} freeShippingThreshold={freeShippingThreshold}/>)}</div>
-  {!visible.length?<p className="hint">{requests.length?"No hay pedidos con esos filtros. Probá limpiar los filtros para ver todos.":"Todavía no hay solicitudes. Aparecerán cuando un cliente prepare su pedido por WhatsApp."}</p>:null}
+  {!visible.length?<div className="whatsapp-admin-empty"><strong>{search?"No encontramos pedidos con esa búsqueda":filter==="attention"?"No hay pedidos que necesiten atención":"No hay pedidos en este estado"}</strong>
+   <p>Probá otra búsqueda o revisá todas las solicitudes recientes.</p>
+   <button type="button" className="btn ghost" onClick={()=>{setFilter("all");setSearch("");}}>Mostrar todos</button>
+  </div>:null}
+  <p className="whatsapp-admin-footnote">Los contadores muestran las últimas 100 solicitudes, no las ventas históricas. Un pedido puede figurar «En curso» y «Con saldo» al mismo tiempo. «Mensaje preparado» no significa que el cliente lo haya enviado.</p>
  </section>;
 }
