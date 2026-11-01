@@ -39,6 +39,15 @@ describe("carrito con total y envío visible",()=>{
   expect(summary.querySelector(".cart-price-total strong")).toHaveTextContent("26.900");
   expect(within(summary).getByText(/5.000/)).toBeInTheDocument();
  });
+ it("en Capital Federal no promete envío gratis aunque supere el mínimo",async()=>{
+  const user=userEvent.setup(),summary=setup();
+  for(let i=0;i<3;i++)await user.click(screen.getByRole("button",{name:"Agregar presentación de prueba"}));
+  await user.selectOptions(screen.getByLabelText("Zona de entrega"),"Capital Federal");
+  expect(within(summary).getByText("Total de productos")).toBeInTheDocument();
+  expect(within(summary).getByText("A confirmar")).toBeInTheDocument();
+  expect(summary.querySelector(".cart-price-total strong")).toHaveTextContent("65.700");
+  expect(within(summary).getByText(/Capital Federal requiere consulta/)).toBeInTheDocument();
+ });
  it("al elegir localidad fuera de zonas mantiene el subtotal sin prometer total final",async()=>{
   const user=userEvent.setup(),summary=setup();
   await user.click(screen.getByRole("button",{name:"Agregar presentación de prueba"}));

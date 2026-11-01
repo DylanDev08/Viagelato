@@ -43,3 +43,8 @@
  .checkout-refresh .cart-price-total strong{font-size:27px}
  .checkout-refresh .cart-submit{min-height:52px}
 }
+
+/* Cobertura especial y elección de pago: visible sin recargar el checkout. */
+.checkout-refresh .cart-caba-notice{background:#faf8f2;border:1px solid #e6dfd0;color:#594d37;border-radius:10px;padding:12px 14px;font-size:12px;line-height:1.55;margin:0 0 16px}
+.checkout-refresh .cart-form-panel>label>small{display:block;margin-top:2px;font-size:11px;line-height:1.55;color:#586661;font-weight:500}
+@media(max-width:640px){.checkout-refresh .cart-caba-notice{padding:12px;font-size:12px}}

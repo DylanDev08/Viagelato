@@ -31,6 +31,11 @@ describe("cotización de entrega en carrito y WhatsApp",()=>{
   expect(quoteShipping({...base,locality:"Quilmes Oeste",zones:[outside]})).toEqual({kind:"priced",covered:true,shippingCost:6700,total:28600});
   expect(quoteShipping({...base,method:"pickup",locality:""})).toEqual({kind:"pickup",covered:true,shippingCost:0,total:21900});
  });
+ it("Capital Federal y CABA siempre requieren consulta",()=>{
+  const caba=activeZone("Capital Federal",4500,true);
+  expect(quoteShipping({...base,locality:"Capital Federal",subtotal:90000,zones:[caba]})).toEqual({kind:"pending",covered:false,shippingCost:null,total:null});
+  expect(quoteShipping({...base,locality:"CABA",subtotal:90000,zones:[]})).toEqual({kind:"pending",covered:false,shippingCost:null,total:null});
+ });
  it("respeta que un admin desactive el envío gratuito para una zona tarifada",()=>{
   const zone=activeZone("Lanús",4000,false);
   expect(quoteShipping({...base,subtotal:65700,zones:[zone]})).toEqual({kind:"priced",covered:true,shippingCost:4000,total:69700});

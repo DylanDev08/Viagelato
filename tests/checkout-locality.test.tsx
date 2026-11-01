@@ -6,6 +6,15 @@ import {CartProvider} from "@/components/cart";
 import {DEFAULT_SETTINGS} from "@/lib/types";
 
 describe("localidades fuera de la cobertura predefinida",()=>{
+ it("separa Capital Federal y ofrece la preferencia de pago",async()=>{
+  const user=userEvent.setup();
+  render(<CartProvider><Checkout products={[]} zones={[]} settings={DEFAULT_SETTINGS} demo={false} checkoutEnabled={false}/></CartProvider>);
+  await user.selectOptions(screen.getByLabelText("Zona de entrega"),"Capital Federal");
+  expect(screen.getByText(/Capital Federal: entrega y costo siempre a consultar/)).toBeInTheDocument();
+  expect(screen.queryByRole("textbox",{name:"Escribí tu localidad"})).not.toBeInTheDocument();
+  await user.selectOptions(screen.getByLabelText("Forma de pago preferida"),"cash_on_delivery");
+  expect(screen.getByText("Efectivo al recibir, sujeto a confirmación")).toBeInTheDocument();
+ });
  it("permite escribir localidad real sin enviar literalmente 'Otra localidad'",async()=>{
   const user=userEvent.setup();
   render(<CartProvider><Checkout products={[]} zones={[]} settings={DEFAULT_SETTINGS} demo={false} checkoutEnabled={false}/></CartProvider>);

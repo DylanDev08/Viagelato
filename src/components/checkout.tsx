@@ -25,11 +25,12 @@ export function Checkout({products,zones,settings,catalogItems=CATALOG_PRICE_ITE
  const locality=selectedLocality==="other"?otherLocality.trim():selectedLocality;
  const [address,setAddress]=useState("");
  const [notes,setNotes]=useState("");
+ const [paymentPreference,setPaymentPreference]=useState<"transfer"|"cash_on_delivery">("transfer");
  const [delivery,setDelivery]=useState<"shipping"|"pickup">("shipping");
  const [error,setError]=useState("");
  const [busy,setBusy]=useState(false);
  const [prepared,setPrepared]=useState<{reference:string;url:string;selection:string}|null>(null);
- const selection=JSON.stringify({items,fullName,locality,address,notes,delivery});
+ const selection=JSON.stringify({items,fullName,locality,address,notes,delivery,paymentPreference});
  const productMap=useMemo(()=>new Map<string,DisplayItem>([
   ...products.map(product=>[product.id,{id:product.id,name:product.name,sku:product.sku,presentation:product.presentation,price:Number(product.price),image_url:product.image_url,stock:product.stock}] as const),
   ...catalogItems.map(product=>[catalogCartId(product.sourceRow),{id:catalogCartId(product.sourceRow),name:product.name,sku:product.sku,presentation:product.presentation,price:product.price,image_url:product.image,stock:null}] as const),
@@ -56,7 +57,7 @@ export function Checkout({products,zones,settings,catalogItems=CATALOG_PRICE_ITE
   try{
    const payload={
     customer_name:fullName,locality,address:delivery==="shipping"?address:"",notes,expected_subtotal:subtotal,
-    shipping_method:delivery,
+    shipping_method:delivery,payment_preference:paymentPreference,
     items:lines.map(({product,quantity})=>({id:product.id,quantity})),
    };
    const body=JSON.stringify(payload);
@@ -128,8 +129,10 @@ export function Checkout({products,zones,settings,catalogItems=CATALOG_PRICE_ITE
     <label>Zona de entrega<select disabled={busy} required value={selectedLocality} onChange={e=>setSelectedLocality(e.target.value)}>
      <option value="">Elegí tu localidad</option>
      {DELIVERY_AREAS.map(area=><option key={area} value={area}>{area}</option>)}
+     <option value="Capital Federal">Capital Federal (a consultar)</option>
      <option value="other">Fuera de las zonas indicadas / Otra localidad</option>
     </select></label>
+    {selectedLocality==="Capital Federal"?<p className="cart-caba-notice" role="status">Capital Federal: entrega y costo siempre a consultar por WhatsApp, sin tarifa automática ni envío gratis.</p>:null}
     {selectedLocality==="other"?<label>Escribí tu localidad<input disabled={busy} required minLength={2} maxLength={100} autoComplete="address-level2" aria-label="Escribí tu localidad" value={otherLocality} onChange={e=>setOtherLocality(e.target.value)} placeholder="Por ejemplo: Quilmes" aria-describedby="other-locality-help"/><small id="other-locality-help">Esta zona requiere cotización de envío y confirmación de cobertura.</small></label>:null}
     {settings.pickup_enabled?<label>Entrega<select disabled={busy} value={delivery} onChange={e=>setDelivery(e.target.value as "shipping"|"pickup")}><option value="shipping">Envío a domicilio</option><option value="pickup">Consultar retiro</option></select></label>:null}
     <section className="cart-price-breakdown" aria-label="Resumen y total del pedido" aria-live="polite">
@@ -138,13 +141,17 @@ export function Checkout({products,zones,settings,catalogItems=CATALOG_PRICE_ITE
      <div className="cart-price-row"><span>Envío{locality&&delivery==="shipping"?` · ${locality}`:""}</span>
       <strong>{shipping.kind==="free"?"Gratis":shipping.kind==="pickup"?"Sin envío":shipping.kind==="priced"?ars(shipping.shippingCost??0):"A confirmar"}</strong></div>
      <div className="cart-price-total"><span>{shipping.total!==null?"Total del pedido":"Total de productos"}</span><strong>{ars(shipping.total??subtotal)}</strong></div>
-     {shipping.total===null?<p className="cart-total-pending" role="status">{shipping.kind==="unselected"?"Seleccioná tu zona para calcular el envío.":shipping.covered?"Todavía no hay una tarifa de envío cargada para esta zona. El costo se confirma por WhatsApp.":"Esta localidad está fuera de las zonas indicadas. Consultaremos cobertura y envío por WhatsApp."} El total final será el subtotal más el envío confirmado.</p>:<p className="cart-total-ready">{shipping.kind==="free"?"Tu compra tiene envío gratuito en esta zona.":shipping.kind==="pickup"?"Retiro sin costo de envío.":"Total calculado con la tarifa de entrega configurada."} Confirmamos la disponibilidad antes del pago.</p>}
+     {shipping.total===null?<p className="cart-total-pending" role="status">{shipping.kind==="unselected"?"Seleccioná tu zona para calcular el envío.":shipping.covered?"Todavía no hay una tarifa de envío cargada para esta zona. El costo se confirma por WhatsApp.":locality==="Capital Federal"?"Capital Federal requiere consulta de cobertura y precio de envío por WhatsApp.":"Esta localidad está fuera de las zonas indicadas. Consultaremos cobertura y envío por WhatsApp."} El total final será el subtotal más el envío confirmado.</p>:<p className="cart-total-ready">{shipping.kind==="free"?"Tu compra tiene envío gratuito en esta zona.":shipping.kind==="pickup"?"Retiro sin costo de envío.":"Total calculado con la tarifa de entrega configurada."} Confirmamos la disponibilidad antes del pago.</p>}
     </section>
+    <label>Forma de pago preferida<select aria-label="Forma de pago preferida" disabled={busy} value={paymentPreference} onChange={e=>setPaymentPreference(e.target.value as "transfer"|"cash_on_delivery")}>
+     <option value="transfer">Transferencia bancaria</option>
+     <option value="cash_on_delivery">Efectivo al recibir (a confirmar)</option>
+    </select><small>Elegí tu preferencia: Viagelato confirma los datos y el medio de pago en WhatsApp. No se cobra desde la web.</small></label>
     {delivery==="shipping"?<label>Dirección de entrega (opcional)<input disabled={busy} maxLength={250} autoComplete="street-address" value={address} onChange={e=>setAddress(e.target.value)} placeholder="Calle, altura y piso"/></label>:null}
     <label>Observaciones (opcional)<textarea disabled={busy} maxLength={350} rows={3} value={notes} onChange={e=>setNotes(e.target.value)} placeholder="Horarios, preferencias de sabores, etc."/></label>
 
     <div className="whatsapp-payment-info">
-     <strong>Pago por transferencia, coordinado por WhatsApp</strong>
+     <strong>{paymentPreference==="transfer"?"Transferencia coordinada por WhatsApp":"Efectivo al recibir, sujeto a confirmación"}</strong>
      <p>{shipping.kind==="free"?`Tu compra alcanza el envío gratuito desde ${ars(Number(settings.free_shipping_threshold))} en la zona seleccionada.`:shipping.kind==="priced"?`El envío a ${locality} está cotizado en ${ars(shipping.shippingCost??0)}.`:delivery==="pickup"?"No se agrega costo de envío al retiro.":shipping.kind==="pending"?"El costo de envío se confirma por WhatsApp. No se suma una tarifa estimada sin verificar.":"Elegí tu zona para saber si corresponde envío gratuito o una tarifa."}</p>
     </div>
     {error?<p className="error" role="alert">{error}</p>:null}
@@ -152,7 +159,7 @@ export function Checkout({products,zones,settings,catalogItems=CATALOG_PRICE_ITE
     {lines.length>30?<p role="alert" className="error">Máximo 30 productos diferentes por solicitud. Quitá algunos para continuar.</p>:null}
     <button type="submit" className="btn primary full cart-submit" disabled={!canRequest||busy}>{busy?"Preparando pedido…":<>Pagar por WhatsApp <ArrowRight size={18}/></>}</button>
     {prepared?.selection===selection?<p role="status">Pedido {prepared.reference} preparado. <a href={prepared.url} rel="noopener noreferrer">Abrir WhatsApp para enviar el mensaje</a>. Si no lo enviás, seguirá pendiente de contacto.</p>:null}
-    <p className="cart-form-footnote"><Truck size={16} aria-hidden="true"/> No hay cobros automáticos: por WhatsApp confirmamos stock y coordinamos la transferencia. {shipping.total===null?"El total con envío aún debe cotizarse.":""}</p><p className="hint">WhatsApp se abrirá con el mensaje listo para revisar y enviar. El carrito permanece guardado hasta que vos decidas vaciarlo.</p>
+    <p className="cart-form-footnote"><Truck size={16} aria-hidden="true"/> No hay cobros automáticos: por WhatsApp confirmamos stock, entrega y forma de pago. {shipping.total===null?"El total con envío aún debe cotizarse.":""}</p><p className="hint">WhatsApp se abrirá con el mensaje listo para revisar y enviar. El carrito permanece guardado hasta que vos decidas vaciarlo.</p>
    </form>
   </div>
  </main></SiteShell>;
