@@ -48,3 +48,12 @@
 .checkout-refresh .cart-caba-notice{background:#faf8f2;border:1px solid #e6dfd0;color:#594d37;border-radius:10px;padding:12px 14px;font-size:12px;line-height:1.55;margin:0 0 16px}
 .checkout-refresh .cart-form-panel>label>small{display:block;margin-top:2px;font-size:11px;line-height:1.55;color:#586661;font-weight:500}
 @media(max-width:640px){.checkout-refresh .cart-caba-notice{padding:12px;font-size:12px}}
+
+/* Reintentos seguros: referencia visible y decisión explícita antes de otro pedido. */
+.checkout-refresh .cart-existing-order{border:1px solid #cbdcd5;background:#f5faf7;border-radius:12px;padding:15px;margin:16px 0 12px;display:grid;gap:9px}
+.checkout-refresh .cart-existing-order strong{font-size:14px;color:#223a31}
+.checkout-refresh .cart-existing-order p{margin:0;font-size:12px;color:#475e53;line-height:1.6}
+.checkout-refresh .cart-existing-order button{justify-self:start;border:1px solid #567569;border-radius:8px;background:#fff;padding:10px 13px;min-height:43px;color:#203a2f;font-size:12px;font-weight:800;cursor:pointer}
+.checkout-refresh .cart-existing-order button:focus-visible{outline:3px solid #447b73;outline-offset:3px}
+.checkout-refresh .cart-existing-order button:disabled{opacity:.55;cursor:wait}
+@media(max-width:440px){.checkout-refresh .cart-existing-order button{width:100%}}
