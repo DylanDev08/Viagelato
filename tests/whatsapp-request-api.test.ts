@@ -2,6 +2,7 @@ import {createHash} from "node:crypto";
 import {beforeEach,describe,expect,it,vi} from "vitest";
 import {POST} from "@/app/api/whatsapp-request/route";
 import {connected,privilegedDb} from "@/lib/supabase";
+import {normalizeWhatsAppRequest,whatsappRequestSchema} from "@/lib/whatsapp-request-rules";
 
 vi.mock("@/lib/supabase",()=>({connected:vi.fn(()=>true),privilegedDb:vi.fn()}));
 const id="11111111-2222-4333-8444-555555555555",key="22222222-3333-4444-8555-666666666666";
@@ -105,7 +106,7 @@ describe("registrar referencia WhatsApp",()=>{
  it("reabre la misma solicitud y conserva la preferencia original",async()=>{
   const incoming={...payload,payment_preference:"transfer"};
   priorRead.mockResolvedValue({data:{
-   id,status:"draft",request_fingerprint:fingerprint(incoming),
+   id,status:"draft",request_fingerprint:fingerprint(normalizeWhatsAppRequest(whatsappRequestSchema.parse(incoming))),
    customer_name:incoming.customer_name,locality:incoming.locality,address:incoming.address,
    notes:"Forma de pago preferida: Transferencia\nTimbre rojo",shipping_method:"shipping",subtotal:43800,
    items:[{id:"catalog-price-2",name:"Palitos",sku:"VIA-CAT-2",presentation:"Caja x24",price:21900,quantity:2}]
