@@ -20,8 +20,8 @@ describe("bandeja administrativa de WhatsApp",()=>{
    {...base,id:"22222222-2222-4333-8444-555555555555",customer_name:"Juan",status:"delivered" as const,payment_status:"paid" as const,total:20000,amount_paid:20000}
   ] as WhatsAppRequest[];
   render(<WhatsAppRequests requests={requests}/>);
-  expect(screen.getByText("Necesitan atención")).toBeInTheDocument();
-  expect(screen.getByText("Finalizados")).toBeInTheDocument();
+  expect(screen.getByRole("button",{name:/Necesitan atención 1/})).toBeInTheDocument();
+  expect(screen.getByRole("button",{name:/Finalizados 1/})).toBeInTheDocument();
   expect(screen.getByText("1 resultados · 2 solicitudes recientes cargadas (máximo 100)")).toBeInTheDocument();
   expect(screen.getByText(/El cliente preparó el mensaje/)).toBeInTheDocument();
   expect(screen.getByText("Ana Gomez")).toBeInTheDocument();
