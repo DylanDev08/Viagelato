@@ -30,6 +30,7 @@ export function Checkout({products,zones,settings,catalogItems=CATALOG_PRICE_ITE
  const [error,setError]=useState("");
  const [busy,setBusy]=useState(false);
  const [prepared,setPrepared]=useState<{reference:string;url:string;selection:string}|null>(null);
+ const [handled,setHandled]=useState<{reference:string;selection:string}|null>(null);
  const selection=JSON.stringify({items,fullName,locality,address,notes,delivery,paymentPreference});
  const productMap=useMemo(()=>new Map<string,DisplayItem>([
   ...products.map(product=>[product.id,{id:product.id,name:product.name,sku:product.sku,presentation:product.presentation,price:Number(product.price),image_url:product.image_url,stock:product.stock}] as const),
@@ -50,6 +51,7 @@ export function Checkout({products,zones,settings,catalogItems=CATALOG_PRICE_ITE
  async function sendRequest(event:React.FormEvent<HTMLFormElement>){
   event.preventDefault();
   if(busy)return;
+  if(handled?.selection===selection)return;
   setError("");
   setPrepared(null);
   if(!canRequest)return setError("Completá nombre y localidad, con un máximo de 30 productos diferentes.");
@@ -70,7 +72,11 @@ export function Checkout({products,zones,settings,catalogItems=CATALOG_PRICE_ITE
    });
    const data=await res.json().catch(()=>({error:"El servidor devolvió una respuesta inválida"}));
    if(!res.ok){
-    if(data.code==="REQUEST_ALREADY_HANDLED")clearCheckoutKey(checkoutKeyStorage);
+    if(data.code==="REQUEST_ALREADY_HANDLED"){
+     // Nunca renovar automáticamente la clave: el siguiente intento duplicaría una compra ya gestionada.
+     if(typeof data.reference==="string")setHandled({reference:data.reference,selection});
+     throw new Error("Este pedido ya está registrado y fue gestionado. No lo creamos otra vez.");
+    }
     throw new Error(data.error||"No se pudo guardar la solicitud");
    }
    if(typeof data.reference!=="string"||typeof data.whatsapp_url!=="string"||!data.whatsapp_url.startsWith("https://wa.me/")||!data.whatsapp_url.includes("?text="))throw new Error("El enlace de WhatsApp no está disponible");
@@ -157,7 +163,8 @@ export function Checkout({products,zones,settings,catalogItems=CATALOG_PRICE_ITE
     {error?<p className="error" role="alert">{error}</p>:null}
     {unavailable?<p className="error" role="alert">Hay productos sin precio vigente o cantidades que superan el stock informado. Revisá las cantidades o quitá esos artículos.</p>:null}
     {lines.length>30?<p role="alert" className="error">Máximo 30 productos diferentes por solicitud. Quitá algunos para continuar.</p>:null}
-    <button type="submit" className="btn primary full cart-submit" disabled={!canRequest||busy}>{busy?"Preparando pedido…":<>Pagar por WhatsApp <ArrowRight size={18}/></>}</button>
+    <button type="submit" className="btn primary full cart-submit" disabled={!canRequest||busy||handled?.selection===selection}>{busy?"Preparando pedido…":<>Pagar por WhatsApp <ArrowRight size={18}/></>}</button>
+    {handled?.selection===selection?<div className="cart-existing-order" role="status"><strong>Solicitud {handled.reference} ya gestionada.</strong><p>Tu pedido anterior sigue registrado. No vuelvas a enviarlo por error. Si querés hacer otro pedido con estos productos, iniciá una solicitud nueva.</p><button type="button" disabled={busy} onClick={()=>{if(!window.confirm("¿Crear otro pedido distinto con estos mismos productos? Si no necesitás otra compra, cancelá."))return;clearCheckoutKey(checkoutKeyStorage);setHandled(null);setPrepared(null);setError("");}}>Iniciar un pedido nuevo</button></div>:null}
     {prepared?.selection===selection?<p role="status">Pedido {prepared.reference} preparado. <a href={prepared.url} rel="noopener noreferrer">Abrir WhatsApp para enviar el mensaje</a>. Si no lo enviás, seguirá pendiente de contacto.</p>:null}
     <p className="cart-form-footnote"><Truck size={16} aria-hidden="true"/> No hay cobros automáticos: por WhatsApp confirmamos stock, entrega y forma de pago. {shipping.total===null?"El total con envío aún debe cotizarse.":""}</p><p className="hint">WhatsApp se abrirá con el mensaje listo para revisar y enviar. El carrito permanece guardado hasta que vos decidas vaciarlo.</p>
    </form>
