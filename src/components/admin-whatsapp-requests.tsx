@@ -125,7 +125,7 @@ function RequestCard({request,freeShippingThreshold}:{request:WhatsAppRequest;fr
    <button type="submit" className="btn tiny" disabled={busy||!stock||!shipping.trim()}>Guardar stock y envío</button>
   </form>:null}
   {termsComplete?<p className="hint">Stock y envío verificados manualmente. Este paso no modifica el inventario.</p>:null}
-  {request.payment_status==="partial"?<p className="hint">Pago parcial registrado. El pedido no pasará a preparación hasta completar el saldo.</p>:null}
+  {request.payment_status==="partial"?<p className="hint">{cashOnDelivery?"Hay un pago parcial registrado. El saldo restante debe cobrarse efectivamente al entregar.":"Pago parcial registrado. El pedido no pasará a preparación hasta completar el saldo."}</p>:null}
   {canRegisterPayment&&!cashOnDelivery?<form className="whatsapp-request-form" onSubmit={event=>void registerPayment(event)}>
    <h3>2. Registrar transferencia acreditada</h3>
    <label>Importe recibido (ARS)<input required type="number" inputMode="decimal" min="0.01" step="0.01"
