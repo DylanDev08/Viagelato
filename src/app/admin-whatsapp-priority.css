@@ -30,3 +30,7 @@
 .whatsapp-request-unconfirmed{background:#f7f3eb;border:1px solid #e7decd;border-radius:9px;color:#594f3a;font-size:12px;line-height:1.6;padding:11px 13px;margin:0}
 @media(max-width:900px){.whatsapp-admin-metrics{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:600px){.whatsapp-admin-heading{display:grid}.whatsapp-admin-heading>.btn{justify-self:start}.whatsapp-admin-metrics{gap:8px}.whatsapp-admin-metrics>div{padding:13px}.whatsapp-admin-metrics strong{font-size:24px}.whatsapp-admin-filters{margin-inline:-3px}.whatsapp-request-badges{justify-content:flex-start}.whatsapp-request-card{gap:12px}.whatsapp-request-products{padding:10px}}
+
+/* Specificity over legacy .whatsapp-request-header>div grid rule. */
+.whatsapp-request-header .whatsapp-request-badges{display:flex;align-items:center;justify-content:flex-end;gap:7px}
+@media(max-width:600px){.whatsapp-request-header .whatsapp-request-badges{justify-content:flex-start}}
