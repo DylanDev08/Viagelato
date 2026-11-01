@@ -58,6 +58,17 @@ describe("acciones seguras de WhatsApp en administrador",()=>{
    p_request_id:id,p_actor_user_id:id,p_amount:15400,p_payment_key:key,p_transfer_reference:"OP-123"
   });
  });
+ it("registra efectivo como acción separada y auditada",async()=>{
+  vi.mocked(assertAdmin).mockResolvedValue({id} as Awaited<ReturnType<typeof assertAdmin>>);
+  const rpc=vi.fn(async()=>({data:true,error:null}));
+  vi.mocked(privilegedDb).mockReturnValue({rpc} as unknown as ReturnType<typeof privilegedDb>);
+  const response=await PATCH(req({id,action:"record_cash",amount:25400,payment_key:key}));
+  expect(response.status).toBe(200);
+  expect(rpc).toHaveBeenCalledWith("admin_record_whatsapp_cash",{
+   p_request_id:id,p_actor_user_id:id,p_amount:25400,p_payment_key:key
+  });
+  expect((await PATCH(req({id,action:"record_cash",amount:0,payment_key:key}))).status).toBe(400);
+ });
  it("no informa éxito ante error de la función transaccional",async()=>{
   vi.mocked(assertAdmin).mockResolvedValue({id} as Awaited<ReturnType<typeof assertAdmin>>);
   const rpc=vi.fn(async()=>({data:null,error:{message:"Pago superior al saldo"}}));

@@ -2,7 +2,7 @@
 import {useMemo,useRef,useState,type FormEvent} from "react";
 import {useRouter} from "next/navigation";
 import {ars,type WhatsAppRequest} from "@/lib/types";
-import {whatsappRequestReference} from "@/lib/whatsapp-request-rules";
+import {whatsappRequestReference,paymentFromNotes} from "@/lib/whatsapp-request-rules";
 
 const labels:Record<WhatsAppRequest["status"],string>={
  draft:"WhatsApp preparado",contacted:"Contactado",confirmed:"Confirmado",
@@ -23,6 +23,9 @@ function RequestCard({request,freeShippingThreshold}:{request:WhatsAppRequest;fr
  const freeShipping=request.shipping_method==="shipping"&&
   ["Lomas de Zamora","Lanús","Banfield","Avellaneda","Valentín Alsina","Don Bosco","Wilde"].includes(request.locality)&&
   Number(request.subtotal)>=freeShippingThreshold;
+ const legacyPayment=paymentFromNotes(request.notes);
+ const paymentPreference=request.payment_preference??legacyPayment.paymentPreference??"transfer";
+ const cashOnDelivery=paymentPreference==="cash_on_delivery";
  const [shipping,setShipping]=useState(request.shipping_method==="pickup"||freeShipping?"0":request.shipping_cost===null?"":String(Number(request.shipping_cost)));
  const [stock,setStock]=useState(request.stock_confirmed);
  const [paymentAmount,setPaymentAmount]=useState("");
@@ -31,6 +34,7 @@ function RequestCard({request,freeShippingThreshold}:{request:WhatsAppRequest;fr
  const [error,setError]=useState("");
  const [notice,setNotice]=useState("");
  const lastPayment=useRef<{fingerprint:string;key:string}|null>(null);
+ const lastCashKey=useRef<string|null>(null);
  const next=nextAction(request);
  const finalTotal=request.total===null?null:Number(request.total);
  const received=Number(request.amount_paid);
@@ -39,7 +43,10 @@ function RequestCard({request,freeShippingThreshold}:{request:WhatsAppRequest;fr
  const canEditTerms=(request.status==="contacted"||request.status==="confirmed")&&received===0;
  const canRegisterPayment=["confirmed","preparing","shipped","delivered"].includes(request.status)&&termsComplete&&remaining!==null&&remaining>0;
  const blockedConfirm=request.status==="contacted"&&!termsComplete;
- const blockedPreparing=request.status==="confirmed"&&(request.payment_status!=="paid"||remaining!==0);
+ const blockedPreparing=request.status==="confirmed"&&!cashOnDelivery&&(request.payment_status!=="paid"||remaining!==0);
+ const blockedDelivered=next?.action==="delivered"&&(request.payment_status!=="paid"||remaining!==0);
+ const canRegisterCash=cashOnDelivery&&termsComplete&&remaining!==null&&remaining>0&&
+  (request.status==="shipped"||(request.status==="preparing"&&request.shipping_method==="pickup"));
  async function apply(data:Operation,success:string){
   if(busy)return false;
   setBusy(true);setError("");setNotice("");
@@ -78,6 +85,13 @@ function RequestCard({request,freeShippingThreshold}:{request:WhatsAppRequest;fr
   },"Transferencia registrada y auditada");
   if(successful){lastPayment.current=null;setPaymentAmount("");setBankReference("");}
  }
+ async function registerCash(){
+  if(busy||!canRegisterCash||remaining===null)return;
+  if(!window.confirm(`¿Recibiste físicamente ${ars(remaining)} en efectivo de este cliente? Este cobro quedará registrado.`))return;
+  if(!lastCashKey.current)lastCashKey.current=crypto.randomUUID();
+  const success=await apply({id:request.id,action:"record_cash",amount:remaining,payment_key:lastCashKey.current},"Efectivo recibido y registrado");
+  if(success)lastCashKey.current=null;
+ }
  async function move(action:string){
   if(action==="confirmed"&&!window.confirm("¿El cliente confirmó el pedido y ya verificaste stock y costo final?"))return;
   if(action==="delivered"&&!window.confirm("¿La mercadería ya fue entregada?"))return;
@@ -91,13 +105,13 @@ function RequestCard({request,freeShippingThreshold}:{request:WhatsAppRequest;fr
   </header>
   <div className="whatsapp-request-details">
    <div>{request.items.map((item,index)=><small key={index}>{item.quantity} × {item.name} · {item.sku||"Sin SKU"} · {ars(item.price*item.quantity)}</small>)}</div>
-   <div>{request.address?<small>Dirección: {request.address}</small>:null}{request.notes?<small>Observaciones: {request.notes}</small>:null}</div>
+   <div>{request.address?<small>Dirección: {request.address}</small>:null}{legacyPayment.notes?<small>Observaciones: {legacyPayment.notes}</small>:null}<small>Pago solicitado: {cashOnDelivery?"Efectivo al recibir (a confirmar)":"Transferencia bancaria"}</small></div>
   </div>
   <div className="whatsapp-finance-summary">
    <div><small>Productos</small><strong>{ars(Number(request.subtotal))}</strong></div>
    <div><small>Envío confirmado</small><strong>{request.shipping_cost===null?"Pendiente":ars(Number(request.shipping_cost))}</strong></div>
    <div><small>Total final</small><strong>{finalTotal===null?"Pendiente":ars(finalTotal)}</strong></div>
-   <div><small>Transferencias acreditadas</small><strong>{ars(received)}</strong></div>
+   <div><small>Pagos registrados</small><strong>{ars(received)}</strong></div>
    <div><small>Saldo pendiente</small><strong>{remaining===null?"Por definir":ars(remaining)}</strong></div>
   </div>
   {canEditTerms?<form className="whatsapp-request-form" onSubmit={event=>void saveTerms(event)}>
@@ -111,8 +125,8 @@ function RequestCard({request,freeShippingThreshold}:{request:WhatsAppRequest;fr
    <button type="submit" className="btn tiny" disabled={busy||!stock||!shipping.trim()}>Guardar stock y envío</button>
   </form>:null}
   {termsComplete?<p className="hint">Stock y envío verificados manualmente. Este paso no modifica el inventario.</p>:null}
-  {request.payment_status==="partial"?<p className="hint">Pago parcial registrado. El pedido no pasará a preparación hasta completar el saldo.</p>:null}
-  {canRegisterPayment?<form className="whatsapp-request-form" onSubmit={event=>void registerPayment(event)}>
+  {request.payment_status==="partial"?<p className="hint">{cashOnDelivery?"Hay un pago parcial registrado. El saldo restante debe cobrarse efectivamente al entregar.":"Pago parcial registrado. El pedido no pasará a preparación hasta completar el saldo."}</p>:null}
+  {canRegisterPayment&&!cashOnDelivery?<form className="whatsapp-request-form" onSubmit={event=>void registerPayment(event)}>
    <h3>2. Registrar transferencia acreditada</h3>
    <label>Importe recibido (ARS)<input required type="number" inputMode="decimal" min="0.01" step="0.01"
     max={remaining??undefined} placeholder={remaining===null?"":String(remaining)}
@@ -122,14 +136,16 @@ function RequestCard({request,freeShippingThreshold}:{request:WhatsAppRequest;fr
    <button type="submit" className="btn tiny" disabled={busy}>Registrar importe recibido</button>
    <small>Solo anotá dinero efectivamente acreditado. Si es parcial, el saldo se conserva.</small>
   </form>:null}
-  {request.whatsapp_request_payments?.length?<details className="whatsapp-payment-history"><summary>Ver transferencias registradas ({request.whatsapp_request_payments.length})</summary>
-   {request.whatsapp_request_payments.map(payment=><small key={payment.id}>{ars(Number(payment.amount))} · {new Date(payment.created_at).toLocaleString("es-AR")}{payment.transfer_reference?` · Ref. ${payment.transfer_reference}`:""}</small>)}
+  {canRegisterCash?<div className="whatsapp-request-form"><h3>3. Cobro al entregar</h3><p className="hint">Registrá el efectivo únicamente después de recibirlo físicamente. No marques entregado antes de cobrar el saldo.</p><button type="button" className="btn tiny" disabled={busy} onClick={()=>void registerCash()}>Registrar efectivo recibido · {ars(remaining??0)}</button></div>:null}
+  {request.whatsapp_request_payments?.length?<details className="whatsapp-payment-history"><summary>Ver pagos registrados ({request.whatsapp_request_payments.length})</summary>
+   {request.whatsapp_request_payments.map(payment=><small key={payment.id}>{ars(Number(payment.amount))} · {payment.payment_method==="cash"?"Efectivo":"Transferencia"} · {new Date(payment.created_at).toLocaleString("es-AR")}{payment.transfer_reference?` · Ref. ${payment.transfer_reference}`:""}</small>)}
   </details>:null}
   <div className="whatsapp-request-actions">
-   {next?<button className="btn tiny" type="button" disabled={busy||blockedConfirm||blockedPreparing}
+   {next?<button className="btn tiny" type="button" disabled={busy||blockedConfirm||blockedPreparing||blockedDelivered}
     onClick={()=>void move(next.action)}>{next.label}</button>:null}
    {blockedConfirm?<small>Primero guardá stock y costo de envío.</small>:null}
-   {blockedPreparing?<small>Solo podés preparar cuando esté acreditado el total.</small>:null}
+   {blockedPreparing?<small>Para transferencia, primero acreditá el pago completo.</small>:null}
+   {blockedDelivered?<small>Primero registrá el cobro efectivo antes de marcar la entrega.</small>:null}
    {request.payment_status==="pending"&& !["cancelled","delivered"].includes(request.status)?
     <button type="button" className="btn tiny danger" disabled={busy} onClick={()=>void move("cancel")}>Cancelar</button>:null}
   </div>

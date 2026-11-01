@@ -97,11 +97,18 @@ describe("registrar referencia WhatsApp",()=>{
  it("guarda preferencia de efectivo y la comunica en WhatsApp",async()=>{
   const response=await POST(make({...payload,payment_preference:"cash_on_delivery",notes:"Entregar después de las 18"}));
   expect(response.status).toBe(201);
-  expect(insert).toHaveBeenCalledWith(expect.objectContaining({notes:"Forma de pago preferida: Efectivo al recibir\nEntregar después de las 18"}),expect.anything());
+  expect(insert).toHaveBeenCalledWith(expect.objectContaining({notes:"Entregar después de las 18",payment_preference:"cash_on_delivery"}),expect.anything());
   const message=decodeURIComponent((await response.json()).whatsapp_url);
   expect(message).toContain("Forma de pago preferida: Efectivo al recibir");
   expect(message).toContain("Observaciones: Entregar después de las 18");
   expect(message).not.toContain("Observaciones: Forma de pago preferida");
+ });
+ it("guarda observaciones completas de 350 caracteres sin sumar metadatos de pago",async()=>{
+  const notes="A".repeat(350);
+  const response=await POST(make({...payload,payment_preference:"cash_on_delivery",notes}));
+  expect(response.status).toBe(201);
+  expect(insert).toHaveBeenCalledWith(expect.objectContaining({notes,payment_preference:"cash_on_delivery"}),expect.anything());
+  expect(decodeURIComponent((await response.json()).whatsapp_url)).toContain("Observaciones: "+notes);
  });
  it("reabre la misma solicitud y conserva la preferencia original",async()=>{
   const incoming={...payload,payment_preference:"transfer"};
