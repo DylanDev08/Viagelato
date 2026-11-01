@@ -32,7 +32,8 @@ function preparedResponse(record:RequestSnapshot,settings:CommercialSettings,zon
  if(record.status!=="draft"&&record.status!=="contacted"){
   return NextResponse.json({
    error:"Esta solicitud ya fue gestionada. Revisá el carrito y volvé a preparar una nueva solicitud.",
-   code:"REQUEST_ALREADY_HANDLED"
+   code:"REQUEST_ALREADY_HANDLED",
+   reference:whatsappRequestReference(record.id)
   },{status:409,headers:{"Cache-Control":"no-store"}});
  }
  // Al reintentar, siempre usar el precio, cantidades y datos guardados en la primera solicitud.
