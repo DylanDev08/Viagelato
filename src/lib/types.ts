@@ -94,6 +94,7 @@ export type WhatsAppRequest={
  address:string;
  notes:string;
  shipping_method:"shipping"|"pickup";
+ payment_preference?:"transfer"|"cash_on_delivery";
  items:{id:string;name:string;sku?:string|null;presentation?:string|null;price:number;quantity:number}[];
  subtotal:number;
  status:"draft"|"contacted"|"confirmed"|"preparing"|"shipped"|"delivered"|"cancelled";
@@ -102,7 +103,7 @@ export type WhatsAppRequest={
  shipping_cost:number|null;
  total:number|null;
  amount_paid:number;
- whatsapp_request_payments?:{id:string;amount:number;transfer_reference:string;created_at:string}[];
+ whatsapp_request_payments?:{id:string;amount:number;transfer_reference:string;payment_method?:"transfer"|"cash";created_at:string}[];
  created_at:string;
  updated_at:string;
 };
