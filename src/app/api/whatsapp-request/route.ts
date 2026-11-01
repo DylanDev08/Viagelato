@@ -5,7 +5,7 @@ import {connected,privilegedDb} from "@/lib/supabase";
 import {whatsappCartMessage,type WhatsAppCartLine} from "@/lib/whatsapp-cart";
 import {quoteShipping} from "@/lib/shipping-quote";
 import type {ShippingZone} from "@/lib/types";
-import {normalizeWhatsAppRequest,whatsappRequestSchema,whatsappRequestReference,paymentNotes,paymentFromNotes} from "@/lib/whatsapp-request-rules";
+import {normalizeWhatsAppRequest,whatsappRequestSchema,whatsappRequestReference,paymentFromNotes} from "@/lib/whatsapp-request-rules";
 import {whatsappHref} from "@/lib/whatsapp";
 import {readJsonBody,RequestBodyError} from "@/lib/request-body";
 import {isAllowedAdminMutation} from "@/lib/admin-origin";
@@ -22,11 +22,11 @@ function rateKey(request:Request){
 }
 type RequestSnapshot={
  id:string;request_fingerprint:string;status:string;
- customer_name:string;locality:string;address:string;notes:string;
+ customer_name:string;locality:string;address:string;notes:string;payment_preference?:"transfer"|"cash_on_delivery";
  shipping_method:"pickup"|"shipping";subtotal:number;items:WhatsAppCartLine[];
 };
 type CommercialSettings={whatsapp:string;free_shipping_threshold:number;pickup_enabled:boolean};
-const snapshotFields="id,request_fingerprint,status,customer_name,locality,address,notes,shipping_method,items,subtotal";
+const snapshotFields="id,request_fingerprint,status,customer_name,locality,address,notes,payment_preference,shipping_method,items,subtotal";
 
 function preparedResponse(record:RequestSnapshot,settings:CommercialSettings,zones:ShippingZone[],created:boolean){
  if(record.status!=="draft"&&record.status!=="contacted"){
@@ -38,7 +38,8 @@ function preparedResponse(record:RequestSnapshot,settings:CommercialSettings,zon
  // Al reintentar, siempre usar el precio, cantidades y datos guardados en la primera solicitud.
  // De otro modo una actualización del catálogo podría cambiar el WhatsApp sin cambiar el pedido.
  const reference=whatsappRequestReference(record.id);
- const payment=paymentFromNotes(record.notes);
+ const legacy=paymentFromNotes(record.notes);
+ const payment={paymentPreference:record.payment_preference??legacy.paymentPreference,notes:record.payment_preference?record.notes:legacy.notes};
  const shipping=quoteShipping({subtotal:Number(record.subtotal),locality:record.locality,method:record.shipping_method,freeShippingThreshold:Number(settings.free_shipping_threshold),zones});
  const message=[
   "Referencia: "+reference,
@@ -137,7 +138,7 @@ async function prepareRequest(request:Request){
  if(input.expected_subtotal!==undefined&&Math.abs(input.expected_subtotal-subtotal)>0.01)
   return reply("Los precios cambiaron. Actualizá el carrito para revisarlos antes de enviar el pedido.",409);
  const insert={idempotency_key:key.data,request_fingerprint:hash,customer_name:input.customer_name,
-  locality:input.locality,address:input.address,notes:paymentNotes(input.notes,input.payment_preference),shipping_method:input.shipping_method,
+  locality:input.locality,address:input.address,notes:input.notes,payment_preference:input.payment_preference??"transfer",shipping_method:input.shipping_method,
   items:safeLines,subtotal};
  const {data:created,error:insertError}=await db.from("whatsapp_order_requests")
   .upsert(insert,{onConflict:"idempotency_key",ignoreDuplicates:true}).select(snapshotFields).maybeSingle();
