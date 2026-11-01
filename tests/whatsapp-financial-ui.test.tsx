@@ -62,7 +62,26 @@ describe("seguimiento comercial de WhatsApp",()=>{
   expect(screen.getByText("Pago parcial registrado. El pedido no pasará a preparación hasta completar el saldo.")).toBeInTheDocument();
   expect(screen.getByText(/15.400/)).toBeInTheDocument();
   expect(screen.getByRole("button",{name:"Registrar importe recibido"})).toBeEnabled();
-  expect(screen.getByText(/Ver transferencias registradas/)).toBeInTheDocument();
+  expect(screen.getByText(/Ver pagos registrados/)).toBeInTheDocument();
+ });
+ it("permite preparar un pedido contra entrega, pero exige registrar efectivo antes de cerrarlo",async()=>{
+  const user=userEvent.setup();
+  const send=vi.fn(async (_input:RequestInfo|URL,_init?:RequestInit)=>({ok:true,json:async()=>({updated:true})}));
+  vi.stubGlobal("fetch",send);
+  vi.spyOn(window,"confirm").mockReturnValue(true);
+  const order={...common,payment_preference:"cash_on_delivery" as const,status:"confirmed" as const,
+   stock_confirmed:true,shipping_cost:3500,total:25400,amount_paid:0,payment_status:"pending" as const};
+  const {rerender}=render(<WhatsAppRequests requests={[order]}/>);
+  expect(screen.getByText("Pago solicitado: Efectivo al recibir (a confirmar)")).toBeInTheDocument();
+  expect(screen.getByRole("button",{name:"Preparar"})).toBeEnabled();
+  await user.click(screen.getByRole("button",{name:"Preparar"}));
+  expect(JSON.parse(String(send.mock.calls[0][1]?.body))).toMatchObject({action:"preparing"});
+  rerender(<WhatsAppRequests requests={[{...order,status:"shipped"}]}/>);
+  expect(screen.getByRole("button",{name:"Marcar entregado"})).toBeDisabled();
+  expect(screen.getByRole("button",{name:/Registrar efectivo recibido/})).toBeEnabled();
+  await user.click(screen.getByRole("button",{name:/Registrar efectivo recibido/}));
+  expect(JSON.parse(String(send.mock.calls[1][1]?.body))).toMatchObject({action:"record_cash",amount:25400});
+  expect(JSON.parse(String(send.mock.calls[1][1]?.body)).payment_key).toMatch(/^[a-f0-9-]{36}$/);
  });
  it("envía importe, referencia e idempotencia sin marcar el total automáticamente",async()=>{
   const user=userEvent.setup();
