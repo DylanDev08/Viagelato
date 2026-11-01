@@ -162,7 +162,7 @@ describe("registrar referencia WhatsApp",()=>{
   priorRead.mockResolvedValue({data:{id,status:"delivered",request_fingerprint:fingerprint(payload)},error:null});
   const res=await POST(make());
   expect(res.status).toBe(409);
-  expect((await res.json()).code).toBe("REQUEST_ALREADY_HANDLED");
+  expect(await res.json()).toMatchObject({code:"REQUEST_ALREADY_HANDLED",reference:"VIA-111111112222"});
   expect(insert).not.toHaveBeenCalled();
  });
  it("un mismo identificador con datos diferentes devuelve conflicto",async()=>{
