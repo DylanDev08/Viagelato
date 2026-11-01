@@ -143,7 +143,7 @@ export function Checkout({products,zones,settings,catalogItems=CATALOG_PRICE_ITE
      <div className="cart-price-total"><span>{shipping.total!==null?"Total del pedido":"Total de productos"}</span><strong>{ars(shipping.total??subtotal)}</strong></div>
      {shipping.total===null?<p className="cart-total-pending" role="status">{shipping.kind==="unselected"?"Seleccioná tu zona para calcular el envío.":shipping.covered?"Todavía no hay una tarifa de envío cargada para esta zona. El costo se confirma por WhatsApp.":locality==="Capital Federal"?"Capital Federal requiere consulta de cobertura y precio de envío por WhatsApp.":"Esta localidad está fuera de las zonas indicadas. Consultaremos cobertura y envío por WhatsApp."} El total final será el subtotal más el envío confirmado.</p>:<p className="cart-total-ready">{shipping.kind==="free"?"Tu compra tiene envío gratuito en esta zona.":shipping.kind==="pickup"?"Retiro sin costo de envío.":"Total calculado con la tarifa de entrega configurada."} Confirmamos la disponibilidad antes del pago.</p>}
     </section>
-    <label>Forma de pago preferida<select disabled={busy} value={paymentPreference} onChange={e=>setPaymentPreference(e.target.value as "transfer"|"cash_on_delivery")}>
+    <label>Forma de pago preferida<select aria-label="Forma de pago preferida" disabled={busy} value={paymentPreference} onChange={e=>setPaymentPreference(e.target.value as "transfer"|"cash_on_delivery")}>
      <option value="transfer">Transferencia bancaria</option>
      <option value="cash_on_delivery">Efectivo al recibir (a confirmar)</option>
     </select><small>Elegí tu preferencia: Viagelato confirma los datos y el medio de pago en WhatsApp. No se cobra desde la web.</small></label>
