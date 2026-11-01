@@ -4,7 +4,7 @@ import {afterEach,describe,expect,it,vi} from "vitest";
 import {CartProvider} from "@/components/cart";
 import {Checkout} from "@/components/checkout";
 import {DEFAULT_SETTINGS} from "@/lib/types";
-import {CHECKOUT_KEY_STORAGE} from "@/lib/checkout-idempotency";
+import {CHECKOUT_KEY_STORAGE,checkoutKeyStorage} from "@/lib/checkout-idempotency";
 
 vi.mock("@/lib/checkout-idempotency",async importOriginal=>({
  ...await importOriginal<typeof import("@/lib/checkout-idempotency")>(),
@@ -46,14 +46,14 @@ describe("mensaje preparado y selección vigente",()=>{
    await user.selectOptions(screen.getByLabelText("Zona de entrega"),"Lanús");
    await user.click(screen.getByRole("button",{name:"Pagar por WhatsApp"}));
    expect(await screen.findByText("Solicitud VIA-111111112222 ya gestionada.")).toBeInTheDocument();
-   const key=sessionStorage.getItem(CHECKOUT_KEY_STORAGE);
+   const key=checkoutKeyStorage.getItem(CHECKOUT_KEY_STORAGE);
    expect(key).toBeTruthy();
    expect(screen.getByRole("button",{name:"Pagar por WhatsApp"})).toBeDisabled();
    expect(send).toHaveBeenCalledOnce();
    expect(screen.getByText(/No lo creamos otra vez/)).toBeInTheDocument();
    await user.click(screen.getByRole("button",{name:"Iniciar un pedido nuevo"}));
    expect(confirmation).toHaveBeenCalledOnce();
-   expect(sessionStorage.getItem(CHECKOUT_KEY_STORAGE)).toBeNull();
+   expect(checkoutKeyStorage.getItem(CHECKOUT_KEY_STORAGE)).toBeNull();
    expect(screen.getByRole("button",{name:"Pagar por WhatsApp"})).toBeEnabled();
   }finally{confirmation.mockRestore();}
  });
