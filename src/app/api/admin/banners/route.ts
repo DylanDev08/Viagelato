@@ -20,6 +20,7 @@ export async function PATCH(req:Request){
  const body=await readJsonBody(req).catch(()=>null);
  if(!body||typeof body!=="object"||Array.isArray(body))return NextResponse.json({error:"Datos inválidos"},{status:400});
  const input=body as Record<string,unknown>;
+ const input=body as Record<string,unknown>;
  const id=idSchema.safeParse(input.id);
  if(!id.success)return invalidId();
  const payload={...input};delete payload.id;
