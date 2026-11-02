@@ -19,9 +19,10 @@ export async function PATCH(req:Request){
  const auth=await adminOrError(req);if(auth)return auth;
  const body=await readJsonBody(req).catch(()=>null);
  if(!body||typeof body!=="object"||Array.isArray(body))return NextResponse.json({error:"Datos inválidos"},{status:400});
- const id=idSchema.safeParse(body?.id);
+ const input=body as Record<string,unknown>;
+ const id=idSchema.safeParse(input.id);
  if(!id.success)return invalidId();
- const payload={...body};delete payload.id;
+ const payload={...input};delete payload.id;
  const parsed=zoneSchema.safeParse(payload);
  if(!parsed.success)return NextResponse.json({error:"Revisá la zona y su tarifa",issues:parsed.error.issues},{status:400});
  const {data,error}=await privilegedDb().from("shipping_zones").update(parsed.data).eq("id",id.data).select().maybeSingle();
@@ -32,7 +33,7 @@ export async function DELETE(req:Request){
  const auth=await adminOrError(req);if(auth)return auth;
  const body=await readJsonBody(req).catch(()=>null);
  if(!body||typeof body!=="object"||Array.isArray(body))return NextResponse.json({error:"Datos inválidos"},{status:400});
- const id=idSchema.safeParse(body?.id);
+ const id=idSchema.safeParse(input.id);
  if(!id.success)return invalidId();
  const {data,error}=await privilegedDb().from("shipping_zones").update({active:false}).eq("id",id.data).select("id").maybeSingle();
  if(error)return failed();
