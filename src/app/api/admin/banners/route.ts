@@ -18,6 +18,7 @@ export async function POST(req:Request){
 export async function PATCH(req:Request){
  const auth=await adminOrError(req);if(auth)return auth;
  const body=await readJsonBody(req).catch(()=>null);
+ if(!body||typeof body!=="object"||Array.isArray(body))return NextResponse.json({error:"Datos inválidos"},{status:400});
  const id=idSchema.safeParse(body?.id);
  if(!id.success)return invalidId();
  const payload={...body};delete payload.id;
@@ -30,6 +31,7 @@ export async function PATCH(req:Request){
 export async function DELETE(req:Request){
  const auth=await adminOrError(req);if(auth)return auth;
  const body=await readJsonBody(req).catch(()=>null);
+ if(!body||typeof body!=="object"||Array.isArray(body))return NextResponse.json({error:"Datos inválidos"},{status:400});
  const id=idSchema.safeParse(body?.id);
  if(!id.success)return invalidId();
  const {data,error}=await privilegedDb().from("banners").delete().eq("id",id.data).select("id").maybeSingle();
