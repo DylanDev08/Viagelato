@@ -2,13 +2,18 @@ import {NextResponse} from "next/server";
 import {adminOrError} from "@/lib/admin";
 import {privilegedDb} from "@/lib/supabase";
 import {MAX_UPLOAD_SIZE,validateUploadedImage} from "@/lib/upload-validation";
+import {RequestBodyError,readLimitedFormData} from "@/lib/request-body";
 
 export const runtime="nodejs";
 export async function POST(request:Request){
  const auth=await adminOrError(request);
  if(auth)return auth;
- const form=await request.formData().catch(()=>null);
- const file=form?.get("file");
+ let form:FormData;
+ try{form=await readLimitedFormData(request,MAX_UPLOAD_SIZE+64_000);}catch(error){
+  const status=error instanceof RequestBodyError?error.status:400;
+  return NextResponse.json({error:status===413?"La carga supera el tamaño permitido":"Formulario de imagen inválido"},{status});
+ }
+ const file=form.get("file");
  if(!(file instanceof File))return NextResponse.json({error:"Seleccioná una imagen válida"},{status:400});
  if(file.size===0||file.size>MAX_UPLOAD_SIZE)return NextResponse.json({error:"Subí JPG, PNG o WEBP de hasta 3 MB"},{status:400});
 

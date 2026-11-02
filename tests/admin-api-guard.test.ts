@@ -16,6 +16,13 @@ const req=(method:string,path:string,data:unknown)=>new Request(`https://viagela
 
 describe("CRUD administrativo con ID seguro y estado real",()=>{
  beforeEach(()=>vi.clearAllMocks());
+ it("rechaza cuerpos JSON excesivos antes de consultar la base",async()=>{
+  const response=await patchProduct(new Request("https://viagelato-api.onrender.com/api/admin/products",{
+   method:"PATCH",headers:{"Content-Type":"application/json"},body:JSON.stringify({id:validUuid,description:"x".repeat(17000)})
+  }));
+  expect(response.status).toBe(400);
+  expect(privilegedDb).not.toHaveBeenCalled();
+ });
  it("rechaza IDs malformados ANTES de consultar la base",async()=>{
   const x=await patchProduct(req("PATCH","products",{id:"bad"}));
   const y=await hideProduct(req("DELETE","products",{id:"not-uuid"}));

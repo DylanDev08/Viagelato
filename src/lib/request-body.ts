@@ -28,3 +28,35 @@ export async function readJsonBody(request:Request,maxBytes=16000):Promise<unkno
  try{return JSON.parse(new TextDecoder("utf-8",{fatal:true}).decode(bytes));}
  catch{throw new RequestBodyError("Formato de solicitud inválido",400);}
 }
+
+/** Parse multipart uploads only after enforcing a hard byte ceiling. */
+export async function readLimitedFormData(request:Request,maxBytes:number):Promise<FormData>{
+ const type=request.headers.get("content-type")??"";
+ if(!/^multipart\/form-data\s*;/i.test(type)||!/(?:^|;)\s*boundary=/i.test(type))
+  throw new RequestBodyError("Formulario multipart inválido",415);
+ const declared=request.headers.get("content-length");
+ if(declared!==null&&(!/^\d+$/.test(declared)||Number(declared)>maxBytes))
+  throw new RequestBodyError("Solicitud demasiado extensa",413);
+ const reader=request.body?.getReader();
+ if(!reader)throw new RequestBodyError("Solicitud vacía",400);
+ const chunks:Uint8Array[]=[];
+ let size=0;
+ try{
+  for(;;){
+   const {done,value}=await reader.read();
+   if(done)break;
+   size+=value.byteLength;
+   if(size>maxBytes){
+    await reader.cancel();
+    throw new RequestBodyError("Solicitud demasiado extensa",413);
+   }
+   chunks.push(value);
+  }
+ }finally{reader.releaseLock();}
+ const bytes=new Uint8Array(size);
+ let offset=0;
+ for(const chunk of chunks){bytes.set(chunk,offset);offset+=chunk.byteLength;}
+ try{
+  return await new Request(request.url,{method:"POST",headers:{"Content-Type":type},body:bytes}).formData();
+ }catch{throw new RequestBodyError("Formulario multipart inválido",400);}
+}
