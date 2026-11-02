@@ -76,6 +76,7 @@ describe("menú rápido administrativo",()=>{
   const confirm=vi.spyOn(window,"confirm").mockReturnValue(false);
   render(<AdminDashboard {...props}/>);
   await user.click(screen.getByRole("button",{name:"Acceso rápido: Productos"}));
+  await user.click(screen.getByRole("button",{name:"+JSON.stringify("+ Nuevo producto")+"}));
   await user.type(screen.getByLabelText("Nombre del producto"),"Copa helada");
   await user.click(screen.getByRole("button",{name:"Acceso rápido: Pedidos online"}));
   expect(confirm).toHaveBeenCalledOnce();
