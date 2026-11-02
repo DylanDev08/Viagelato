@@ -24,7 +24,9 @@ describe("cargas multipart limitadas",()=>{
   form.append("file",new Blob([new Uint8Array([1,2,3])],{type:"image/png"}),"imagen.png");
   const request=new Request("https://example.com/upload",{method:"POST",body:form});
   const parsed=await readLimitedFormData(request,4096);
-  expect(parsed.get("file")).toBeInstanceOf(File);
+  const file=parsed.get("file");
+  expect(file).toMatchObject({size:3,type:"image/png"});
+  expect(file).not.toBeNull();
  });
  it("rechaza formularios grandes aun sin Content-Length",async()=>{
   const form=new FormData();
