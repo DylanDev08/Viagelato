@@ -35,6 +35,32 @@ begin
  if not public.consume_checkout_attempt('repeat-security','80000000-0000-4000-8000-000000000001',3,10) then raise exception 'Ventana no se recupera'; end if;
 end $$;
 
+
+-- Future application objects must not inherit unauthenticated data privileges.
+do $
+declare r record; role_name text;
+begin
+ if exists(
+  select 1 from pg_default_acl d
+  cross join lateral aclexplode(d.defaclacl) acl
+  where d.defaclrole='postgres'::regrole
+   and ((d.defaclnamespace='public'::regnamespace and d.defaclobjtype in ('r','S','f'))
+    or (d.defaclnamespace=0 and d.defaclobjtype='f'))
+   and (acl.grantee=0 or acl.grantee in ('anon'::regrole,'authenticated'::regrole))
+ ) then raise exception 'Permisos públicos predeterminados peligrosos en public'; end if;
+ for r in select c.oid,c.relname from pg_class c
+  join pg_namespace n on n.oid=c.relnamespace
+  where n.nspname='public' and c.relkind='S' loop
+  foreach role_name in array array['anon','authenticated'] loop
+   if has_sequence_privilege(role_name,r.oid,'USAGE')
+    or has_sequence_privilege(role_name,r.oid,'SELECT')
+    or has_sequence_privilege(role_name,r.oid,'UPDATE') then
+    raise exception 'Secuencia privada % accesible por %',r.relname,role_name;
+   end if;
+  end loop;
+ end loop;
+end $;
+
 set local role anon;
 do $$ begin
  if (select count(*) from public.products where slug='publico-seguridad')<>1 then raise exception 'Producto público invisible'; end if;
