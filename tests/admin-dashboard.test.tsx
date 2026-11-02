@@ -25,7 +25,7 @@ describe("panel administrativo",()=>{
   const user=userEvent.setup();
   render(<AdminDashboard initialProducts={[]} initialCategories={[]} initialOrders={[]} initialZones={[]} initialSettings={DEFAULT_SETTINGS} initialBanners={[]}/>);
   await user.click(screen.getByRole("button",{name:"Productos"}));
-  await user.click(screen.getByRole("button",{name:"+JSON.stringify("+ Nuevo producto")+"}));
+  await user.click(screen.getByRole("button",{name:"+ Nuevo producto"}));
   await user.click(screen.getByText("Usar otra fotografía del catálogo"));
   await user.click(screen.getByRole("button",{name:"Elegir foto"}));
   expect(screen.getByRole("region",{name:"Imágenes candidatas"})).toBeInTheDocument();
@@ -45,7 +45,7 @@ describe("panel administrativo",()=>{
   const confirm=vi.spyOn(window,"confirm").mockReturnValue(false);
   render(<AdminDashboard initialProducts={[]} initialCategories={[]} initialOrders={[]} initialZones={[]} initialSettings={DEFAULT_SETTINGS} initialBanners={[]}/>);
   await user.click(screen.getByRole("button",{name:"Productos"}));
-  await user.click(screen.getByRole("button",{name:"+JSON.stringify("+ Nuevo producto")+"}));
+  await user.click(screen.getByRole("button",{name:"+ Nuevo producto"}));
   await user.type(screen.getByLabelText("Nombre del producto"),"Chocolate");
   expect(screen.getByText(/Tenés cambios sin guardar/)).toBeInTheDocument();
   await user.click(screen.getByRole("button",{name:"Categorías"}));
@@ -56,7 +56,7 @@ describe("panel administrativo",()=>{
   expect(screen.getByRole("heading",{name:"Categorías",level:1})).toBeInTheDocument();
   await user.click(screen.getByRole("button",{name:"Productos"}));
   expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
-  expect(screen.getByRole("button",{name:"+JSON.stringify("+ Nuevo producto")+"})).toBeInTheDocument();
+  expect(screen.getByRole("button",{name:"+ Nuevo producto"})).toBeInTheDocument();
  });
  it("avisa antes de perder cambios en la configuración",async()=>{
   const user=userEvent.setup();
@@ -78,7 +78,7 @@ describe("panel administrativo",()=>{
   try{
    render(<AdminDashboard initialProducts={[]} initialCategories={[]} initialOrders={[]} initialZones={[]} initialSettings={DEFAULT_SETTINGS} initialBanners={[]}/>);
    await user.click(screen.getByRole("button",{name:"Productos"}));
-   await user.click(screen.getByRole("button",{name:"+JSON.stringify("+ Nuevo producto")+"}));
+   await user.click(screen.getByRole("button",{name:"+ Nuevo producto"}));
    await user.type(screen.getByLabelText("Nombre del producto"),"Helado nuevo");
    expect(screen.getByText(/Podés guardar ahora y completar los datos antes de publicar/)).toBeInTheDocument();
    await user.click(screen.getByRole("button",{name:"Guardar borrador"}));
@@ -258,7 +258,7 @@ describe("panel: usabilidad y prioridades",()=>{
   const confirm=vi.spyOn(window,"confirm").mockReturnValue(false);
   render(<AdminDashboard {...common} initialProducts={[]} />);
   await user.click(screen.getByRole("button",{name:"Productos"}));
-  await user.click(screen.getByRole("button",{name:"+JSON.stringify("+ Nuevo producto")+"}));
+  await user.click(screen.getByRole("button",{name:"+ Nuevo producto"}));
   await user.type(screen.getByLabelText("Nombre del producto"),"Chocolate nuevo");
   expect(screen.getByText("Cambios sin guardar")).toBeInTheDocument();
   await user.click(screen.getByRole("button",{name:"Actualizar datos"}));
