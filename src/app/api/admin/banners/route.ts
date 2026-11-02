@@ -2,6 +2,7 @@ import {NextResponse} from "next/server";
 import {z} from "zod";
 import {adminOrError,bannerSchema} from "@/lib/admin";
 import {privilegedDb} from "@/lib/supabase";
+import {readJsonBody} from "@/lib/request-body";
 
 const idSchema=z.uuid();
 const failed=()=>NextResponse.json({error:"No se pudo guardar el banner. Revisá los datos e intentá nuevamente."},{status:400});
@@ -9,14 +10,14 @@ const invalidId=()=>NextResponse.json({error:"El identificador del banner no es 
 const missing=()=>NextResponse.json({error:"Este banner ya no existe. Actualizá la página."},{status:404});
 export async function POST(req:Request){
  const auth=await adminOrError(req);if(auth)return auth;
- const parsed=bannerSchema.safeParse(await req.json().catch(()=>null));
+ const parsed=bannerSchema.safeParse(await readJsonBody(req).catch(()=>null));
  if(!parsed.success)return NextResponse.json({error:"Revisá los datos del banner",issues:parsed.error.issues},{status:400});
  const {data,error}=await privilegedDb().from("banners").insert({...parsed.data,image_url:parsed.data.image_url||null}).select().single();
  return error?failed():NextResponse.json(data);
 }
 export async function PATCH(req:Request){
  const auth=await adminOrError(req);if(auth)return auth;
- const body=await req.json().catch(()=>null);
+ const body=await readJsonBody(req).catch(()=>null);
  const id=idSchema.safeParse(body?.id);
  if(!id.success)return invalidId();
  const payload={...body};delete payload.id;
@@ -28,7 +29,7 @@ export async function PATCH(req:Request){
 }
 export async function DELETE(req:Request){
  const auth=await adminOrError(req);if(auth)return auth;
- const body=await req.json().catch(()=>null);
+ const body=await readJsonBody(req).catch(()=>null);
  const id=idSchema.safeParse(body?.id);
  if(!id.success)return invalidId();
  const {data,error}=await privilegedDb().from("banners").delete().eq("id",id.data).select("id").maybeSingle();
