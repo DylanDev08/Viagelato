@@ -58,7 +58,7 @@ describe("catálogo comercial agrupado",()=>{
    catalog_visible:true,commercially_verified:false};
   render(<AdminDashboard {...props} initialProducts={[existing]}/>);
   await user.click(screen.getByRole("button",{name:"Productos"}));
-  await user.click(screen.getByRole("button",{name:"+JSON.stringify("+ Nuevo producto")+"}));
+  await user.click(screen.getByRole("button",{name:"+ Nuevo producto"}));
    await user.click(screen.getByRole("button",{name:"Cargar desde catálogo"}));
   const picker=screen.getByRole("region",{name:"Productos del catálogo"});
   await user.click(within(picker).getByRole("button",{name:`Editar producto ${item.name}`}));
@@ -72,7 +72,7 @@ describe("catálogo comercial agrupado",()=>{
   const user=userEvent.setup();
   render(<AdminDashboard {...props}/>);
   await user.click(screen.getByRole("button",{name:"Productos"}));
-  await user.click(screen.getByRole("button",{name:"+JSON.stringify("+ Nuevo producto")+"}));
+  await user.click(screen.getByRole("button",{name:"+ Nuevo producto"}));
    await user.click(screen.getByRole("button",{name:"Cargar desde catálogo"}));
   const picker=screen.getByRole("region",{name:"Productos del catálogo"});
   expect(within(picker).getByText(/45 opciones del catálogo/)).toBeInTheDocument();
