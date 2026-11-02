@@ -1,5 +1,7 @@
 ﻿# Viagelato — estabilización, SEO y seguridad · 29/10/2026
 
+> **Informe histórico de 29/10/2026.** Sus afirmaciones sobre PR abiertas, migraciones y deploy corresponden a esa fecha y no al estado actual. Ver [estado de Supabase y RLS 02/11](ESTADO_SUPABASE_RLS_20261102.md) y [runbook](RUNBOOK_MIGRACIONES_RLS.md).
+
 PR en borrador: https://github.com/DylanDev08/Viagelato/pull/26
 
 ## Alcance y estado
