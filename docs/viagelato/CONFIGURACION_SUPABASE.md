@@ -30,7 +30,7 @@
 ## Seguridad y pendientes
 
 - Security Advisor reporta 9 avisos informativos `rls_enabled_no_policy` de tablas privadas: no abrirlas al público para eliminarlos.
-- Queda pendiente revisar permisos por defecto del rol gestionado `supabase_admin` y activar la protección de contraseñas filtradas de Supabase Auth si está disponible. Seguimiento: [Issue #43](https://github.com/DylanDev08/Viagelato/issues/43).
+- `supabase_admin` tiene permisos predeterminados gestionados por la plataforma; afectan solo a objetos que cree ese rol. Al 02/11 no tenía relaciones ni funciones en `public`; evitar extensiones allí. Sigue pendiente activar la protección de contraseñas filtradas en Auth si está disponible. Seguimiento: [Issue #43](https://github.com/DylanDev08/Viagelato/issues/43).
 - Repetir las consultas y pruebas de permisos tras toda modificación de tablas, funciones, Storage o Auth.
 
 Ver [auditoría RLS verificada](ESTADO_SUPABASE_RLS_20261102.md) y [seguridad Data API](https://supabase.com/docs/guides/api/securing-your-api).

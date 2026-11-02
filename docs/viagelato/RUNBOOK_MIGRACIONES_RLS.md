@@ -91,7 +91,7 @@ where n.nspname='public' and c.relkind='S'
 
 ## 6. Pendientes conocidos
 
-- `supabase_admin` es un rol administrado: los grants por defecto de ese dueño de objetos aún requieren procedimiento soportado por Supabase (Issue [#43](https://github.com/DylanDev08/Viagelato/issues/43)).
+- `supabase_admin` tiene ACL de objetos futuros administradas por la plataforma; **no es posible modificarlas desde `postgres`**. En el corte no había relaciones ni funciones de ese dueño en `public`. Evitar instalar extensiones en `public` y comprobar el propietario de cualquier objeto nuevo (Issue [#43](https://github.com/DylanDev08/Viagelato/issues/43)).
 - Security Advisor: **Leaked Password Protection Disabled**. Activar mediante Supabase Auth si el plan lo permite; no corresponde a una migración RLS.
 - Los avisos `rls_enabled_no_policy` de las nueve tablas internas reflejan denegación total intencional; **no** crear políticas de lectura públicas para eliminarlos.
 - Las pruebas de PostgreSQL efímero y el CI no certifican Supabase Auth, Storage ni checkout completo en un navegador real.
@@ -102,3 +102,4 @@ where n.nspname='public' and c.relkind='S'
 - [Preparación del administrador](admin-setup.md)
 - [Pruebas PostgreSQL](../../tests/integration/postgres/README.md)
 - [Seguridad Data API](https://supabase.com/docs/guides/api/securing-your-api)
+- [Nota oficial sobre privilegios de `supabase_admin`](https://supabase.com/kb/troubleshooting/cant-change-the-default-privileges-of-supabase_admin-in-the-public-schema)

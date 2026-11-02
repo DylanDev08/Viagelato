@@ -62,7 +62,7 @@ Se ejecutaron consultas como `anon` y `authenticated` dentro de transacciones te
 
 ## Hallazgos pendientes — sin resolver por el corte
 
-1. **`supabase_admin`:** las ACL predeterminadas de objetos *futuros* creados por ese rol gestionado por la plataforma todavía mostraban concesiones a roles públicos. La migración endurece específicamente los objetos futuros creados por `postgres`; `postgres` no tenía membresía de `supabase_admin`, así que **no se modificó ese rol**. Hay que investigar el procedimiento soportado por Supabase antes de cambiarlo.
+1. **`supabase_admin`:** sus ACL predeterminadas son gestionadas por Supabase, afectan únicamente objetos que cree ese rol y **no pueden modificarse desde `postgres`**. La migración protege objetos futuros creados por `postgres`. La consulta adicional del 02/11 encontró **0 relaciones y 0 funciones de `supabase_admin` en `public`**, y ninguna extensión listada allí. No se intentó cambiar su ACL; conservar las extensiones fuera de `public` y volver a comprobar si se instalan nuevas.
 2. **Supabase Auth:** el Security Advisor advertía que **Leaked Password Protection** estaba desactivado. Configurarla desde Auth si la edición del proyecto lo permite; no se cambió Auth en este corte.
 3. **Pruebas reales de usuario:** pendientes login administrativo, invitación/recuperación y operaciones completas con sesión autenticada en staging. Los tests SQL no reemplazan Auth ni una prueba end-to-end.
 4. **Indexación y checkout legado:** permanecían configurados en Vercel como `ENABLE_INDEXING=false` y `ENABLE_CHECKOUT=false`. Esto no deshabilita las solicitudes por WhatsApp; no confundir ambos circuitos.
@@ -74,4 +74,5 @@ Seguimiento: [Issue #43](https://github.com/DylanDev08/Viagelato/issues/43) (ACL
 - CI posterior a la PR #42: [GitHub Actions run 41441120020](https://github.com/DylanDev08/Viagelato/actions/runs/41441120020) (segundo intento aprobado).
 - [Runbook de migraciones, RLS y publicación](RUNBOOK_MIGRACIONES_RLS.md).
 - [Documentación oficial de seguridad de Data API](https://supabase.com/docs/guides/api/securing-your-api).
+- [Supabase: por qué no se pueden cambiar los default privileges de `supabase_admin`](https://supabase.com/kb/troubleshooting/cant-change-the-default-privileges-of-supabase_admin-in-the-public-schema).
 - [Documentación oficial de contraseñas filtradas](https://supabase.com/docs/guides/auth/password-security#password-strength-and-leaked-password-protection).
