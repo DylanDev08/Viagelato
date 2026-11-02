@@ -46,6 +46,8 @@ export function AdminDashboard({initialProducts,initialCategories,initialOrders,
  const modalRef=useRef<HTMLElement>(null);
  const returnFocusRef=useRef<HTMLElement|null>(null);
  const [productQuery,setProductQuery]=useState(""),[productStatus,setProductStatus]=useState<"all"|"published"|"inquiry"|"hidden"|"pending">("all");
+ const [showCatalogPicker,setShowCatalogPicker]=useState(false),[catalogQuery,setCatalogQuery]=useState(""),[catalogType,setCatalogType]=useState("all");
+ const [showCandidatePicker,setShowCandidatePicker]=useState(false),[candidateQuery,setCandidateQuery]=useState("");
  const editorHeadingRef=useRef<HTMLHeadingElement>(null);
  const counts=useMemo(()=>whatsappRequestCounts(initialWhatsAppRequests),[initialWhatsAppRequests]);
  const [savedDraft,setSavedDraft]=useState<Draft>({...empty});
@@ -160,8 +162,6 @@ export function AdminDashboard({initialProducts,initialCategories,initialOrders,
   setNotice("");setNoticeError(false);
   return true;
  }
- const [showCatalogPicker,setShowCatalogPicker]=useState(false),[catalogQuery,setCatalogQuery]=useState(""),[catalogType,setCatalogType]=useState("all");
- const [showCandidatePicker,setShowCandidatePicker]=useState(false),[candidateQuery,setCandidateQuery]=useState("");
  const [newCat,setNewCat]=useState({name:"",slug:"",id:""}),[zoneId,setZoneId]=useState(""),[zoneName,setZoneName]=useState(""),[zoneCodes,setZoneCodes]=useState(""),[zoneCost,setZoneCost]=useState(""),[zoneReady,setZoneReady]=useState(false),[zoneFree,setZoneFree]=useState(false),[banner,setBanner]=useState({id:"",title:"",subtitle:"",image_url:"",href:"/catalogo",active:true,sort_order:0});
  const router=useRouter();
  useEffect(()=>{
