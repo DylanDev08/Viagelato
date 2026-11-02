@@ -21,6 +21,7 @@ export async function POST(req:Request){
 export async function PATCH(req:Request){
  const auth=await adminOrError(req);if(auth)return auth;
  const body=await readJsonBody(req).catch(()=>null);
+ if(!body||typeof body!=="object"||Array.isArray(body))return NextResponse.json({error:"Datos inválidos"},{status:400});
  const parsedId=uuid.safeParse(body?.id);
  if(!parsedId.success)return invalidId();
  const payload={...body};
@@ -35,6 +36,7 @@ export async function PATCH(req:Request){
 export async function DELETE(req:Request){
  const auth=await adminOrError(req);if(auth)return auth;
  const body=await readJsonBody(req).catch(()=>null);
+ if(!body||typeof body!=="object"||Array.isArray(body))return NextResponse.json({error:"Datos inválidos"},{status:400});
  const parsedId=uuid.safeParse(body?.id);
  if(!parsedId.success)return invalidId();
  const {data,error}=await privilegedDb().from("products").update({active:false,catalog_visible:false}).eq("id",parsedId.data).select("id").maybeSingle();
