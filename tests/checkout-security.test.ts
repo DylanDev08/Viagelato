@@ -2,8 +2,8 @@ import {beforeEach,describe,expect,it,vi} from "vitest";
 import {POST} from "@/app/api/checkout/route";
 import {privilegedDb} from "@/lib/supabase";
 vi.mock("@/lib/supabase",()=>({connected:()=>true,privilegedDb:vi.fn()}));
-const request=(headers:Record<string,string>={},body="{}")=>new Request("https://viagelato.example/api/checkout",{
- method:"POST",headers:{Origin:"https://viagelato.example","Content-Type":"application/json","Idempotency-Key":"22222222-3333-4444-8555-666666666666",...headers},body,
+const request=(headers:Record<string,string>={},body="{}")=>new Request("https://viagelato.vercel.app/api/checkout",{
+ method:"POST",headers:{Origin:"https://viagelato.vercel.app","Content-Type":"application/json","Idempotency-Key":"22222222-3333-4444-8555-666666666666",...headers},body,
 });
 beforeEach(()=>{vi.clearAllMocks();vi.stubEnv("ENABLE_CHECKOUT","true");vi.stubEnv("CHECKOUT_RATE_LIMIT_SALT","test-only");});
 describe("protecciones del checkout legado",()=>{
