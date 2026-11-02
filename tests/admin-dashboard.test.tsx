@@ -1,4 +1,4 @@
-import {render,screen} from "@testing-library/react";
+import {render,screen,within} from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import {describe,expect,it,vi} from "vitest";
 import {AdminDashboard} from "@/components/admin-dashboard";
@@ -222,5 +222,57 @@ describe("panel administrativo",()=>{
   expect(screen.getByText("Agregá tu primer producto.")).toBeInTheDocument();
   await user.click(screen.getByRole("button",{name:"Pedidos online"}));
   expect(screen.getByText(/No hay pedidos todavía/)).toBeInTheDocument();
+ });
+});
+
+describe("panel: usabilidad y prioridades",()=>{
+ const common={initialCategories:[],initialOrders:[],initialZones:[],initialSettings:DEFAULT_SETTINGS,initialBanners:[]};
+ it("separa publicados de presentaciones visibles para consulta",async()=>{
+  const user=userEvent.setup();
+  const base={description:"",price:1500,stock:0,image_url:null,category_id:null,sku:"SKU",featured:false,commercially_verified:true};
+  const products=[
+   {...base,id:"1",name:"Producto publicado",slug:"publicado",active:true,catalog_visible:false},
+   {...base,id:"2",name:"Presentación a consultar",slug:"excel-fila-1",active:false,catalog_visible:true},
+  ];
+  render(<AdminDashboard {...common} initialProducts={products} />);
+  await user.click(screen.getByRole("button",{name:"Productos"}));
+  const filter=screen.getByRole("combobox",{name:"Filtrar productos por estado"});
+  await user.selectOptions(filter,"published");
+  const listing=screen.getByText("Productos cargados").closest(".panel")!;
+  expect(within(listing as HTMLElement).getByText("Producto publicado")).toBeInTheDocument();
+  expect(within(listing as HTMLElement).queryByText("Presentación a consultar")).not.toBeInTheDocument();
+  await user.selectOptions(filter,"inquiry");
+  expect(within(listing as HTMLElement).getByText("Presentación a consultar")).toBeInTheDocument();
+  expect(within(listing as HTMLElement).queryByText("Producto publicado")).not.toBeInTheDocument();
+ });
+ it("explica que los indicadores WhatsApp muestran solo solicitudes recientes",()=>{
+  render(<AdminDashboard {...common} initialProducts={[]} initialWhatsAppRequests={[]} />);
+  expect(screen.getByText("WhatsApp por atender")).toBeInTheDocument();
+  expect(screen.getByText(/máximo 100/)).toBeInTheDocument();
+  expect(screen.getByRole("button",{name:"Actualizar datos"})).toBeEnabled();
+ });
+ it("pide confirmar antes de actualizar con un producto sin guardar",async()=>{
+  const user=userEvent.setup();
+  const confirm=vi.spyOn(window,"confirm").mockReturnValue(false);
+  render(<AdminDashboard {...common} initialProducts={[]} />);
+  await user.click(screen.getByRole("button",{name:"Productos"}));
+  await user.type(screen.getByLabelText("Nombre del producto"),"Chocolate nuevo");
+  expect(screen.getByText("Cambios sin guardar")).toBeInTheDocument();
+  await user.click(screen.getByRole("button",{name:"Actualizar datos"}));
+  expect(confirm).toHaveBeenCalledOnce();
+  expect(screen.getByRole("heading",{name:"Productos",level:1})).toBeInTheDocument();
+  confirm.mockRestore();
+ });
+ it("ayuda a recuperar una sesión expirada cuando falla el servidor",async()=>{
+  const user=userEvent.setup();
+  vi.stubGlobal("fetch",vi.fn().mockResolvedValue({status:401,ok:false,json:async()=>({error:"No autorizado"})}));
+  try{
+   render(<AdminDashboard {...common} initialProducts={[]} />);
+   await user.click(screen.getByRole("button",{name:"Categorías"}));
+   await user.type(screen.getByLabelText("Nombre"),"Postres");
+   await user.click(screen.getByRole("button",{name:"Crear categoría"}));
+   expect(await screen.findByText(/Tu sesión venció/)).toBeInTheDocument();
+   expect(screen.getByRole("link",{name:"Volver a ingresar"})).toHaveAttribute("href","/login");
+  }finally{vi.unstubAllGlobals();}
  });
 });

@@ -133,3 +133,26 @@
 .admin-2col .admin-list-row .grow{min-width:0}
 .admin-2col .admin-item-state{font-size:10px;padding:4px 8px;font-weight:700}
 @media(max-width:760px){.admin-catalog-import{padding:15px}.admin-2col .admin-list-row{gap:9px;padding-block:13px}.admin-catalog-import .admin-catalog-cta{min-height:48px}}
+
+/* Corte visual: panel claro, jerarquía comercial y edición accesible. */
+.admin-bar{align-items:flex-start}
+.admin-bar-actions{display:flex;align-items:center;justify-content:flex-end;gap:10px;flex-wrap:wrap}
+.admin-bar-actions>.btn{min-height:43px;white-space:nowrap}
+.admin-refresh svg{flex-shrink:0}
+.admin-dirty-indicator{display:inline-flex;align-items:center;min-height:33px;padding:6px 11px;border:1px solid #d1d1d1;border-radius:99px;background:#f4f4f4;color:#333;font-size:11px;font-weight:800;line-height:1.35}
+.admin-session-link{display:inline-block;margin-left:10px;text-decoration:underline;text-underline-offset:3px;font-weight:800}
+.admin-overview-stats article{display:grid;align-content:start;gap:7px;min-width:0}
+.admin-overview-stats article small{margin:0;line-height:1.45;font-size:12px}
+.admin-overview-stats article strong{font-size:clamp(27px,2.7vw,36px);line-height:1.2;font-variant-numeric:tabular-nums}
+.admin-stat-link{border:0;background:transparent;color:#171717;font-size:12px;font-weight:800;padding:4px 0;text-decoration:underline;text-underline-offset:3px;justify-self:start}
+.admin-stat-note,.admin-metrics-context{font-size:11px;line-height:1.5;color:#666}
+.admin-metrics-context{margin:-12px 0 23px}
+.admin-overview-actions{border-color:#d7d7d7;background:#fff}
+.admin-overview-actions>p{max-width:70ch;font-size:14px;line-height:1.6;color:#555}
+.admin-editor-heading{scroll-margin-top:24px}
+.admin-editor-heading:focus{outline:none}
+.admin-editor-heading:focus-visible{outline:2px solid #111;outline-offset:5px}
+.admin-list-row button:focus-visible,.admin-stat-link:focus-visible{outline:3px solid #222;outline-offset:3px}
+@media(max-width:900px){.admin-bar{flex-wrap:wrap}.admin-bar-actions{justify-content:flex-start}}
+@media(max-width:760px){.admin-bar-actions{width:100%;gap:8px}.admin-bar-actions>.btn{flex:1 1 auto;min-height:46px;font-size:12px}.admin-dirty-indicator{order:-1;flex-basis:100%;width:max-content}.admin-overview-stats article{padding:16px}.admin-metrics-context{margin-top:-10px}.admin-overview-actions .admin-quick-actions{margin-top:14px}}
+@media(max-width:390px){.admin-bar-actions>.btn{padding-inline:9px;gap:5px;font-size:11px}}
