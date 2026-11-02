@@ -156,3 +156,42 @@
 @media(max-width:900px){.admin-bar{flex-wrap:wrap}.admin-bar-actions{justify-content:flex-start}}
 @media(max-width:760px){.admin-bar-actions{width:100%;gap:8px}.admin-bar-actions>.btn{flex:1 1 auto;min-height:46px;font-size:12px}.admin-dirty-indicator{order:-1;flex-basis:100%;width:max-content}.admin-overview-stats article{padding:16px}.admin-metrics-context{margin-top:-10px}.admin-overview-actions .admin-quick-actions{margin-top:14px}}
 @media(max-width:390px){.admin-bar-actions>.btn{padding-inline:9px;gap:5px;font-size:11px}}
+
+
+/* Corte productos: lista principal + formularios modales accesibles. */
+.admin-products-layout{display:block;min-width:0}
+.admin-products-list{min-width:0}
+.admin-product-modal-backdrop{position:fixed;inset:0;z-index:180;background:rgba(9,10,11,.66);display:flex;align-items:center;justify-content:center;padding:18px;overscroll-behavior:contain}
+.admin-product-modal,.admin-product-remove-modal{width:min(100%,860px);min-width:0;max-height:min(94dvh,950px);display:flex;flex-direction:column;background:#fff;border:1px solid #d9d9d9;border-radius:18px;box-shadow:0 24px 85px rgba(0,0,0,.28);overflow:hidden}
+.admin-product-modal-top{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 22px;border-bottom:1px solid #e6e6e6;background:#fafafa;flex-shrink:0}
+.admin-product-modal-top>span{font-size:11px;letter-spacing:.12em;font-weight:850;color:#555}
+.admin-product-modal-top>button{width:44px;height:44px;display:grid;place-items:center;border:0;border-radius:10px;background:#eee;color:#151515}
+.admin-product-modal-top>button:focus-visible,.admin-product-remove-actions button:focus-visible{outline:3px solid #111;outline-offset:2px}
+.admin-product-modal-scroll{overflow-y:auto;overscroll-behavior:contain;padding:25px 28px;min-height:0;scrollbar-gutter:stable}
+.admin-product-editor{min-width:0}
+.admin-product-editor>.admin-editor-heading{font-size:clamp(22px,2.4vw,30px);margin:0 0 12px}
+.admin-product-editor .form-inline{grid-template-columns:repeat(2,minmax(0,1fr))}
+.admin-product-editor :is(input,select,textarea){min-width:0;max-width:100%}
+.admin-product-editor .admin-catalog-import{margin-top:12px}
+.admin-product-editor .admin-product-actions{position:sticky;bottom:-25px;background:#fff;border-top:1px solid #e6e6e6;padding:17px 0 10px;margin-top:15px;z-index:2}
+.admin-product-remove-modal{max-width:510px;padding-bottom:22px}
+.admin-product-remove-modal>h2{font-size:22px;line-height:1.3;margin:24px 26px 10px}
+.admin-product-remove-modal>p{margin:5px 26px 15px;line-height:1.6;font-size:14px;color:#454545;overflow-wrap:anywhere}
+.admin-remove-check{margin:5px 26px 12px;display:flex;flex-direction:row;align-items:flex-start;gap:10px;font-size:13px;font-weight:650;line-height:1.5}
+.admin-remove-check input{width:19px;height:19px;flex-shrink:0;margin:2px 0 0}
+.admin-product-remove-modal>.notification{margin:10px 26px}
+.admin-product-remove-actions{display:flex;justify-content:flex-end;gap:10px;margin:16px 26px 0;flex-wrap:wrap}
+.admin-product-remove-actions .btn.danger{background:#a52b2b;border-color:#a52b2b;color:#fff}
+.admin-product-remove-actions .btn.danger:hover:not(:disabled){background:#841f1f}
+@media(max-width:760px){
+ .admin-product-modal-backdrop{align-items:flex-end;padding:0}
+ .admin-product-modal{width:100%;height:calc(100dvh - 12px);max-height:calc(100dvh - 12px);border-radius:17px 17px 0 0}
+ .admin-product-remove-modal{width:100%;max-width:100%;max-height:90dvh;border-radius:17px 17px 0 0}
+ .admin-product-modal-top{padding:10px 16px}
+ .admin-product-modal-scroll{padding:20px 16px calc(22px + env(safe-area-inset-bottom,0px));scrollbar-gutter:auto}
+ .admin-product-editor .admin-product-actions{bottom:calc(-22px - env(safe-area-inset-bottom,0px));padding-bottom:calc(12px + env(safe-area-inset-bottom,0px))}
+ .admin-product-editor .form-inline{grid-template-columns:1fr}
+ .admin-product-remove-actions{display:grid;grid-template-columns:1fr 1fr;margin-bottom:calc(4px + env(safe-area-inset-bottom,0px))}
+ .admin-product-remove-actions button{min-height:48px;white-space:normal}
+}
+@media(max-width:380px){.admin-product-remove-actions{grid-template-columns:1fr}.admin-product-modal-top>span{font-size:10px}}
