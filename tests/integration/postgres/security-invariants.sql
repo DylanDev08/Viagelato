@@ -37,7 +37,7 @@ end $$;
 
 
 -- Future application objects must not inherit unauthenticated data privileges.
-do $
+do $$
 declare r record; role_name text;
 begin
  if exists(
@@ -59,7 +59,7 @@ begin
    end if;
   end loop;
  end loop;
-end $;
+end $$;
 
 set local role anon;
 do $$ begin
