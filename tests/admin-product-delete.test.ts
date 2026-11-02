@@ -37,7 +37,7 @@ describe("DELETE definitivo de productos",()=>{
   const single=vi.fn().mockResolvedValue({data:{id,active:false,catalog_visible:false},error:null});
   const selectProduct=vi.fn().mockReturnValue({eq:vi.fn().mockReturnValue({maybeSingle:single})});
   const deletedSingle=vi.fn().mockResolvedValue({data:{id},error:null});
-  const deleteProduct=vi.fn().mockReturnValue({eq:vi.fn().mockReturnValue({eq:vi.fn().mockReturnValue({select:vi.fn().mockReturnValue({maybeSingle:deletedSingle})})})});
+  const deleteProduct=vi.fn().mockReturnValue({eq:vi.fn().mockReturnValue({eq:vi.fn().mockReturnValue({eq:vi.fn().mockReturnValue({select:vi.fn().mockReturnValue({maybeSingle:deletedSingle})})})})});
   const history=vi.fn().mockResolvedValue({count:0,error:null});
   const whatsapp=vi.fn().mockResolvedValue({count:0,error:null});
   const from=vi.fn((table:string)=>table==="products"?{select:selectProduct,delete:deleteProduct}:table==="order_items"?{select:vi.fn().mockReturnValue({eq:history})}:{select:vi.fn().mockReturnValue({contains:whatsapp})});
