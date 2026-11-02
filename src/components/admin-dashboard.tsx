@@ -40,6 +40,11 @@ async function request(path:string,method:string,data?:unknown){
 }
 export function AdminDashboard({initialProducts,initialCategories,initialOrders,initialWhatsAppRequests=[],initialZones,initialSettings,initialBanners}:{initialProducts:Product[];initialCategories:Category[];initialOrders:Order[];initialWhatsAppRequests?:WhatsAppRequest[];initialZones:ShippingZone[];initialSettings:StoreSettings;initialBanners:Banner[]}){
  const [tab,setTab]=useState<Tab>("overview"),[mobileMoreOpen,setMobileMoreOpen]=useState(false),[draft,setDraft]=useState<Draft>({...empty}),[settings,setSettings]=useState(initialSettings),[notice,setNotice]=useState(""),[noticeError,setNoticeError]=useState(false),[busy,setBusy]=useState(false);
+ const [editorOpen,setEditorOpen]=useState(false);
+ const [removal,setRemoval]=useState<{product:Product;mode:"hide"|"delete"}|null>(null);
+ const [confirmPermanent,setConfirmPermanent]=useState(false);
+ const modalRef=useRef<HTMLElement>(null);
+ const returnFocusRef=useRef<HTMLElement|null>(null);
  const [productQuery,setProductQuery]=useState(""),[productStatus,setProductStatus]=useState<"all"|"published"|"inquiry"|"hidden"|"pending">("all");
  const editorHeadingRef=useRef<HTMLHeadingElement>(null);
  const counts=useMemo(()=>whatsappRequestCounts(initialWhatsAppRequests),[initialWhatsAppRequests]);
@@ -54,7 +59,7 @@ export function AdminDashboard({initialProducts,initialCategories,initialOrders,
   return ()=>window.removeEventListener("beforeunload",warn);
  },[productHasChanges,settingsHaveChanges]);
  function canLeaveEditor(next:Tab){
-  if(tab==="products"&&next!=="products"&&productHasChanges){
+  if(tab==="products"&&next!=="products"&&editorOpen&&productHasChanges){
    if(!window.confirm("Hay cambios sin guardar en el producto. ¿Salir y descartarlos?"))return false;
    setDraft({...savedDraft});
   }
@@ -64,7 +69,62 @@ export function AdminDashboard({initialProducts,initialCategories,initialOrders,
   }
   return true;
  }
- function changeTab(next:Tab){if(next!==tab&&!canLeaveEditor(next))return;setTab(next);setMobileMoreOpen(false);}
+ function changeTab(next:Tab){
+  if(next!==tab&&!canLeaveEditor(next))return;
+  if(tab==="products"&&next!==tab){setEditorOpen(false);setRemoval(null);}
+  setTab(next);setMobileMoreOpen(false);
+ }
+ function closeProductEditor(){
+  if(busy)return;
+  if(productHasChanges&&!window.confirm("Hay cambios sin guardar en este producto. ¿Descartarlos?"))return;
+  setDraft({...savedDraft});
+  setEditorOpen(false);setShowCatalogPicker(false);setShowCandidatePicker(false);
+ }
+ function askRemoval(product:Product){
+  if(busy)return;
+  returnFocusRef.current=document.activeElement as HTMLElement;
+  setConfirmPermanent(false);
+  setRemoval({product,mode:product.active||product.catalog_visible?"hide":"delete"});
+  setNotice("");setNoticeError(false);
+ }
+ async function performRemoval(){
+  if(!removal||busy)return;
+  const {product,mode}=removal;
+  if(mode==="delete"&&!confirmPermanent)return;
+  await act(async()=>{
+   await request("products","DELETE",mode==="delete"?{id:product.id,action:"delete_permanently"}:{id:product.id});
+   setRemoval(null);
+   if(draft.id===product.id){setDraft({...empty});setSavedDraft({...empty});}
+  },true,mode==="delete"?"Producto eliminado definitivamente":"Producto oculto correctamente");
+ }
+ useEffect(()=>{
+  if(!editorOpen&&!removal)return;
+  const oldOverflow=document.body.style.overflow;
+  document.body.style.overflow="hidden";
+  modalRef.current?.querySelector<HTMLElement>("[data-dialog-autofocus]")?.focus();
+  return ()=>{document.body.style.overflow=oldOverflow;};
+ },[editorOpen,removal]);
+ useEffect(()=>{
+  if(!editorOpen&&!removal){returnFocusRef.current?.focus();return;}
+  function onKeyDown(event:KeyboardEvent){
+   if(event.key==="Escape"){
+    event.preventDefault();
+    if(removal){if(!busy)setRemoval(null);}
+    else closeProductEditor();
+   }
+   if(event.key!=="Tab")return;
+   const controls=Array.from(modalRef.current?.querySelectorAll<HTMLElement>('button:not(:disabled), input:not(:disabled), select:not(:disabled), textarea:not(:disabled), a[href], [tabindex]:not([tabindex="-1"])')??[]);
+   if(!controls.length)return;
+   const first=controls[0],last=controls[controls.length-1];
+   if(event.shiftKey&&(document.activeElement===first||!modalRef.current?.contains(document.activeElement))){
+    event.preventDefault();last.focus();
+   }else if(!event.shiftKey&&(document.activeElement===last||!modalRef.current?.contains(document.activeElement))){
+    event.preventDefault();first.focus();
+   }
+  }
+  window.addEventListener("keydown",onKeyDown);
+  return ()=>window.removeEventListener("keydown",onKeyDown);
+ },[editorOpen,removal,productHasChanges,busy]);
  async function saveProduct(mode:"save"|"publish") {
   const next:Draft={...draft,price:Number(draft.price),stock:Number(draft.stock),
    active:mode==="publish"?true:Boolean(draft.active),
@@ -89,31 +149,17 @@ export function AdminDashboard({initialProducts,initialCategories,initialOrders,
    setSavedDraft({...persisted});
   },true,mode==="publish"?"Producto publicado correctamente":next.active?"Producto actualizado en la tienda":next.catalog_visible?"Producto guardado y visible en el catálogo":"Borrador guardado. Podés seguir editándolo.");
  }
- async function hideProduct(product:Product){
-  if(busy)return;
-  if(draft.id===product.id&&productHasChanges&&
-     !window.confirm("Hay cambios sin guardar en esta ficha. ¿Descartarlos para ocultar el producto?"))return;
-  if(!window.confirm(`¿Ocultar «${product.name}»? Dejará de aparecer en la tienda.`))return;
-  await act(async()=>{
-   await request("products","DELETE",{id:product.id});
-   if(draft.id===product.id){
-    const hidden:Draft={...product,price:Number(product.price),stock:Number(product.stock),
-      active:false,catalog_visible:false};
-    setDraft(hidden);setSavedDraft({...hidden});
-   }
-  },true,"Producto oculto correctamente");
- }
  function startProduct(value:Draft){
-  if(productHasChanges&&!window.confirm("Hay cambios sin guardar. ¿Descartarlos y abrir otra ficha?"))return false;
+  if(busy)return false;
+  if(editorOpen&&productHasChanges&&!window.confirm("Hay cambios sin guardar. ¿Descartarlos y abrir otra ficha?"))return false;
+  if(!editorOpen)returnFocusRef.current=document.activeElement as HTMLElement;
   const snapshot={...value};
   setDraft(snapshot);setSavedDraft({...snapshot});
+  setEditorOpen(true);
+  setShowCatalogPicker(false);setShowCandidatePicker(false);
   setNotice("");setNoticeError(false);
-  // Al tocar "Editar" en una lista extensa, llevar al usuario al formulario.
-  editorHeadingRef.current?.focus({preventScroll:true});
-  editorHeadingRef.current?.scrollIntoView?.({behavior:"smooth",block:"start"});
   return true;
  }
-
  const [showCatalogPicker,setShowCatalogPicker]=useState(false),[catalogQuery,setCatalogQuery]=useState(""),[catalogType,setCatalogType]=useState("all");
  const [showCandidatePicker,setShowCandidatePicker]=useState(false),[candidateQuery,setCandidateQuery]=useState("");
  const [newCat,setNewCat]=useState({name:"",slug:"",id:""}),[zoneId,setZoneId]=useState(""),[zoneName,setZoneName]=useState(""),[zoneCodes,setZoneCodes]=useState(""),[zoneCost,setZoneCost]=useState(""),[zoneReady,setZoneReady]=useState(false),[zoneFree,setZoneFree]=useState(false),[banner,setBanner]=useState({id:"",title:"",subtitle:"",image_url:"",href:"/catalogo",active:true,sort_order:0});
