@@ -7,7 +7,6 @@ import "./provisional.css";
 import "./monochrome.css";
 import "./corte-03.css";
 import "./corte-04.css";
-import "./admin-corte04.css";
 import "./contact-catalog-corte06.css";
 import "./auth-recovery.css";
 import "./mobile.css";
@@ -16,7 +15,6 @@ import "./grouped-catalog.css";
 import "./storefront-refresh.css";
 import "./commercial-refinement.css";
 import "./checkout-totals.css";
-import "./admin-whatsapp-priority.css";
 import "./cart-experience.css";
 
 const siteUrl=publicSiteUrl();
