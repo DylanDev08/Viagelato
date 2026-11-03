@@ -3,7 +3,11 @@ import {cache} from "react";
 import {DEFAULT_SETTINGS,type Settings,type Product,type Category,type ShippingZone,type Banner} from "./types";
 import {readPublicCategories} from "./public-categories";
 export const getStore=cache(async()=>{
- if(!connected()) return {settings:DEFAULT_SETTINGS,products:[] as Product[],categories:[] as Category[],zones:[] as ShippingZone[],banners:[] as Banner[],demo:true,checkoutEnabled:false};
+ if(!connected()){
+  // Nunca simular una tienda operativa en producción sin fuente comercial vigente.
+  if(process.env.NODE_ENV==="production")throw new Error("La tienda no está disponible temporalmente.");
+  return {settings:DEFAULT_SETTINGS,products:[] as Product[],categories:[] as Category[],zones:[] as ShippingZone[],banners:[] as Banner[],demo:true,checkoutEnabled:false};
+ }
  const db=publicDb();
  const [s,p,c,z,b]=await Promise.all([
   db.from("site_settings").select("*").eq("id",true).single(),
