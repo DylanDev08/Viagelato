@@ -250,7 +250,7 @@ describe("panel: usabilidad y prioridades",()=>{
  it("explica que los indicadores WhatsApp muestran solo solicitudes recientes",()=>{
   render(<AdminDashboard {...common} initialProducts={[]} initialWhatsAppRequests={[]} />);
   expect(screen.getByText("WhatsApp por atender")).toBeInTheDocument();
-  expect(screen.getByText(/máximo 100/)).toBeInTheDocument();
+  expect(screen.getByText(/solicitudes cargadas/)).toBeInTheDocument();
   expect(screen.getByRole("button",{name:"Actualizar datos"})).toBeEnabled();
  });
  it("pide confirmar antes de actualizar con un producto sin guardar",async()=>{
