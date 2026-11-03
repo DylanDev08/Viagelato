@@ -1,4 +1,5 @@
-import {createHash,createHmac} from "node:crypto";
+import {createHash} from "node:crypto";
+import {rateLimitClientKey} from "@/lib/request-security";
 import {NextResponse} from "next/server";
 import {z} from "zod";
 import {connected,privilegedDb} from "@/lib/supabase";
@@ -14,12 +15,6 @@ export const runtime="nodejs";
 const reply=(error:string,status:number)=>NextResponse.json({error},{status,headers:{"Cache-Control":"no-store"}});
 const uuid=z.uuid();
 function fingerprint(body:unknown){return createHash("sha256").update(JSON.stringify(body)).digest("hex");}
-function rateKey(request:Request){
- const secret=process.env.CHECKOUT_RATE_LIMIT_SALT||process.env.SUPABASE_SERVICE_ROLE_KEY;
- if(!secret)throw new Error("Falta clave del limitador");
- const ip=request.headers.get("x-real-ip")||request.headers.get("x-forwarded-for")?.split(",")[0]?.trim()||"unknown";
- return createHmac("sha256",secret).update(ip).digest("hex");
-}
 type RequestSnapshot={
  id:string;request_fingerprint:string;status:string;
  customer_name:string;locality:string;address:string;notes:string;payment_preference?:"transfer"|"cash_on_delivery";
@@ -75,7 +70,7 @@ async function prepareRequest(request:Request){
  const input=normalizeWhatsAppRequest(parsed.data);
  const db=privilegedDb();
  const {data:allowed,error:rateError}=await db.rpc("consume_checkout_attempt",{
-  p_key_hash:rateKey(request),p_idempotency_key:key.data,p_limit:8,p_window_minutes:10
+  p_key_hash:rateLimitClientKey(request,process.env.CHECKOUT_RATE_LIMIT_SALT||process.env.SUPABASE_SERVICE_ROLE_KEY||""),p_idempotency_key:key.data,p_limit:8,p_window_minutes:10
  });
  if(rateError)return reply("No pudimos validar la seguridad de la solicitud",503);
  if(!allowed)return NextResponse.json({error:"Demasiados intentos. Volvé a intentarlo en unos minutos."},{status:429,headers:{"Cache-Control":"no-store","Retry-After":"600"}});

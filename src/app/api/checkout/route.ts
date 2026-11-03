@@ -1,4 +1,5 @@
-import {createHash,createHmac} from "node:crypto";
+import {createHash} from "node:crypto";
+import {rateLimitClientKey} from "@/lib/request-security";
 import {NextResponse} from "next/server";
 import {z} from "zod";
 import {connected,privilegedDb} from "@/lib/supabase";
@@ -8,7 +9,7 @@ import {isAllowedAdminMutation} from "@/lib/admin-origin";
 
 export const runtime="nodejs";
 function jsonError(error:string,status:number,headers?:HeadersInit){return NextResponse.json({error},{status,headers:{"Cache-Control":"no-store",...headers}})}
-function clientKey(request:Request){const raw=request.headers.get("x-real-ip")||request.headers.get("x-forwarded-for")?.split(",")[0]?.trim()||"unknown";return createHmac("sha256",process.env.CHECKOUT_RATE_LIMIT_SALT!).update(raw).digest("hex")}
+
 
 export async function POST(request:Request){
  try{return await createOrder(request);}
@@ -30,7 +31,7 @@ async function createOrder(request:Request){
  if(!parsed.success)return NextResponse.json({error:"Revisá los datos de la compra",issues:parsed.error.issues.map(issue=>({path:issue.path,message:issue.message}))},{status:400,headers:{"Cache-Control":"no-store"}});
  const data=parsed.data;
  const db=privilegedDb();
- const {data:allowed,error:rateError}=await db.rpc("consume_checkout_attempt",{p_key_hash:clientKey(request),p_idempotency_key:idempotency.data,p_limit:5,p_window_minutes:10});
+ const {data:allowed,error:rateError}=await db.rpc("consume_checkout_attempt",{p_key_hash:rateLimitClientKey(request,process.env.CHECKOUT_RATE_LIMIT_SALT!),p_idempotency_key:idempotency.data,p_limit:5,p_window_minutes:10});
  if(rateError)return jsonError("No se pudo validar la seguridad del pedido",503);
  if(!allowed)return jsonError("Demasiados intentos. Esperá diez minutos antes de volver a intentar.",429,{"Retry-After":"600"});
  const normalized=normalizeCheckout(data);

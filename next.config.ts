@@ -41,6 +41,10 @@ const nextConfig:NextConfig={
   async headers(){
     return [
       {source:"/:path*",headers:securityHeaders},
+      {source:"/api/admin/:path*",headers:[{key:"Cache-Control",value:"private, no-store"},{key:"X-Robots-Tag",value:"noindex, nofollow"}]},
+      {source:"/api/whatsapp-request",headers:[{key:"Cache-Control",value:"no-store"},{key:"X-Robots-Tag",value:"noindex, nofollow"}]},
+      {source:"/api/checkout",headers:[{key:"Cache-Control",value:"no-store"}]},
+      {source:"/api/cron/:path*",headers:[{key:"Cache-Control",value:"no-store"}]},
       ...PRIVATE_ROUTES.map(route=>({
         source:`${route}/:path*`,
         headers:[{key:"X-Robots-Tag",value:"noindex, nofollow"},{key:"Cache-Control",value:"private, no-store"}],

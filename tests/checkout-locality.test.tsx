@@ -12,7 +12,7 @@ describe("localidades fuera de la cobertura predefinida",()=>{
   await user.selectOptions(screen.getByLabelText("Zona de entrega"),"Capital Federal");
   expect(screen.getByText(/Capital Federal: entrega y costo siempre a consultar/)).toBeInTheDocument();
   expect(screen.queryByRole("textbox",{name:"Escribí tu localidad"})).not.toBeInTheDocument();
-  await user.selectOptions(screen.getByLabelText("Forma de pago preferida"),"cash_on_delivery");
+  await user.click(screen.getByRole("radio",{name:/Efectivo al recibir/}));
   expect(screen.getByText("Efectivo al recibir, sujeto a confirmación")).toBeInTheDocument();
  });
  it("permite escribir localidad real sin enviar literalmente 'Otra localidad'",async()=>{

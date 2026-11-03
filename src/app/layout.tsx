@@ -17,6 +17,7 @@ import "./storefront-refresh.css";
 import "./commercial-refinement.css";
 import "./checkout-totals.css";
 import "./admin-whatsapp-priority.css";
+import "./cart-experience.css";
 
 const siteUrl=publicSiteUrl();
 const indexingEnabled=process.env.ENABLE_INDEXING==="true"&&siteUrl!==null;
