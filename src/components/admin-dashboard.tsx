@@ -25,6 +25,7 @@ const nav:{id:Tab;label:string;icon:typeof Package}[]=[
 ];
 const mobileMainTabs:Tab[]=["overview","products","requests","orders"];
 const mobileMoreTabs:Tab[]=["categories","zones","banners","settings"];
+const EMPTY_WHATSAPP_REQUESTS:WhatsAppRequest[]=[];
 function friendlyIssue(issue:{path?:(string|number)[];message?:string}|undefined){
  if(!issue)return "";
  if(issue.path?.[0]==="active"&&issue.message?.startsWith("Para publicar"))return issue.message;
@@ -40,7 +41,7 @@ async function request(path:string,method:string,data?:unknown){
  if(!r.ok)throw new Error([d.error||"No se pudo completar la operación",friendlyIssue(d.issues?.[0])].filter(Boolean).join(" · "));
  return d;
 }
-export function AdminDashboard({initialProducts,initialCategories,initialOrders,initialOrdersNextCursor=null,initialWhatsAppRequests=[],initialWhatsAppNextCursor=null,initialZones,initialSettings,initialBanners}:{initialProducts:Product[];initialCategories:Category[];initialOrders:Order[];initialOrdersNextCursor?:string|null;initialWhatsAppRequests?:WhatsAppRequest[];initialWhatsAppNextCursor?:string|null;initialZones:ShippingZone[];initialSettings:StoreSettings;initialBanners:Banner[]}){
+export function AdminDashboard({initialProducts,initialCategories,initialOrders,initialOrdersNextCursor=null,initialWhatsAppRequests=EMPTY_WHATSAPP_REQUESTS,initialWhatsAppNextCursor=null,initialZones,initialSettings,initialBanners}:{initialProducts:Product[];initialCategories:Category[];initialOrders:Order[];initialOrdersNextCursor?:string|null;initialWhatsAppRequests?:WhatsAppRequest[];initialWhatsAppNextCursor?:string|null;initialZones:ShippingZone[];initialSettings:StoreSettings;initialBanners:Banner[]}){
  const [tab,setTab]=useState<Tab>("overview"),[mobileMoreOpen,setMobileMoreOpen]=useState(false),[draft,setDraft]=useState<Draft>({...empty}),[settings,setSettings]=useState(initialSettings),[notice,setNotice]=useState(""),[noticeError,setNoticeError]=useState(false),[busy,setBusy]=useState(false);
  const [ordersPage,setOrdersPage]=useState(initialOrders);
  const [ordersCursor,setOrdersCursor]=useState<string|null>(initialOrdersNextCursor);
