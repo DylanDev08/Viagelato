@@ -10,7 +10,7 @@ import {ars,DELIVERY_AREAS,type Product,type Settings,type ShippingZone} from "@
 import {resolveCartView} from "@/lib/cart-view-model";
 import {CATALOG_PRICE_ITEMS,type CatalogPriceItem} from "@/lib/catalog-prices";
 import {checkoutRequestFingerprint,getOrCreateCheckoutKey,clearCheckoutKey,checkoutKeyStorage} from "@/lib/checkout-idempotency";
-import {quoteShipping} from "@/lib/shipping-quote";
+import {quoteShipping,OUT_OF_ZONE_DELIVERY_COST} from "@/lib/shipping-quote";
 
 export function Checkout({products,zones,settings,catalogItems=CATALOG_PRICE_ITEMS}:{products:Product[];zones:ShippingZone[];settings:Settings;demo:boolean;checkoutEnabled:boolean;catalogItems?:CatalogPriceItem[]}){
  const {items,setQuantity,clear}=useCart();
@@ -131,8 +131,8 @@ export function Checkout({products,zones,settings,catalogItems=CATALOG_PRICE_ITE
      <option value="Capital Federal">Capital Federal (fuera de zona)</option>
      <option value="other">Fuera de las zonas indicadas / Otra localidad</option>
     </select></label>
-    {selectedLocality==="Capital Federal"?<p className="cart-caba-notice" role="status">Capital Federal: envío fuera de zona con tarifa fija de {ars(60000)}. Confirmamos cobertura y fecha por WhatsApp.</p>:null}
-    {selectedLocality==="other"?<label>Escribí tu localidad<input disabled={busy} required minLength={2} maxLength={100} autoComplete="address-level2" aria-label="Escribí tu localidad" value={otherLocality} onChange={e=>setOtherLocality(e.target.value)} placeholder="Por ejemplo: Quilmes" aria-describedby="other-locality-help"/><small id="other-locality-help">Fuera de las zonas habilitadas, el envío tiene una tarifa fija de {ars(60000)}. Confirmamos cobertura y fecha por WhatsApp.</small></label>:null}
+    {selectedLocality==="Capital Federal"?<p className="cart-caba-notice" role="status">Capital Federal: envío fuera de zona con tarifa fija de {ars(OUT_OF_ZONE_DELIVERY_COST)}. Confirmamos cobertura y fecha por WhatsApp.</p>:null}
+    {selectedLocality==="other"?<label>Escribí tu localidad<input disabled={busy} required minLength={2} maxLength={100} autoComplete="address-level2" aria-label="Escribí tu localidad" value={otherLocality} onChange={e=>setOtherLocality(e.target.value)} placeholder="Por ejemplo: Quilmes" aria-describedby="other-locality-help"/><small id="other-locality-help">Fuera de las zonas habilitadas, el envío tiene una tarifa fija de {ars(OUT_OF_ZONE_DELIVERY_COST)}. Confirmamos cobertura y fecha por WhatsApp.</small></label>:null}
     {settings.pickup_enabled?<label>Entrega<select disabled={busy} value={delivery} onChange={e=>setDelivery(e.target.value as "shipping"|"pickup")}><option value="shipping">Envío a domicilio</option><option value="pickup">Consultar retiro</option></select></label>:null}
     <section className="cart-price-breakdown" aria-label="Resumen y total del pedido" aria-live="polite">
      <div className="cart-price-breakdown-title"><h3>Tu total</h3><span>{count} {count===1?"presentación":"presentaciones"}</span></div>
