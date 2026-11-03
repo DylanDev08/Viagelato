@@ -194,6 +194,6 @@ export function WhatsAppRequests({requests,freeShippingThreshold=60000}:{request
    <p>Probá otra búsqueda o revisá todas las solicitudes recientes.</p>
    <button type="button" className="btn ghost" onClick={()=>{setFilter("all");setSearch("");}}>Mostrar todos</button>
   </div>:null}
-  <p className="whatsapp-admin-footnote">Los contadores muestran las últimas 100 solicitudes, no las ventas históricas. Un pedido puede figurar «En curso» y «Con saldo» al mismo tiempo. «Mensaje preparado» no significa que el cliente lo haya enviado.</p>
+  <p className="whatsapp-admin-footnote">La búsqueda y los contadores incluyen únicamente las solicitudes cargadas; usá «Cargar más» para ver las anteriores. Un pedido puede figurar «En curso» y «Con saldo» al mismo tiempo. «Mensaje preparado» no significa que el cliente lo haya enviado.</p>
  </section>;
 }
