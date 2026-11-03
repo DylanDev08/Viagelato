@@ -10,7 +10,11 @@ import {readPublicCategories} from "./public-categories";
  * Los borradores sólo salen al cliente cuando catalog_visible=true.
  */
 export const getPublicCatalog=cache(async()=>{
- if(!connected())return CATALOG_PRICE_ITEMS;
+ if(!connected()){
+  // El JSON histórico sólo es un fixture local; jamás publicar precios antiguos en producción.
+  if(process.env.NODE_ENV==="production")throw new Error("No se pudo consultar el catálogo comercial vigente.");
+  return CATALOG_PRICE_ITEMS;
+ }
  const db=privilegedDb();
  const [products,categories]=await Promise.all([
   db.from("products").select("slug,name,description,sku,price,presentation,image_url,category_id,catalog_visible")
