@@ -21,7 +21,8 @@ export async function POST(request:Request){
 
 async function createOrder(request:Request){
  if(process.env.ENABLE_CHECKOUT!=="true"||!connected())return jsonError("Los pedidos todavía no están habilitados",503);
- if(!process.env.CHECKOUT_RATE_LIMIT_SALT)return jsonError("Falta completar la seguridad del checkout",503);
+ const rateLimitSalt=process.env.CHECKOUT_RATE_LIMIT_SALT;
+ if(!rateLimitSalt||Buffer.byteLength(rateLimitSalt,"utf8")<32)return jsonError("Falta completar la seguridad del checkout",503);
  if(!isAllowedAdminMutation(request,process.env.NEXT_PUBLIC_SITE_URL,""))return jsonError("Origen no permitido",403);
  const idempotencyHeader=request.headers.get("idempotency-key");
  const idempotency=z.uuid().safeParse(idempotencyHeader);
@@ -31,7 +32,7 @@ async function createOrder(request:Request){
  if(!parsed.success)return NextResponse.json({error:"Revisá los datos de la compra",issues:parsed.error.issues.map(issue=>({path:issue.path,message:issue.message}))},{status:400,headers:{"Cache-Control":"no-store"}});
  const data=parsed.data;
  const db=privilegedDb();
- const {data:allowed,error:rateError}=await db.rpc("consume_checkout_attempt",{p_key_hash:rateLimitClientKey(request,process.env.CHECKOUT_RATE_LIMIT_SALT!),p_idempotency_key:idempotency.data,p_limit:5,p_window_minutes:10});
+ const {data:allowed,error:rateError}=await db.rpc("consume_checkout_attempt",{p_key_hash:rateLimitClientKey(request,rateLimitSalt),p_idempotency_key:idempotency.data,p_limit:5,p_window_minutes:10});
  if(rateError)return jsonError("No se pudo validar la seguridad del pedido",503);
  if(!allowed)return jsonError("Demasiados intentos. Esperá diez minutos antes de volver a intentar.",429,{"Retry-After":"600"});
  const normalized=normalizeCheckout(data);
