@@ -7,15 +7,21 @@ import { cache } from "react";
 const url=()=>process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const key=()=>process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!;
 const placeholder=(value:string|undefined)=>!value || /tu-proyecto|your-project|tu_clave|generar_|\.\.\./i.test(value);
-export const connected=()=>{
+/** Público: la tienda y el catálogo no necesitan la clave privilegiada. */
+export const publicConnected=()=>{
  const endpoint=url();
  const publishable=key();
- const serviceRole=process.env.SUPABASE_SERVICE_ROLE_KEY;
- if(!serviceRole||placeholder(endpoint)||placeholder(publishable)||placeholder(serviceRole)) return false;
+ if(placeholder(endpoint)||placeholder(publishable))return false;
  try{
-  const host=new URL(endpoint).hostname;
-  return host.endsWith(".supabase.co") && (publishable.startsWith("sb_publishable_")||publishable.startsWith("eyJ")) && serviceRole.length>=32;
+  const parsed=new URL(endpoint);
+  return parsed.protocol==="https:"&&parsed.hostname.endsWith(".supabase.co")
+   && (publishable.startsWith("sb_publishable_")||publishable.startsWith("eyJ"));
  }catch{return false;}
+};
+/** Exclusivo de operaciones privadas: pedidos, pagos y administración. */
+export const connected=()=>{
+ const serviceRole=process.env.SUPABASE_SERVICE_ROLE_KEY;
+ return publicConnected()&&!placeholder(serviceRole)&&Boolean(serviceRole&&serviceRole.length>=32);
 };
 export function publicDb(){return createClient(url(),key(),{auth:{persistSession:false}});}
 /** Sólo servidor. Jamás importarlo desde componentes 'use client'. */
