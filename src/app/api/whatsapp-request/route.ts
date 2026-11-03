@@ -10,6 +10,7 @@ import {normalizeWhatsAppRequest,whatsappRequestSchema,whatsappRequestReference,
 import {whatsappHref} from "@/lib/whatsapp";
 import {readJsonBody,RequestBodyError} from "@/lib/request-body";
 import {isAllowedAdminMutation} from "@/lib/admin-origin";
+import {reportServerFailure} from "@/lib/server-diagnostics";
 
 export const runtime="nodejs";
 const reply=(error:string,status:number)=>NextResponse.json({error},{status,headers:{"Cache-Control":"no-store"}});
@@ -55,6 +56,7 @@ export async function POST(request:Request){
  try{return await prepareRequest(request);}
  catch(error){
   if(error instanceof RequestBodyError)return reply(error.message,error.status);
+  reportServerFailure("whatsapp_prepare_failed");
   return reply("No pudimos preparar la solicitud. Volvé a intentar con el mismo carrito.",503);
  }
 }
