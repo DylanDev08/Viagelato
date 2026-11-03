@@ -1,4 +1,4 @@
-import {render,screen,waitFor} from "@testing-library/react";
+import {act,render,screen,waitFor} from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import {beforeEach,describe,expect,it} from "vitest";
 import {CartProvider,useCart} from "@/components/cart";
@@ -16,9 +16,11 @@ describe("sincronización de carrito entre pestañas",()=>{
   await user.click(screen.getByRole("button",{name:"Añadir"}));
   expect(screen.getByTestId("count")).toHaveTextContent("1");
   const updated=JSON.stringify([{id:"catalog-price-2",quantity:3},{id:"catalog-price-3",quantity:2}]);
-  localStorage.setItem("viagelato-cart:v1",updated);
-  window.dispatchEvent(new StorageEvent("storage",{key:"viagelato-cart:v1",newValue:updated,storageArea:localStorage}));
-  expect(screen.getByTestId("count")).toHaveTextContent("5");
+  act(()=>{
+   localStorage.setItem("viagelato-cart:v1",updated);
+   window.dispatchEvent(new StorageEvent("storage",{key:"viagelato-cart:v1",newValue:updated,storageArea:localStorage}));
+  });
+  await waitFor(()=>expect(screen.getByTestId("count")).toHaveTextContent("5"));
   expect(screen.getByTestId("lines")).toHaveTextContent("2");
  });
  it("sincroniza el vaciado remoto sin conservar unidades antiguas",async()=>{
@@ -26,8 +28,10 @@ describe("sincronización de carrito entre pestañas",()=>{
   render(<CartProvider><CartProbe/></CartProvider>);
   await user.click(screen.getByRole("button",{name:"Añadir"}));
   await waitFor(()=>expect(screen.getByTestId("count")).toHaveTextContent("1"));
-  localStorage.removeItem("viagelato-cart:v1");
-  window.dispatchEvent(new StorageEvent("storage",{key:"viagelato-cart:v1",newValue:null,storageArea:localStorage}));
-  expect(screen.getByTestId("count")).toHaveTextContent("0");
+  act(()=>{
+   localStorage.removeItem("viagelato-cart:v1");
+   window.dispatchEvent(new StorageEvent("storage",{key:"viagelato-cart:v1",newValue:null,storageArea:localStorage}));
+  });
+  await waitFor(()=>expect(screen.getByTestId("count")).toHaveTextContent("0"));
  });
 });
