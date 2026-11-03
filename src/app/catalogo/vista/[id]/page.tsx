@@ -8,6 +8,9 @@ import {PricedAddToCart} from "@/components/priced-add-to-cart";
 import {getStore} from "@/lib/site";
 import {getPublicCatalog} from "@/lib/catalog-source";
 import {ars} from "@/lib/types";
+import {publicSiteUrl} from "@/lib/seo";
+import {StructuredData} from "@/components/structured-data";
+import {catalogProductData} from "@/lib/structured-data";
 
 export const dynamic="force-dynamic";
 type Props={params:Promise<{id:string}>};
@@ -19,13 +22,18 @@ async function lookup(raw:string){
 export async function generateMetadata({params}:Props):Promise<Metadata>{
  const item=await lookup((await params).id);
  if(!item)return {title:"Producto no encontrado",robots:{index:false,follow:false}};
- return {title:`${item.name} | Viagelato`,description:item.description,robots:{index:false,follow:false}};
+ const base=publicSiteUrl();
+ const indexable=process.env.ENABLE_INDEXING==="true"&&base!==null;
+ return {title:item.name,description:item.description,robots:{index:indexable,follow:indexable},
+  alternates:{canonical:`/catalogo/vista/${item.id}`},
+  ...(item.image&&base?{openGraph:{images:[new URL(item.image,base).href]}}:{})};
 }
 export default async function ProductPage({params}:Props){
  const item=await lookup((await params).id);
  if(!item)notFound();
  const {settings}=await getStore();
- return <SiteShell settings={settings}><main className="shell provisional-detail-page">
+ const base=publicSiteUrl();
+ return <SiteShell settings={settings}>{base?<StructuredData data={catalogProductData(item,base)}/>:null}<main className="shell provisional-detail-page">
   <Link className="back-link" href="/catalogo"><ArrowLeft/> Volver al catálogo</Link>
   <div className="provisional-detail-grid">
    <div className="provisional-detail-image">
