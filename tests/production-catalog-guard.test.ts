@@ -3,6 +3,7 @@ import {getStore} from "@/lib/site";
 import {getPublicCatalog} from "@/lib/catalog-source";
 import {connected,publicDb,privilegedDb} from "@/lib/supabase";
 
+vi.mock("server-only",()=>({}));
 vi.mock("@/lib/supabase",()=>({
  connected:vi.fn(()=>false),
  publicDb:vi.fn(),
