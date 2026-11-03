@@ -80,13 +80,15 @@ describe("registrar referencia WhatsApp",()=>{
   expect(decodeURIComponent(data.whatsapp_url)).toContain("48.600");
   expect(insert).toHaveBeenCalledWith(expect.objectContaining({subtotal:43800}),expect.anything());
  });
- it("para una localidad fuera de cobertura no inventa una tarifa",async()=>{
+ it("para una localidad fuera de zona suma la tarifa fija del servidor",async()=>{
   const response=await POST(make({...payload,locality:"Quilmes Oeste"}));
   const data=await response.json();
   expect(response.status).toBe(201);
-  expect(data.shipping_cost).toBeNull();
-  expect(data.total).toBeNull();
-  expect(decodeURIComponent(data.whatsapp_url)).toContain("Total final con envío: a confirmar");
+  expect(data.subtotal).toBe(43800);
+  expect(data.shipping_cost).toBe(60000);
+  expect(data.total).toBe(103800);
+  expect(decodeURIComponent(data.whatsapp_url)).toContain("Total estimado de productos y envío");
+  expect(decodeURIComponent(data.whatsapp_url)).toContain("103.800");
  });
  it("no confirma importes de envío cuando no puede verificar las tarifas",async()=>{
   shippingRead.mockResolvedValue({data:null,error:{message:"temporarily unavailable"}});
