@@ -8,6 +8,8 @@ on:
       - 'package.json'
       - 'package-lock.json'
       - 'supabase/**'
+      - 'public/**'
+      - 'docs/viagelato/**'
       - 'next.config.ts'
       - '.github/workflows/quality.yml'
   push:
@@ -18,6 +20,8 @@ on:
       - 'package.json'
       - 'package-lock.json'
       - 'supabase/**'
+      - 'public/**'
+      - 'docs/viagelato/**'
       - 'next.config.ts'
       - '.github/workflows/quality.yml'
   workflow_dispatch:
