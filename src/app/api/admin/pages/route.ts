@@ -1,13 +1,17 @@
 import {NextResponse} from "next/server";
-import {adminOrError} from "@/lib/admin";
+import {assertAdmin} from "@/lib/supabase";
 import {loadAdminPage,type AdminPageKind} from "@/lib/admin-pages";
 
 export const dynamic="force-dynamic";
 export const runtime="nodejs";
 
 export async function GET(req:Request){
- const denied=await adminOrError(req);
- if(denied)return denied;
+ // GET del propio panel no lleva necesariamente Origin; las mutaciones
+ // continúan usando el guard CSRF de adminOrError.
+ if(req.headers.get("sec-fetch-site")==="cross-site")
+  return NextResponse.json({error:"Origen no permitido"},{status:403});
+ try{await assertAdmin();}
+ catch{return NextResponse.json({error:"No autorizado"},{status:401});}
  const search=new URL(req.url).searchParams;
  const kind=search.get("kind");
  if(kind!=="orders"&&kind!=="requests")
