@@ -22,7 +22,7 @@ describe("bandeja administrativa de WhatsApp",()=>{
   render(<WhatsAppRequests requests={requests}/>);
   expect(screen.getByRole("button",{name:/Necesitan atención 1/})).toBeInTheDocument();
   expect(screen.getByRole("button",{name:/Finalizados 1/})).toBeInTheDocument();
-  expect(screen.getByText("1 resultados · 2 solicitudes recientes cargadas (máximo 100)")).toBeInTheDocument();
+  expect(screen.getByText("1 resultados · 2 solicitudes cargadas por páginas")).toBeInTheDocument();
   expect(screen.getByText(/El cliente preparó el mensaje/)).toBeInTheDocument();
   expect(screen.getByText("Ana Gomez")).toBeInTheDocument();
   expect(screen.queryByText("Juan")).not.toBeInTheDocument();
@@ -33,12 +33,12 @@ describe("bandeja administrativa de WhatsApp",()=>{
   expect(screen.getByText("Ana Gomez")).toBeInTheDocument();
   expect(screen.getByText("Juan")).toBeInTheDocument();
   await user.type(screen.getByRole("searchbox",{name:"Buscar un pedido"}),"PAL-001");
-  expect(screen.getByText("2 resultados · 2 solicitudes recientes cargadas (máximo 100)")).toBeInTheDocument();
+  expect(screen.getByText("2 resultados · 2 solicitudes cargadas por páginas")).toBeInTheDocument();
   await user.clear(screen.getByRole("searchbox",{name:"Buscar un pedido"}));
   await user.type(screen.getByRole("searchbox",{name:"Buscar un pedido"}),"sin coincidencia");
   expect(screen.getByText(/No encontramos pedidos con esa búsqueda/)).toBeInTheDocument();
   await user.click(screen.getByRole("button",{name:"Mostrar todos"}));
-  expect(screen.getByText("2 resultados · 2 solicitudes recientes cargadas (máximo 100)")).toBeInTheDocument();
+  expect(screen.getByText("2 resultados · 2 solicitudes cargadas por páginas")).toBeInTheDocument();
  });
  it("permite inspeccionar productos y pagos sin desplegar toda la ficha",async()=>{
   const user=userEvent.setup();
