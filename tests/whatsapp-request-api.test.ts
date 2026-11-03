@@ -24,7 +24,7 @@ describe("registrar referencia WhatsApp",()=>{
  beforeEach(()=>{
   vi.clearAllMocks();vi.mocked(connected).mockReturnValue(true);
   process.env.SUPABASE_SERVICE_ROLE_KEY="abcdefghijklmnopqrstuvwxyz0123456789SERVICE";
-  process.env.CHECKOUT_RATE_LIMIT_SALT="test-only-salt";
+  process.env.CHECKOUT_RATE_LIMIT_SALT="test-only-salt-dedicated-to-rate-limit-2026";
   rpc.mockResolvedValue({data:true,error:null});
   productRead.mockResolvedValue({data:[{id,name:"Helado",sku:"VIA-PUBLIC",presentation:"Caja",price:1200,stock:2}],error:null});
   priorRead.mockResolvedValue({data:null,error:null});
@@ -175,6 +175,20 @@ describe("registrar referencia WhatsApp",()=>{
   expect((await POST(make({...payload,items:[payload.items[0],payload.items[0]]}))).status).toBe(400);
   expect((await POST(make({...payload,items:[{id:"catalog-price-47",quantity:1}]}))).status).toBe(400);
   expect(insert).not.toHaveBeenCalled();
+ });
+ it("no utiliza service_role como secreto del rate limiter si falta la clave dedicada",async()=>{
+  delete process.env.CHECKOUT_RATE_LIMIT_SALT;
+  const response=await POST(make());
+  expect(response.status).toBe(503);
+  expect(await response.text()).not.toContain("SERVICE");
+  expect(privilegedDb).not.toHaveBeenCalled();
+  expect(rpc).not.toHaveBeenCalled();
+  expect(insert).not.toHaveBeenCalled();
+ });
+ it("rechaza una clave demasiado corta antes de leer la base",async()=>{
+  process.env.CHECKOUT_RATE_LIMIT_SALT="test";
+  expect((await POST(make())).status).toBe(503);
+  expect(privilegedDb).not.toHaveBeenCalled();
  });
  it("no registra si la base está sin conectar",async()=>{
   vi.mocked(connected).mockReturnValue(false);
