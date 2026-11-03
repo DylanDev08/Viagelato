@@ -16,7 +16,7 @@ describe("panel modular: resumen y confirmación de productos",()=>{
   expect(screen.getByText("Solicitudes con saldo").nextElementSibling).toHaveTextContent("2");
   expect(screen.getByText("Productos publicados").nextElementSibling).toHaveTextContent("1");
   expect(screen.getByText("Stock bajo (≤5)").nextElementSibling).toHaveTextContent("1");
-  expect(screen.getByText(/últimas 10 solicitudes cargadas/)).toBeInTheDocument();
+  expect(screen.getByText(/10 solicitudes cargadas/)).toBeInTheDocument();
   await user.click(screen.getByRole("button",{name:"Administrar productos"}));
   expect(onNavigate).toHaveBeenCalledWith("products");
  });
