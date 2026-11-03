@@ -24,10 +24,12 @@ describe("finalización por WhatsApp sin pasarela",()=>{
   const url=whatsappHref("+5491140962202",text);
   expect(decodeURIComponent(url||"")).toContain("Caja de 36 unidades");
  });
- it("no promete envío gratis por debajo del mínimo o fuera de zonas",()=>{
+ it("mantiene la consulta bajo el mínimo en zona cubierta y suma la tarifa fuera de zona",()=>{
   const lines=[{name:"Torta",price:12900,quantity:1}];
   expect(whatsappCartMessage(lines,base)).toContain("pendiente de cotizar y confirmar cobertura");
-  expect(whatsappCartMessage([{...lines[0],quantity:5}],{...base,locality:"CABA"})).toContain("pendiente de cotizar y confirmar cobertura");
+  const outside=whatsappCartMessage([{...lines[0],quantity:5}],{...base,locality:"CABA"});
+  expect(outside).toContain("Envío a CABA: $ 60.000");
+  expect(outside).toContain("Total estimado de productos y envío: $ 124.500");
  });
  it("explica preferencia de efectivo sin declararlo abonado",()=>{
   const message=whatsappCartMessage([{name:"Torta",price:12900,quantity:1}],{...base,paymentPreference:"cash_on_delivery"});
