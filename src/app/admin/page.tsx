@@ -2,6 +2,7 @@ import {assertAdmin,privilegedDb} from "@/lib/supabase";
 import {redirect} from "next/navigation";
 import {AdminDashboard} from "@/components/admin-dashboard";
 import {reportServerFailure} from "@/lib/server-diagnostics";
+import {loadAdminPage} from "@/lib/admin-pagination";
 import {DEFAULT_SETTINGS,type Product,type Category,type Order,type ShippingZone,type Settings,type Banner,type WhatsAppRequest} from "@/lib/types";
 
 export default async function AdminPage(){
@@ -10,12 +11,12 @@ export default async function AdminPage(){
  const [products,categories,orders,zones,site,payment,banners,requests]=await Promise.all([
   db.from("products").select("*").order("created_at",{ascending:false}),
   db.from("categories").select("*").order("name"),
-  db.from("orders").select("id,customer_name,customer_email,customer_phone,address,shipping_method,shipping_cost,total,status,payment_status,payment_method,reservation_expires_at,stock_released_at,created_at,order_items(product_name,unit_price,quantity)").order("created_at",{ascending:false}).limit(60),
+  loadAdminPage("orders").then(data=>({...data,error:null})).catch(error=>({items:[],nextCursor:null,error})), 
   db.from("shipping_zones").select("*").order("name"),
   db.from("site_settings").select("*").eq("id",true).single(),
   db.from("payment_settings").select("*").eq("id",true).single(),
   db.from("banners").select("*").order("sort_order"),
-  db.from("whatsapp_order_requests").select("id,customer_name,locality,address,notes,payment_preference,shipping_method,items,subtotal,stock_confirmed,shipping_cost,total,amount_paid,status,payment_status,created_at,updated_at,whatsapp_request_payments(id,amount,transfer_reference,payment_method,created_at)").order("created_at",{ascending:false}).limit(100),
+  loadAdminPage("whatsapp").then(data=>({...data,error:null})).catch(error=>({items:[],nextCursor:null,error})), 
  ]);
  const failures=[
   ["products",products.error],["categories",categories.error],["orders",orders.error],
@@ -27,5 +28,5 @@ export default async function AdminPage(){
   throw new Error("No se pudieron cargar los datos del administrador.");
  }
  const settings={...DEFAULT_SETTINGS,...site.data,...payment.data} as Settings;
- return <AdminDashboard initialProducts={products.data as Product[]} initialCategories={categories.data as Category[]} initialOrders={orders.data as Order[]} initialWhatsAppRequests={requests.data as WhatsAppRequest[]} initialZones={zones.data as ShippingZone[]} initialSettings={settings} initialBanners={banners.data as Banner[]}/>;
+ return <AdminDashboard initialProducts={products.data as Product[]} initialCategories={categories.data as Category[]} initialOrders={orders.items as Order[]} initialOrdersNextCursor={orders.nextCursor} initialWhatsAppRequests={requests.items as WhatsAppRequest[]} initialWhatsAppNextCursor={requests.nextCursor} initialZones={zones.data as ShippingZone[]} initialSettings={settings} initialBanners={banners.data as Banner[]}/>;
 }
