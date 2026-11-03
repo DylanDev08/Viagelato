@@ -164,7 +164,7 @@ const filterOptions:{id:WhatsAppAdminFilter;label:string}[]=[
  {id:"finished",label:"Finalizados"},
  {id:"all",label:"Todos"}
 ];
-export function WhatsAppRequests({requests,freeShippingThreshold=60000}:{requests:WhatsAppRequest[];freeShippingThreshold?:number}){
+export function WhatsAppRequests({requests,freeShippingThreshold=60000,hasMore=false,loadingMore=false,loadError="",onLoadMore}:{requests:WhatsAppRequest[];freeShippingThreshold?:number;hasMore?:boolean;loadingMore?:boolean;loadError?:string;onLoadMore?:()=>void}){
  const [filter,setFilter]=useState<WhatsAppAdminFilter>("attention");
  const [search,setSearch]=useState("");
  const counts=useMemo(()=>whatsappRequestCounts(requests),[requests]);
@@ -188,12 +188,14 @@ export function WhatsAppRequests({requests,freeShippingThreshold=60000}:{request
     placeholder="Cliente, referencia, localidad, producto o SKU"/></label>
    {search?<button type="button" className="btn tiny" onClick={()=>setSearch("")}>Limpiar búsqueda</button>:null}
   </div>
-  <p className="hint" aria-live="polite">{visible.length} resultados · {requests.length} solicitudes recientes cargadas (máximo 100)</p>
+  <p className="hint" aria-live="polite">{visible.length} resultados · {requests.length} solicitudes cargadas por páginas</p>
   <div className="whatsapp-request-list">{visible.map(request=><RequestCard key={request.id} request={request} freeShippingThreshold={freeShippingThreshold}/>)}</div>
   {!visible.length?<div className="whatsapp-admin-empty"><strong>{search?"No encontramos pedidos con esa búsqueda":filter==="attention"?"No hay pedidos que necesiten atención":"No hay pedidos en este estado"}</strong>
    <p>Probá otra búsqueda o revisá todas las solicitudes recientes.</p>
    <button type="button" className="btn ghost" onClick={()=>{setFilter("all");setSearch("");}}>Mostrar todos</button>
   </div>:null}
-  <p className="whatsapp-admin-footnote">Los contadores muestran las últimas 100 solicitudes, no las ventas históricas. Un pedido puede figurar «En curso» y «Con saldo» al mismo tiempo. «Mensaje preparado» no significa que el cliente lo haya enviado.</p>
+  {loadError&&<p role="alert" className="notification notification-error">{loadError}</p>}
+  {hasMore&&<button type="button" className="btn ghost admin-load-more" disabled={loadingMore} onClick={onLoadMore}>{loadingMore?"Cargando…":"Cargar 20 solicitudes anteriores"}</button>}
+  <p className="whatsapp-admin-footnote">Los contadores corresponden a las solicitudes cargadas, no a todas las ventas históricas. Un pedido puede figurar «En curso» y «Con saldo» al mismo tiempo. «Mensaje preparado» no significa que el cliente lo haya enviado.</p>
  </section>;
 }
