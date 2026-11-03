@@ -39,23 +39,23 @@ describe("carrito con total y envío visible",()=>{
   expect(summary.querySelector(".cart-price-total strong")).toHaveTextContent("26.900");
   expect(within(summary).getByText(/5.000/)).toBeInTheDocument();
  });
- it("en Capital Federal no promete envío gratis aunque supere el mínimo",async()=>{
+ it("Capital Federal suma la tarifa fija fuera de zona incluso sobre el mínimo",async()=>{
   const user=userEvent.setup(),summary=setup();
   for(let i=0;i<3;i++)await user.click(screen.getByRole("button",{name:"Agregar presentación de prueba"}));
   await user.selectOptions(screen.getByLabelText("Zona de entrega"),"Capital Federal");
-  expect(within(summary).getByText("Total de productos")).toBeInTheDocument();
-  expect(within(summary).getByText("A confirmar")).toBeInTheDocument();
-  expect(summary.querySelector(".cart-price-total strong")).toHaveTextContent("65.700");
-  expect(within(summary).getByText(/Capital Federal requiere consulta/)).toBeInTheDocument();
+  expect(within(summary).getByText("Total del pedido")).toBeInTheDocument();
+  expect(summary.querySelector(".cart-price-total strong")).toHaveTextContent("125.700");
+  expect(within(summary).queryByText("Gratis")).not.toBeInTheDocument();
+  expect(summary.querySelectorAll(".cart-price-row strong")[1]).toHaveTextContent("60.000");
  });
- it("al elegir localidad fuera de zonas mantiene el subtotal sin prometer total final",async()=>{
+ it("al elegir localidad fuera de zonas suma 60.000 al subtotal",async()=>{
   const user=userEvent.setup(),summary=setup();
   await user.click(screen.getByRole("button",{name:"Agregar presentación de prueba"}));
   await user.selectOptions(screen.getByLabelText("Zona de entrega"),"other");
   await user.type(screen.getByRole("textbox",{name:"Escribí tu localidad"}),"Quilmes Oeste");
-  expect(within(summary).getByText("Total de productos")).toBeInTheDocument();
-  expect(within(summary).getByText(/fuera de las zonas indicadas/)).toBeInTheDocument();
-  expect(summary.querySelector(".cart-price-total strong")).toHaveTextContent("21.900");
+  expect(within(summary).getByText("Total del pedido")).toBeInTheDocument();
+  expect(summary.querySelectorAll(".cart-price-row strong")[1]).toHaveTextContent("60.000");
+  expect(summary.querySelector(".cart-price-total strong")).toHaveTextContent("81.900");
   await user.type(screen.getByLabelText("Nombre y apellido"),"Ana Gomez");
   expect(screen.getByRole("button",{name:"Pagar por WhatsApp"})).toBeEnabled();
  });
