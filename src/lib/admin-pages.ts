@@ -19,15 +19,22 @@ export async function loadAdminPage(kind:AdminPageKind,cursor?:string|null):Prom
 export async function loadAdminPage(kind:AdminPageKind,cursor:string|null=null){
  const before=decodeAdminCursor(cursor);
  const db=privilegedDb();
- const table=kind==="orders"?"orders":"whatsapp_order_requests";
- const fields=kind==="orders"?ordersSelect:requestsSelect;
- let query=db.from(table).select(fields);
- if(before){
-  // Ambos valores fueron validados por Zod (ISO 8601 y UUID).
-  query=query.or(`created_at.lt.${before.t},and(created_at.eq.${before.t},id.lt.${before.i})`);
+ const condition=before
+  ?`created_at.lt.${before.t},and(created_at.eq.${before.t},id.lt.${before.i})`
+  :null;
+ if(kind==="orders"){
+  // Concretar el tipo de tabla evita las uniones gigantes de PostgREST/TS.
+  let query=db.from("orders").select(ordersSelect);
+  if(condition)query=query.or(condition);
+  const {data,error}=await query.order("created_at",{ascending:false})
+   .order("id",{ascending:false}).limit(ADMIN_PAGE_SIZE+1);
+  if(error)throw new Error("No se pudieron cargar los pedidos");
+  return pagedRows((data??[]) as unknown as Order[]);
  }
+ let query=db.from("whatsapp_order_requests").select(requestsSelect);
+ if(condition)query=query.or(condition);
  const {data,error}=await query.order("created_at",{ascending:false})
   .order("id",{ascending:false}).limit(ADMIN_PAGE_SIZE+1);
  if(error)throw new Error("No se pudieron cargar los pedidos");
- return pagedRows((data??[]) as unknown as (Order|WhatsAppRequest)[]);
+ return pagedRows((data??[]) as unknown as WhatsAppRequest[]);
 }
