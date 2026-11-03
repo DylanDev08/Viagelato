@@ -20,6 +20,7 @@ import {CATALOG_PRICE_ITEMS} from "@/lib/catalog-prices";
 import {draftFromPricedCatalog} from "@/lib/catalog-product-draft";
 import {ars,type Product,type Category,type Settings as StoreSettings,type ShippingZone,type Order,type Banner,type WhatsAppRequest} from "@/lib/types";
 type Tab="overview"|"products"|"categories"|"zones"|"banners"|"settings"|"orders"|"requests";
+const EMPTY_WHATSAPP_REQUESTS:WhatsAppRequest[]=[];
 type Draft=Pick<Product,"name"|"slug"|"description"|"price"|"stock"|"image_url"|"category_id"|"sku"|"presentation"|"featured"|"commercially_verified"|"catalog_visible"|"active"> & {id?:string};
 const empty:Draft={name:"",slug:"",description:"",price:0,stock:0,image_url:null,category_id:null,sku:"",presentation:"",featured:false,commercially_verified:false,catalog_visible:false,active:false};
 const nav:{id:Tab;label:string;icon:typeof Package}[]=[
@@ -42,7 +43,7 @@ async function request(path:string,method:string,data?:unknown){
  if(!r.ok)throw new Error([d.error||"No se pudo completar la operación",friendlyIssue(d.issues?.[0])].filter(Boolean).join(" · "));
  return d;
 }
-export function AdminDashboard({initialProducts,initialCategories,initialOrders,initialOrderCursor=null,initialWhatsAppRequests=[],initialRequestCursor=null,initialZones,initialSettings,initialBanners}:{initialProducts:Product[];initialCategories:Category[];initialOrders:Order[];initialOrderCursor?:string|null;initialWhatsAppRequests?:WhatsAppRequest[];initialRequestCursor?:string|null;initialZones:ShippingZone[];initialSettings:StoreSettings;initialBanners:Banner[]}){
+export function AdminDashboard({initialProducts,initialCategories,initialOrders,initialOrderCursor=null,initialWhatsAppRequests=EMPTY_WHATSAPP_REQUESTS,initialRequestCursor=null,initialZones,initialSettings,initialBanners}:{initialProducts:Product[];initialCategories:Category[];initialOrders:Order[];initialOrderCursor?:string|null;initialWhatsAppRequests?:WhatsAppRequest[];initialRequestCursor?:string|null;initialZones:ShippingZone[];initialSettings:StoreSettings;initialBanners:Banner[]}){
  const [tab,setTab]=useState<Tab>("overview"),[mobileMoreOpen,setMobileMoreOpen]=useState(false),[draft,setDraft]=useState<Draft>({...empty}),[settings,setSettings]=useState(initialSettings),[notice,setNotice]=useState(""),[noticeError,setNoticeError]=useState(false),[busy,setBusy]=useState(false);
  const [editorOpen,setEditorOpen]=useState(false);
  const [removal,setRemoval]=useState<{product:Product;mode:"hide"|"delete"}|null>(null);
