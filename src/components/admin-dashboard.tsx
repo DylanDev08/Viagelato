@@ -40,8 +40,41 @@ async function request(path:string,method:string,data?:unknown){
  if(!r.ok)throw new Error([d.error||"No se pudo completar la operación",friendlyIssue(d.issues?.[0])].filter(Boolean).join(" · "));
  return d;
 }
-export function AdminDashboard({initialProducts,initialCategories,initialOrders,initialWhatsAppRequests=[],initialZones,initialSettings,initialBanners}:{initialProducts:Product[];initialCategories:Category[];initialOrders:Order[];initialWhatsAppRequests?:WhatsAppRequest[];initialZones:ShippingZone[];initialSettings:StoreSettings;initialBanners:Banner[]}){
+export function AdminDashboard({initialProducts,initialCategories,initialOrders,initialOrdersNextCursor=null,initialWhatsAppRequests=[],initialWhatsAppNextCursor=null,initialZones,initialSettings,initialBanners}:{initialProducts:Product[];initialCategories:Category[];initialOrders:Order[];initialOrdersNextCursor?:string|null;initialWhatsAppRequests?:WhatsAppRequest[];initialWhatsAppNextCursor?:string|null;initialZones:ShippingZone[];initialSettings:StoreSettings;initialBanners:Banner[]}){
  const [tab,setTab]=useState<Tab>("overview"),[mobileMoreOpen,setMobileMoreOpen]=useState(false),[draft,setDraft]=useState<Draft>({...empty}),[settings,setSettings]=useState(initialSettings),[notice,setNotice]=useState(""),[noticeError,setNoticeError]=useState(false),[busy,setBusy]=useState(false);
+ const [ordersPage,setOrdersPage]=useState(initialOrders);
+ const [ordersCursor,setOrdersCursor]=useState<string|null>(initialOrdersNextCursor);
+ const [ordersLoading,setOrdersLoading]=useState(false);
+ const [ordersError,setOrdersError]=useState("");
+ const [whatsappPage,setWhatsappPage]=useState(initialWhatsAppRequests);
+ const [whatsappCursor,setWhatsappCursor]=useState<string|null>(initialWhatsAppNextCursor);
+ const [whatsappLoading,setWhatsappLoading]=useState(false);
+ const [whatsappError,setWhatsappError]=useState("");
+ useEffect(()=>{setOrdersPage(initialOrders);setOrdersCursor(initialOrdersNextCursor);},[initialOrders,initialOrdersNextCursor]);
+ useEffect(()=>{setWhatsappPage(initialWhatsAppRequests);setWhatsappCursor(initialWhatsAppNextCursor);},[initialWhatsAppRequests,initialWhatsAppNextCursor]);
+ async function loadMore(kind:"orders"|"whatsapp"){
+  const cursor=kind==="orders"?ordersCursor:whatsappCursor;
+  if(!cursor)return;
+  const setLoading=kind==="orders"?setOrdersLoading:setWhatsappLoading;
+  const setError=kind==="orders"?setOrdersError:setWhatsappError;
+  setLoading(true);setError("");
+  try{
+   const res=await fetch(`/api/admin/paginated-orders?kind=${kind}&cursor=${encodeURIComponent(cursor)}`,{cache:"no-store"});
+   if(!res.ok)throw new Error(res.status===401?"Tu sesión venció. Volvé a ingresar.":"No se pudieron cargar más pedidos.");
+   const data=await res.json();
+   if(!Array.isArray(data.items)||!(data.nextCursor===null||typeof data.nextCursor==="string"))throw new Error("Respuesta de paginación inválida.");
+   if(kind==="orders"){
+    const incoming=data.items as Order[];
+    setOrdersPage(current=>{const ids=new Set(current.map(x=>x.id));return [...current,...incoming.filter(x=>!ids.has(x.id))];});
+    setOrdersCursor(data.nextCursor);
+   }else{
+    const incoming=data.items as WhatsAppRequest[];
+    setWhatsappPage(current=>{const ids=new Set(current.map(x=>x.id));return [...current,...incoming.filter(x=>!ids.has(x.id))];});
+    setWhatsappCursor(data.nextCursor);
+   }
+  }catch(error){setError(error instanceof Error?error.message:"No se pudo cargar la página");}
+  finally{setLoading(false);}
+ }
  const [editorOpen,setEditorOpen]=useState(false);
  const [removal,setRemoval]=useState<{product:Product;mode:"hide"|"delete"}|null>(null);
  const [confirmPermanent,setConfirmPermanent]=useState(false);
@@ -51,7 +84,7 @@ export function AdminDashboard({initialProducts,initialCategories,initialOrders,
  const [showCatalogPicker,setShowCatalogPicker]=useState(false),[catalogQuery,setCatalogQuery]=useState(""),[catalogType,setCatalogType]=useState("all");
  const [showCandidatePicker,setShowCandidatePicker]=useState(false),[candidateQuery,setCandidateQuery]=useState("");
  const editorHeadingRef=useRef<HTMLHeadingElement>(null);
- const counts=useMemo(()=>whatsappRequestCounts(initialWhatsAppRequests),[initialWhatsAppRequests]);
+ const counts=useMemo(()=>whatsappRequestCounts(whatsappPage),[whatsappPage]);
  const [savedDraft,setSavedDraft]=useState<Draft>({...empty});
  const [savedSettings,setSavedSettings]=useState<StoreSettings>(initialSettings);
  const productHasChanges=useMemo(()=>JSON.stringify(draft)!==JSON.stringify(savedDraft),[draft,savedDraft]);
@@ -217,7 +250,7 @@ export function AdminDashboard({initialProducts,initialCategories,initialOrders,
  }),[initialProducts,productQuery,productStatus]);
  return <div className="admin-shell"><aside className="admin-side"><h2>Viagelato<span>Administración</span></h2><nav aria-label="Panel de administración">{nav.map(n=><button key={n.id} disabled={busy} aria-pressed={tab===n.id} onClick={()=>changeTab(n.id)} className={tab===n.id?"active":""}><n.icon size={18}/>{n.label}</button>)}</nav><div className="admin-side-bottom"><Link href="/" target="_blank" rel="noreferrer"><ExternalLink size={17}/> Ver tienda como cliente</Link><button disabled={busy} onClick={logout}><LogOut size={17}/> Cerrar sesión</button></div></aside>
  <main className="admin-main" aria-busy={busy}><div className="admin-bar"><div><small>PANEL DE ADMINISTRACIÓN</small><h1>{nav.find(n=>n.id===tab)?.label}</h1><p className="admin-tab-help">{({overview:"Consultá el estado de la tienda y elegí qué gestionar.",products:"Cargá productos, revisá precios y decidí cuáles se muestran.",categories:"Organizá los productos para que los clientes los encuentren fácilmente.",orders:"Revisá las compras realizadas mediante el sistema de pedidos online.",requests:"Gestioná los pedidos preparados para WhatsApp y su seguimiento.",zones:"Configurá dónde hacés entregas y sus condiciones.",banners:"Cambiá las imágenes promocionales que aparecen en la tienda.",settings:"Actualizá los datos de contacto, medios de pago y contenido comercial."} satisfies Record<Tab,string>)[tab]}</p></div><div className="admin-bar-actions">{(productHasChanges||settingsHaveChanges)&&<span className="admin-dirty-indicator" role="status">Cambios sin guardar</span>}<button type="button" className="btn ghost admin-refresh" disabled={busy} onClick={()=>{if(!canLeaveEditor("overview"))return;setNotice("Actualizando los datos del panel…");setNoticeError(false);router.refresh();}}><RefreshCw size={17} aria-hidden="true"/>Actualizar datos</button><Link href="/" target="_blank" rel="noreferrer" className="btn ghost"><ExternalLink size={17}/> Vista cliente</Link></div></div>{notice&&!editorOpen&&!removal&&<div className={`notification ${noticeError?"notification-error":""}`} role={noticeError?"alert":"status"} aria-live="polite">{notice}{notice.startsWith("Tu sesión venció")?<Link className="admin-session-link" href="/login">Volver a ingresar</Link>:null}</div>}
- {tab==="overview"&&<AdminOverview counts={counts} products={initialProducts} requestsLoaded={initialWhatsAppRequests.length} busy={busy} onNavigate={changeTab}/>} 
+ {tab==="overview"&&<AdminOverview counts={counts} products={initialProducts} requestsLoaded={whatsappPage.length} busy={busy} onNavigate={changeTab}/>} 
   {tab==="products"&&<div className="admin-products-layout">
  {editorOpen&&<div className="admin-product-modal-backdrop" role="presentation" onMouseDown={event=>{if(event.target===event.currentTarget)closeProductEditor();}}>
   <section ref={modalRef} role="dialog" aria-modal="true" aria-labelledby="admin-product-dialog-title" aria-describedby="admin-product-dialog-description" className="admin-product-modal">
@@ -314,8 +347,11 @@ export function AdminDashboard({initialProducts,initialCategories,initialOrders,
  <label>URL de la portada<input value={settings.hero_image_url||""} onChange={e=>setSettings(s=>({...s,hero_image_url:e.target.value}))}/>{uploader("hero")}{settings.hero_image_url&&<Image className="upload-preview" src={settings.hero_image_url} width={180} height={130} unoptimized alt="Vista previa de la portada"/>}</label>
  <label className="span-two">Política de cambios y devoluciones<textarea rows={7} value={settings.returns_policy} onChange={e=>setSettings(s=>({...s,returns_policy:e.target.value}))}/></label><label className="span-two">Política de privacidad<textarea rows={7} value={settings.privacy_policy} onChange={e=>setSettings(s=>({...s,privacy_policy:e.target.value}))}/></label>
  </div><p className="hint">Estos textos son contenido editable, no políticas legales generadas automáticamente. Revisalas antes de publicar.</p><button className="btn primary" disabled={busy}>Guardar configuración</button></form></div>}
- {tab==="requests"&&<WhatsAppRequests requests={initialWhatsAppRequests} freeShippingThreshold={Number(initialSettings.free_shipping_threshold)}/>}
- {tab==="orders"&&<div className="panel"><h2>Pedidos recibidos</h2><p>Avanzá cada pedido con los botones de estado. Solo marcá un pago como cobrado si comprobaste que lo recibiste.</p><div className="admin-list">{initialOrders.map(o=>{const next=nextOrderStep(o);return <article className="admin-list-row" key={o.id}><div className="grow"><strong>#{o.id.slice(0,8)} · {o.customer_name}</strong><small>{o.customer_email} · {o.customer_phone} · {new Date(o.created_at).toLocaleDateString("es-AR")}</small><small>{o.shipping_method==="pickup"?"Retiro":"Envío: "+o.address}</small><small>Pago: {o.payment_method==="transfer"?"Transferencia":"Al recibir"} · {o.payment_status==="paid"?"Cobrado":"Pendiente"}</small></div><div className="grow">{o.order_items?.map((it,i)=><small key={i}>{it.quantity} × {it.product_name} · {ars(Number(it.unit_price))}</small>)}</div><strong>{ars(Number(o.total))}</strong><span className="status-pill">{orderStatusLabel(o.status)}</span>{o.payment_status!=="paid"&&!(["cancelled","expired"] as string[]).includes(o.status)&&<button className="btn tiny" disabled={busy} onClick={()=>{if(confirm("¿Verificaste que el pago se recibió realmente?"))void act(()=>request("orders","PATCH",{id:o.id,action:"mark_paid"}));}}>Marcar cobrado</button>}{next&&<button className="btn tiny" disabled={busy} onClick={()=>{if(next.status==="delivered"&&!confirm("¿Confirmás que el cliente recibió el pedido?"))return;void act(()=>request("orders","PATCH",{id:o.id,action:"set_status",status:next.status}),true,"Estado del pedido actualizado");}}>{next.label}</button>}{o.payment_status!=="paid"&&!(["delivered","cancelled","expired"] as string[]).includes(o.status)&&<button className="btn tiny danger" disabled={busy} onClick={()=>{if(confirm("¿Cancelar pedido y devolver el stock?"))void act(()=>request("orders","PATCH",{id:o.id,action:"cancel"}));}}>Cancelar</button>}</article>;})}{!initialOrders.length&&<p>No hay pedidos todavía. Los pedidos nuevos aparecerán acá cuando se habiliten las ventas.</p>}</div></div>}
+ {tab==="requests"&&<WhatsAppRequests requests={whatsappPage} freeShippingThreshold={Number(initialSettings.free_shipping_threshold)} hasMore={Boolean(whatsappCursor)} loadingMore={whatsappLoading} loadError={whatsappError} onLoadMore={()=>void loadMore("whatsapp")}/>}
+ {tab==="orders"&&<div className="panel"><h2>Pedidos recibidos</h2><p>Avanzá cada pedido con los botones de estado. Solo marcá un pago como cobrado si comprobaste que lo recibiste.</p><div className="admin-list">{ordersPage.map(o=>{const next=nextOrderStep(o);return <article className="admin-list-row" key={o.id}><div className="grow"><strong>#{o.id.slice(0,8)} · {o.customer_name}</strong><small>{o.customer_email} · {o.customer_phone} · {new Date(o.created_at).toLocaleDateString("es-AR")}</small><small>{o.shipping_method==="pickup"?"Retiro":"Envío: "+o.address}</small><small>Pago: {o.payment_method==="transfer"?"Transferencia":"Al recibir"} · {o.payment_status==="paid"?"Cobrado":"Pendiente"}</small></div><div className="grow">{o.order_items?.map((it,i)=><small key={i}>{it.quantity} × {it.product_name} · {ars(Number(it.unit_price))}</small>)}</div><strong>{ars(Number(o.total))}</strong><span className="status-pill">{orderStatusLabel(o.status)}</span>{o.payment_status!=="paid"&&!(["cancelled","expired"] as string[]).includes(o.status)&&<button className="btn tiny" disabled={busy} onClick={()=>{if(confirm("¿Verificaste que el pago se recibió realmente?"))void act(()=>request("orders","PATCH",{id:o.id,action:"mark_paid"}));}}>Marcar cobrado</button>}{next&&<button className="btn tiny" disabled={busy} onClick={()=>{if(next.status==="delivered"&&!confirm("¿Confirmás que el cliente recibió el pedido?"))return;void act(()=>request("orders","PATCH",{id:o.id,action:"set_status",status:next.status}),true,"Estado del pedido actualizado");}}>{next.label}</button>}{o.payment_status!=="paid"&&!(["delivered","cancelled","expired"] as string[]).includes(o.status)&&<button className="btn tiny danger" disabled={busy} onClick={()=>{if(confirm("¿Cancelar pedido y devolver el stock?"))void act(()=>request("orders","PATCH",{id:o.id,action:"cancel"}));}}>Cancelar</button>}</article>;})}{!ordersPage.length&&<p>No hay pedidos todavía. Los pedidos nuevos aparecerán acá cuando se habiliten las ventas.</p>}
+ {ordersError&&<p role="alert" className="notification notification-error">{ordersError}</p>}
+ {ordersCursor&&<button type="button" className="btn ghost admin-load-more" disabled={ordersLoading||busy} onClick={()=>void loadMore("orders")}>{ordersLoading?"Cargando…":"Cargar 20 pedidos anteriores"}</button>}
+ <p className="hint">Mostrando {ordersPage.length} pedidos cargados. Los datos históricos se consultan por páginas.</p></div></div>}
 
  </main>
  <nav className="admin-mobile-bottom-nav" aria-label="Accesos rápidos de administración">
