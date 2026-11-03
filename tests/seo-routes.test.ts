@@ -3,8 +3,10 @@ import robots from "@/app/robots";
 import sitemap from "@/app/sitemap";
 import config from "../next.config";
 import {getStore} from "@/lib/site";
+import {getPublicCatalog} from "@/lib/catalog-source";
 import {PRIVATE_ROUTES,publicSiteUrl} from "@/lib/seo";
 vi.mock("@/lib/site",()=>({getStore:vi.fn()}));
+vi.mock("@/lib/catalog-source",()=>({getPublicCatalog:vi.fn()}));
 afterEach(()=>vi.unstubAllEnvs());
 describe("SEO: aislamiento de rutas",()=>{
  it("bloquea indexación sin dominio HTTPS público válido",()=>{
@@ -18,6 +20,7 @@ describe("SEO: aislamiento de rutas",()=>{
  it("excluye rutas privadas con robots y cabeceras noindex/no-store",async()=>{
   vi.stubEnv("ENABLE_INDEXING","true");vi.stubEnv("NEXT_PUBLIC_SITE_URL","https://viagelato.example/");
   expect(robots()).toMatchObject({rules:[{disallow:PRIVATE_ROUTES}],sitemap:"https://viagelato.example/sitemap.xml"});
+  expect(PRIVATE_ROUTES).not.toContain("/catalogo/vista");
   const headers=await config.headers!();
   for(const route of PRIVATE_ROUTES)expect(headers).toContainEqual({source:`${route}/:path*`,headers:[
    {key:"X-Robots-Tag",value:"noindex, nofollow"},{key:"Cache-Control",value:"private, no-store"},
@@ -25,13 +28,15 @@ describe("SEO: aislamiento de rutas",()=>{
  });
  it("no consulta la base ni publica sitemap antes del lanzamiento",async()=>{
   vi.stubEnv("ENABLE_INDEXING","false");
-  expect(await sitemap()).toEqual([]);expect(getStore).not.toHaveBeenCalled();
+  expect(await sitemap()).toEqual([]);expect(getStore).not.toHaveBeenCalled();expect(getPublicCatalog).not.toHaveBeenCalled();
  });
  it("genera URLs actuales sin redirección /productos ni rutas técnicas",async()=>{
   vi.stubEnv("ENABLE_INDEXING","true");vi.stubEnv("NEXT_PUBLIC_SITE_URL","https://viagelato.example/");
   vi.mocked(getStore).mockResolvedValue({products:[{slug:"helado"}]} as Awaited<ReturnType<typeof getStore>>);
+  vi.mocked(getPublicCatalog).mockResolvedValue([{id:44}] as Awaited<ReturnType<typeof getPublicCatalog>>);
   const urls=(await sitemap()).map(row=>row.url);
   expect(urls).toContain("https://viagelato.example/productos/helado");
+  expect(urls).toContain("https://viagelato.example/catalogo/vista/44");
   expect(urls).not.toContain("https://viagelato.example/productos");
   expect(urls.every(url=>!url.includes("//productos"))).toBe(true);
  });
