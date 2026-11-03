@@ -1,5 +1,7 @@
 import {DELIVERY_AREAS,type ShippingZone} from "./types";
 
+export const OUT_OF_ZONE_DELIVERY_COST=60000;
+
 /** Cotización orientativa de entrega. Nunca se interpreta como un pago ni una reserva. */
 export type ShippingQuote={
  kind:"unselected"|"pickup"|"free"|"priced"|"pending";
@@ -24,8 +26,6 @@ export function quoteShipping(input:{
  if(method==="pickup")return {kind:"pickup",covered:true,shippingCost:0,total:currencyAmount(subtotal)};
  if(!locality.trim())return {kind:"unselected",covered:false,shippingCost:null,total:null};
  const target=normalized(locality);
- // El acuerdo comercial indica que Capital Federal siempre se cotiza por WhatsApp.
- if(target==="capital federal"||target==="caba")return {kind:"pending",covered:false,shippingCost:null,total:null};
  const configured=zones.find(zone=>
   zone.active===true&&zone.ready===true&&zone.cost!==null&&
   Number.isFinite(Number(zone.cost))&&Number(zone.cost)>=0&&
@@ -40,5 +40,7 @@ export function quoteShipping(input:{
   const shippingCost=currencyAmount(Number(configured.cost));
   return {kind:"priced",covered:true,shippingCost,total:currencyAmount(subtotal+shippingCost)};
  }
- return {kind:"pending",covered,shippingCost:null,total:null};
+ if(covered)return {kind:"pending",covered:true,shippingCost:null,total:null};
+ // Fuera de las zonas habilitadas: tarifa fija comercial, también para CABA.
+ return {kind:"priced",covered:false,shippingCost:OUT_OF_ZONE_DELIVERY_COST,total:currencyAmount(subtotal+OUT_OF_ZONE_DELIVERY_COST)};
 }
