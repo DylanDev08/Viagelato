@@ -34,3 +34,8 @@
 /* Specificity over legacy .whatsapp-request-header>div grid rule. */
 .whatsapp-request-header .whatsapp-request-badges{display:flex;align-items:center;justify-content:flex-end;gap:7px}
 @media(max-width:600px){.whatsapp-request-header .whatsapp-request-badges{justify-content:flex-start}}
+
+
+/* Paginación: acción visible, sin expandir solicitudes de clientes al cargar admin. */
+.admin-load-more{display:flex;align-items:center;justify-content:center;min-height:46px;margin:20px auto 10px;padding:10px 22px;border-radius:10px;max-width:100%;font-weight:750}
+@media(max-width:640px){.admin-load-more{width:100%;min-height:50px}}
