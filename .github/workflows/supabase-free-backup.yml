@@ -1,0 +1,87 @@
+name: Encrypted Supabase Free backup
+
+on:
+  schedule:
+    # Domingo 07:20 de Argentina (UTC-3). GitHub schedule puede retrasarse.
+    - cron: "20 10 * * 0"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: viagelato-encrypted-backup
+  cancel-in-progress: false
+
+jobs:
+  backup:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      BACKUP_DB_URL: ${{ secrets.SUPABASE_BACKUP_DATABASE_URL }}
+      BACKUP_PASSPHRASE: ${{ secrets.SUPABASE_BACKUP_PASSPHRASE }}
+    steps:
+      - name: Validate free-tier backup prerequisites
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ -z "$BACKUP_DB_URL" || -z "$BACKUP_PASSPHRASE" ]]; then
+            echo "::error::Configure SUPABASE_BACKUP_DATABASE_URL and SUPABASE_BACKUP_PASSPHRASE repository secrets. No backup was produced."
+            exit 1
+          fi
+          if [[ "${#BACKUP_PASSPHRASE}" -lt 24 ]]; then
+            echo "::error::Backup passphrase must contain at least 24 characters."
+            exit 1
+          fi
+
+      - name: Export public schema and data with PostgreSQL 17
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          docker run --rm \
+            -e BACKUP_DB_URL \
+            -v "$RUNNER_TEMP:/backup" \
+            postgres:17-alpine \
+            sh -ec 'pg_dump --dbname="$BACKUP_DB_URL" --schema=public --format=custom --no-owner --no-privileges --file=/backup/viagelato-public.dump'
+          test -s "$RUNNER_TEMP/viagelato-public.dump"
+
+      - name: Encrypt and validate the archive without publishing plaintext
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          printf '%s' "$BACKUP_PASSPHRASE" > "$RUNNER_TEMP/backup-passphrase"
+          gpg --batch --yes --pinentry-mode loopback \
+            --passphrase-file "$RUNNER_TEMP/backup-passphrase" \
+            --symmetric --cipher-algo AES256 --s2k-mode 3 --s2k-digest-algo SHA512 \
+            --output "$RUNNER_TEMP/viagelato-public.dump.gpg" \
+            "$RUNNER_TEMP/viagelato-public.dump"
+          test -s "$RUNNER_TEMP/viagelato-public.dump.gpg"
+          # Comprueba que puede desencriptarse y que pg_restore reconoce el TOC.
+          gpg --quiet --batch --yes --pinentry-mode loopback \
+            --passphrase-file "$RUNNER_TEMP/backup-passphrase" \
+            --decrypt "$RUNNER_TEMP/viagelato-public.dump.gpg" | \
+            docker run --rm -i postgres:17-alpine pg_restore --list >/dev/null
+          (cd "$RUNNER_TEMP" && sha256sum viagelato-public.dump.gpg > viagelato-public.dump.gpg.sha256)
+          rm -f "$RUNNER_TEMP/viagelato-public.dump" "$RUNNER_TEMP/backup-passphrase"
+
+      - name: Upload encrypted archive only
+        uses: actions/upload-artifact@v4
+        with:
+          name: viagelato-public-backup-${{ github.run_id }}
+          path: |
+            ${{ runner.temp }}/viagelato-public.dump.gpg
+            ${{ runner.temp }}/viagelato-public.dump.gpg.sha256
+          if-no-files-found: error
+          retention-days: 21
+          compression-level: 0
+
+      - name: Clean temporary backup data
+        if: always()
+        shell: bash
+        run: |
+          rm -f "$RUNNER_TEMP/viagelato-public.dump" \
+            "$RUNNER_TEMP/viagelato-public.dump.gpg" \
+            "$RUNNER_TEMP/viagelato-public.dump.gpg.sha256" \
+            "$RUNNER_TEMP/backup-passphrase"
