@@ -10,7 +10,7 @@ import {ars,DELIVERY_AREAS,type Product,type Settings,type ShippingZone} from "@
 import {resolveCartView} from "@/lib/cart-view-model";
 import {CATALOG_PRICE_ITEMS,type CatalogPriceItem} from "@/lib/catalog-prices";
 import {checkoutRequestFingerprint,getOrCreateCheckoutKey,clearCheckoutKey,checkoutKeyStorage} from "@/lib/checkout-idempotency";
-import {quoteShipping,OUT_OF_ZONE_DELIVERY_COST} from "@/lib/shipping-quote";
+import {quoteShipping,matchesPreparedShippingQuote,OUT_OF_ZONE_DELIVERY_COST} from "@/lib/shipping-quote";
 
 export function Checkout({products,zones,settings,catalogItems=CATALOG_PRICE_ITEMS}:{products:Product[];zones:ShippingZone[];settings:Settings;demo:boolean;checkoutEnabled:boolean;catalogItems?:CatalogPriceItem[]}){
  const {items,setQuantity,clear}=useCart();
@@ -69,11 +69,8 @@ export function Checkout({products,zones,settings,catalogItems=CATALOG_PRICE_ITE
     setError("Los precios cambiaron al preparar el pedido. Actualizá el carrito para revisar el subtotal antes de enviarlo.");
     return;
    }
-   if(data.shipping_cost!==undefined&&
-      (data.shipping_cost===null)!==(shipping.shippingCost===null)||
-      (data.shipping_cost!==undefined&&data.shipping_cost!==null&&shipping.shippingCost!==null&&
-       Math.abs(Number(data.shipping_cost)-shipping.shippingCost)>0.009)){
-    setError("Las condiciones de envío cambiaron. Actualizá el carrito para verificar el importe antes de continuar.");
+   if(!matchesPreparedShippingQuote(data,shipping)){
+    setError("El importe o las condiciones del envío cambiaron. Actualizá el carrito y revisá el total antes de enviar el mensaje.");
     return;
    }
    setPrepared({reference:data.reference,url:data.whatsapp_url,selection});
@@ -123,7 +120,7 @@ export function Checkout({products,zones,settings,catalogItems=CATALOG_PRICE_ITE
    </div>
    <form className="panel cart-form-panel cart-order-form" onSubmit={sendRequest}>
     <div className="cart-form-heading"><p className="kicker">02 / PREPARÁ TU PEDIDO</p><ClipboardList size={22} aria-hidden="true"/><h2>Entrega y pago</h2></div>
-    <p className="hint cart-form-intro">Completá tus datos. Verás el total con envío cuando la zona tenga una tarifa confirmada.</p>
+    <p className="hint cart-form-intro">Completá tus datos. En zonas habilitadas, el envío es gratis desde {ars(Number(settings.free_shipping_threshold))}. Fuera de ellas se suman {ars(OUT_OF_ZONE_DELIVERY_COST)}; para compras menores dentro de zona el costo se confirma por WhatsApp si aún no hay tarifa.</p>
     <label>Nombre y apellido<input disabled={busy} required minLength={2} maxLength={120} autoComplete="name" value={fullName} onChange={e=>setFullName(e.target.value)}/></label>
     <label>Zona de entrega<select disabled={busy} required value={selectedLocality} onChange={e=>setSelectedLocality(e.target.value)}>
      <option value="">Elegí tu localidad</option>
