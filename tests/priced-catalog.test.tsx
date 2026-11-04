@@ -19,7 +19,9 @@ describe("precios del catálogo Viagelato de Excel",()=>{
  });
  it("ubica Seibom en Palitos y conos y utiliza la foto verificada de Isabella",()=>{
   expect(CATALOG_PRICE_ITEMS.find(item=>item.sourceRow===15)?.category).toBe("Palitos y conos");
-  expect(CATALOG_PRICE_ITEMS.find(item=>item.sourceRow===15)).toMatchObject({name:"Palitos Seibom Almendras",variants:"Almendras"});
+  expect(CATALOG_PRICE_ITEMS.find(item=>item.sourceRow===15)).toMatchObject({name:"Palitos Seibom",variants:"Almendras, blanco y cookies"});
+  expect(CATALOG_PRICE_ITEMS.find(item=>item.sourceRow===3)).toMatchObject({name:"Palito Sei Tu Fan Naranja",variants:"Naranja"});
+  expect(CATALOG_PRICE_ITEMS.find(item=>item.sourceRow===34)?.variants).toBe("Dulce de leche (clásico) y nevado");
   expect(CATALOG_PRICE_ITEMS.find(item=>item.sourceRow===16)?.category).toBe("Palitos y conos");
   expect(CATALOG_PRICE_ITEMS.find(item=>item.sourceRow===35)?.image).toBe("/catalogo/postres-seitu-diplay.webp");
   expect(CATALOG_PRICE_ITEMS.find(item=>item.sourceRow===46)?.image).toBe("/catalogo/lata-helado-10-litros.webp");
