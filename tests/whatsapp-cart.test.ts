@@ -55,5 +55,10 @@ describe("finalización por WhatsApp sin pasarela",()=>{
   expect(text).toContain("horario de retiro");
   expect(text).not.toContain("solicitar aplicación de envío sin cargo");
   expect(text).not.toContain("fecha de entrega");
+  const cash=whatsappCartMessage([{name:"Torta",price:12900,quantity:1}],{
+   ...base,shippingMethod:"pickup",locality:"Lanús Este",pickupAddress:"Eva Perón 3050, Lanús Este",paymentPreference:"cash_on_delivery"
+  });
+  expect(cash).toContain("Efectivo al retirar");
+  expect(cash).not.toContain("Efectivo al recibir");
  });
 });
