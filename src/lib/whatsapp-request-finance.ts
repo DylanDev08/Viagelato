@@ -23,6 +23,7 @@ export function resolveWhatsAppRequestFinance(request:FinancialRequest,quote:Shi
   (total!==null&&(!Number.isFinite(total)||total<0))||
   !Number.isFinite(subtotal)||subtotal<0||
   !Number.isFinite(amountPaid)||amountPaid<0||
+  Boolean(!hasAmounts&&amountPaid>0)||
   Boolean(hasAmounts&&cents(total!)!==cents(subtotal)+cents(shippingCost!))||
   Boolean(hasAmounts&&cents(amountPaid)>cents(total!));
  const amountsConfirmed=hasAmounts&&!inconsistent;
