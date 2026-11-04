@@ -16,6 +16,7 @@ export type WhatsAppCheckoutDetails={
  shippingMethod:"shipping"|"pickup";freeShippingThreshold:number;
  shippingQuote?:ShippingQuote;
  paymentPreference?:PaymentPreference;
+ pickupAddress?:string;
 };
 
 export function whatsappCartMessage(lines:WhatsAppCartLine[],info:WhatsAppCheckoutDetails){
@@ -36,9 +37,10 @@ export function whatsappCartMessage(lines:WhatsAppCartLine[],info:WhatsAppChecko
  return [
   "Hola Viagelato, quiero realizar este pedido y coordinar el pago por WhatsApp.",
   `Nombre: ${name}`,
-  `Entrega: ${info.shippingMethod==="pickup"?"Retiro (a confirmar)":"Envío a domicilio"}`,
+  `Entrega: ${info.shippingMethod==="pickup"?"Retiro en el local (horario a confirmar)":"Envío a domicilio"}`,
   `Localidad: ${locality}`,
   ...(info.shippingMethod==="shipping"&&display(info.address,250)?[`Dirección: ${display(info.address,250)}`]:[]),
+  ...(info.shippingMethod==="pickup"&&info.pickupAddress?.trim()?[`Punto de retiro: ${display(info.pickupAddress,250)}`]:[]),
   ...(info.paymentPreference?[`Forma de pago preferida: ${info.paymentPreference==="transfer"?"Transferencia":"Efectivo al recibir (a confirmar con Viagelato)"}`]:[]),
   ...(display(info.notes,350)?[`Observaciones: ${display(info.notes,350)}`]:[]),
   "",
@@ -52,7 +54,9 @@ export function whatsappCartMessage(lines:WhatsAppCartLine[],info:WhatsAppChecko
    "Envío: pendiente de cotizar y confirmar cobertura por WhatsApp.",
   quote.total!==null?`Total estimado de productos y envío: ${ars(quote.total)}.`:
    `Total de productos: ${ars(subtotal)}. Total final con envío: a confirmar.`,
-  info.paymentPreference==="cash_on_delivery"?"¿Me confirman stock, fecha de entrega y si puedo pagar en efectivo al recibir?":"¿Me confirman stock, fecha de entrega y datos para realizar la transferencia?",
+  info.shippingMethod==="pickup"?
+   (info.paymentPreference==="cash_on_delivery"?"¿Me confirman stock, horario de retiro y si puedo pagar en efectivo al retirar?":"¿Me confirman stock, horario de retiro y datos para realizar la transferencia?"):
+   (info.paymentPreference==="cash_on_delivery"?"¿Me confirman stock, fecha de entrega y si puedo pagar en efectivo al recibir?":"¿Me confirman stock, fecha de entrega y datos para realizar la transferencia?"),
   "Este mensaje solicita el pedido; no implica pago ni confirmación automática."
  ].join("\n");
 }
