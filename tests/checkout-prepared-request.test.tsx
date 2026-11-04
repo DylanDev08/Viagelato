@@ -26,7 +26,7 @@ describe("mensaje preparado y selección vigente",()=>{
   await waitFor(()=>expect(send).toHaveBeenCalledOnce());
   expect(screen.getByLabelText("Nombre y apellido")).toBeDisabled();
   expect(screen.getByRole("button",{name:/Vaciar carrito/})).toBeDisabled();
-  finish(Response.json({reference:"VIA-TEST",whatsapp_url:"https://wa.me/5491140962202?text=test",subtotal:21900},{status:201}));
+  finish(Response.json({reference:"VIA-TEST",whatsapp_url:"https://wa.me/5491140962202?text=test",subtotal:21900,shipping_kind:"pending",shipping_cost:null,total:null},{status:201}));
   expect(await screen.findByRole("link",{name:"Abrir WhatsApp para enviar el mensaje"})).toBeInTheDocument();
   await user.type(screen.getByLabelText("Nombre y apellido")," editado");
   expect(screen.queryByRole("link",{name:"Abrir WhatsApp para enviar el mensaje"})).not.toBeInTheDocument();

@@ -44,3 +44,19 @@ export function quoteShipping(input:{
  // Fuera de las zonas habilitadas: tarifa fija comercial, también para CABA.
  return {kind:"priced",covered:false,shippingCost:OUT_OF_ZONE_DELIVERY_COST,total:currencyAmount(subtotal+OUT_OF_ZONE_DELIVERY_COST)};
 }
+
+/** Comparación estricta del presupuesto de la API con lo que vio el cliente.
+ * Nunca abrir WhatsApp si cambian tipo, envío o total; exige todos los campos.
+ * No se compara el subtotal aquí porque el checkout ya valida su valor con el servidor.
+ */
+export function matchesPreparedShippingQuote(
+ received:{shipping_kind?:unknown;shipping_cost?:unknown;total?:unknown},
+ expected:ShippingQuote
+):boolean{
+ const matchesAmount=(actual:unknown,value:number|null)=>
+  value===null?actual===null:
+   typeof actual==="number"&&Number.isFinite(actual)&&Math.abs(actual-value)<0.01;
+ return received.shipping_kind===expected.kind&&
+  matchesAmount(received.shipping_cost,expected.shippingCost)&&
+  matchesAmount(received.total,expected.total);
+}

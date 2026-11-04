@@ -24,7 +24,7 @@ try{
   await sql(await readFile(`supabase/patches/${file}`,'utf8'));
  for(const file of (await readdir('supabase/migrations')).filter(file=>file.endsWith('.sql')).sort())
   await sql(await readFile(`supabase/migrations/${file}`,'utf8'));
- for(const file of ['checkout-invariants.sql','security-invariants.sql'])
+ for(const file of ['checkout-invariants.sql','security-invariants.sql','public-catalog-rls.sql'])
   console.log((await sql(await readFile(`tests/integration/postgres/${file}`,'utf8'))).trim());
  const attempts=await Promise.all(Array.from({length:12},()=>sql("select public.consume_checkout_attempt('concurrent-test',gen_random_uuid(),3,10);")));
  if(attempts.filter(value=>value.trim()==='t').length!==3)throw new Error('Concurrent rate limit bypass');

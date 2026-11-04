@@ -66,6 +66,24 @@ describe("seguimiento comercial de WhatsApp",()=>{
   expect(screen.getByRole("button",{name:"Registrar importe recibido"})).toBeEnabled();
   expect(screen.getByText(/Ver pagos registrados/)).toBeInTheDocument();
  });
+ it("muestra un presupuesto Rosario de 128.700 sin habilitar cobros",()=>{
+  render(<WhatsAppRequests requests={[{...common,status:"draft",locality:"Rosario",subtotal:68700,shipping_cost:null,total:null}]}/>);
+  expect(screen.getByText("Total estimado")).toBeInTheDocument();
+  expect(screen.getByText("Envío estimado")).toBeInTheDocument();
+  expect(screen.getByText(/128.700/)).toBeInTheDocument();
+  expect(screen.getByText(/60.000/)).toBeInTheDocument();
+  expect(screen.queryByText("Saldo pendiente")).not.toBeInTheDocument();
+  expect(screen.queryByRole("button",{name:"Registrar importe recibido"})).not.toBeInTheDocument();
+ });
+ it("no permite cobrar ni preparar pedidos con total guardado inconsistente",()=>{
+  render(<WhatsAppRequests requests={[{...common,status:"confirmed",stock_confirmed:true,
+   locality:"Rosario",subtotal:68700,shipping_cost:60000,total:68700,
+   payment_status:"pending"}]}/>);
+  expect(screen.getByRole("alert")).toHaveTextContent(/no coinciden/);
+  expect(screen.getAllByText("A revisar")).toHaveLength(2);
+  expect(screen.getByRole("button",{name:"Preparar"})).toBeDisabled();
+  expect(screen.queryByRole("button",{name:"Registrar importe recibido"})).not.toBeInTheDocument();
+ });
  it("permite preparar un pedido contra entrega, pero exige registrar efectivo antes de cerrarlo",async()=>{
   const user=userEvent.setup();
   const send=vi.fn(async (_input:RequestInfo|URL,_init?:RequestInit)=>({ok:true,json:async()=>({updated:true})}));

@@ -3,6 +3,7 @@ import {useMemo,useRef,useState,type FormEvent} from "react";
 import {useRouter} from "next/navigation";
 import {ars,type WhatsAppRequest,type ShippingZone} from "@/lib/types";
 import {quoteShipping} from "@/lib/shipping-quote";
+import {resolveWhatsAppRequestFinance} from "@/lib/whatsapp-request-finance";
 import {whatsappRequestReference,paymentFromNotes} from "@/lib/whatsapp-request-rules";
 import {searchWhatsAppRequests,whatsappRequestCounts,type WhatsAppAdminFilter} from "@/lib/admin-whatsapp-ui";
 
@@ -37,16 +38,14 @@ function RequestCard({request,freeShippingThreshold,zones}:{request:WhatsAppRequ
  const lastPayment=useRef<{fingerprint:string;key:string}|null>(null);
  const lastCashKey=useRef<string|null>(null);
  const next=nextAction(request);
- const finalTotal=request.total===null?shippingQuote.total:Number(request.total);
- const displayedShippingCost=request.shipping_cost===null?shippingQuote.shippingCost:Number(request.shipping_cost);
+ const finance=resolveWhatsAppRequestFinance(request,shippingQuote);
+ const {displayedTotal:finalTotal,displayedShippingCost,remaining,termsComplete}=finance;
  const received=Number(request.amount_paid);
- const remaining=finalTotal===null?null:Math.max(0,Math.round((finalTotal-received)*100)/100);
- const termsComplete=request.stock_confirmed&&request.shipping_cost!==null;
  const canEditTerms=(request.status==="contacted"||request.status==="confirmed")&&received===0;
  const canRegisterPayment=["confirmed","preparing","shipped","delivered"].includes(request.status)&&termsComplete&&remaining!==null&&remaining>0;
  const blockedConfirm=request.status==="contacted"&&!termsComplete;
- const blockedPreparing=request.status==="confirmed"&&!cashOnDelivery&&(request.payment_status!=="paid"||remaining!==0);
- const blockedDelivered=next?.action==="delivered"&&(request.payment_status!=="paid"||remaining!==0);
+ const blockedPreparing=request.status==="confirmed"&&(!termsComplete||(!cashOnDelivery&&(request.payment_status!=="paid"||remaining!==0)));
+ const blockedDelivered=next?.action==="delivered"&&(!termsComplete||request.payment_status!=="paid"||remaining!==0);
  const canRegisterCash=cashOnDelivery&&termsComplete&&remaining!==null&&remaining>0&&
   (request.status==="shipped"||(request.status==="preparing"&&request.shipping_method==="pickup"));
  async function apply(data:Operation,success:string){
@@ -114,10 +113,11 @@ function RequestCard({request,freeShippingThreshold,zones}:{request:WhatsAppRequ
   </details>
   <div className="whatsapp-finance-summary">
    <div><small>Productos</small><strong>{ars(Number(request.subtotal))}</strong></div>
-   <div><small>{request.shipping_cost===null?"Envío estimado":"Envío confirmado"}</small><strong>{displayedShippingCost===null?"A confirmar":ars(displayedShippingCost)}</strong></div>
-   <div><small>{request.total===null?"Total estimado":"Total del pedido"}</small><strong>{finalTotal===null?"A confirmar":ars(finalTotal)}</strong></div>
+   <div><small>{finance.amountsConfirmed?"Envío confirmado":"Envío estimado"}</small><strong>{finance.inconsistent?"A revisar":displayedShippingCost===null?"A confirmar":ars(displayedShippingCost)}</strong></div>
+   <div><small>{finance.amountsConfirmed?"Total del pedido":"Total estimado"}</small><strong>{finance.inconsistent?"A revisar":finalTotal===null?"A confirmar":ars(finalTotal)}</strong></div>
    <div><small>Pagos registrados</small><strong>{ars(received)}</strong></div>
   </div>
+  {finance.inconsistent?<p role="alert" className="notification notification-error">Los importes guardados no coinciden con productos más envío. Revisá este pedido antes de registrar pagos o avanzar.</p>:null}
   {canEditTerms?<form className="whatsapp-request-form" onSubmit={event=>void saveTerms(event)}>
    <h3>1. Confirmar disponibilidad y envío</h3>
    <label className="inline-check"><input type="checkbox" checked={stock} onChange={event=>setStock(event.target.checked)} disabled={busy}/> Verifiqué que hay stock disponible para este pedido.</label>
@@ -145,7 +145,7 @@ function RequestCard({request,freeShippingThreshold,zones}:{request:WhatsAppRequ
    {request.whatsapp_request_payments.map(payment=><small key={payment.id}>{ars(Number(payment.amount))} · {payment.payment_method==="cash"?"Efectivo":"Transferencia"} · {new Date(payment.created_at).toLocaleString("es-AR")}{payment.transfer_reference?` · Ref. ${payment.transfer_reference}`:""}</small>)}
   </details>:null}
   <div className="whatsapp-request-actions">
-   {next?<button className="btn tiny" type="button" disabled={busy||blockedConfirm||blockedPreparing||blockedDelivered}
+   {next?<button className="btn tiny" type="button" disabled={busy||finance.inconsistent||blockedConfirm||blockedPreparing||blockedDelivered}
     onClick={()=>void move(next.action)}>{next.label}</button>:null}
    {blockedConfirm?<small>Primero guardá stock y costo de envío.</small>:null}
    {blockedPreparing?<small>Para transferencia, primero acreditá el pago completo.</small>:null}

@@ -1,4 +1,4 @@
-export const PRIVATE_ROUTES=["/admin","/api","/login","/recuperar-acceso","/actualizar-contrasena","/carrito","/catalogo/vista"];
+export const PRIVATE_ROUTES=["/admin","/api","/login","/recuperar-acceso","/actualizar-contrasena","/carrito"];
 
 export function publicSiteUrl(value=process.env.NEXT_PUBLIC_SITE_URL):string|null{
  try{

@@ -63,6 +63,10 @@ export async function POST(request:Request){
 
 async function prepareRequest(request:Request){
  if(!connected())return reply("La recepción de solicitudes todavía no está configurada",503);
+ // Evitar reutilizar credenciales privilegiadas como sal para el limitador.
+ // No iniciar consultas ni registrar pedidos si falta la clave independiente.
+ const rateLimitSalt=process.env.CHECKOUT_RATE_LIMIT_SALT;
+ if(!rateLimitSalt||rateLimitSalt.length<32)return reply("El control de solicitudes no está configurado",503);
  if(!isAllowedAdminMutation(request,process.env.NEXT_PUBLIC_SITE_URL,""))return reply("Origen no permitido",403);
  const key=uuid.safeParse(request.headers.get("idempotency-key"));
  if(!key.success)return reply("Falta identificar esta solicitud",400);
@@ -72,7 +76,7 @@ async function prepareRequest(request:Request){
  const input=normalizeWhatsAppRequest(parsed.data);
  const db=privilegedDb();
  const {data:allowed,error:rateError}=await db.rpc("consume_checkout_attempt",{
-  p_key_hash:rateLimitClientKey(request,process.env.CHECKOUT_RATE_LIMIT_SALT||process.env.SUPABASE_SERVICE_ROLE_KEY||""),p_idempotency_key:key.data,p_limit:8,p_window_minutes:10
+  p_key_hash:rateLimitClientKey(request,rateLimitSalt),p_idempotency_key:key.data,p_limit:8,p_window_minutes:10
  });
  if(rateError)return reply("No pudimos validar la seguridad de la solicitud",503);
  if(!allowed)return NextResponse.json({error:"Demasiados intentos. Volvé a intentarlo en unos minutos."},{status:429,headers:{"Cache-Control":"no-store","Retry-After":"600"}});
