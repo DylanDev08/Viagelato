@@ -192,7 +192,7 @@
       "id": 29,
       "price": 32900,
       "name": "Palitos Seibom surtidos",
-      "category": "Bombones helados",
+      "category": "Palitos y conos",
       "presentation": "Caja de 16 unidades",
       "variants": "Almendras, blanco y cookies",
       "description": "Palitos Seibom en caja de 16 unidades. Variedades señaladas en la lista: almendras, blanco y cookies; confirmar la combinación antes de cerrar el pedido.",
@@ -206,7 +206,7 @@
       "id": 28,
       "price": 45900,
       "name": "Palitos Seibom Dubai",
-      "category": "Bombones helados",
+      "category": "Palitos y conos",
       "presentation": "Caja de 14 unidades",
       "variants": "Dubai",
       "description": "Palitos Seibom Dubai en caja de 14 unidades. Una presentación específica de esta variedad de la línea Seibom, con precio por caja completa.",
@@ -476,8 +476,8 @@
       "presentation": "Torta de 800 g",
       "variants": "Frutilla y dulce de leche",
       "description": "Torta helada Isabella de 800 g con combinación de frutilla y dulce de leche. Precio por torta completa; la fotografía individual del producto queda pendiente de confirmar.",
-      "image": null,
-      "imageStatus": "sin_foto",
+      "image": "/catalogo/postres-seitu-diplay.webp",
+      "imageStatus": "coincidencia_exacta",
       "sourceDriveId": "1eUcyRDkGwFHsOqVjO5EDlGyUMUd3SFC3",
       "sku": "VIA-TOR-035-800G"
     },
@@ -630,10 +630,12 @@
       "presentation": "Lata de 10 litros",
       "variants": "Americana, limón, dulce de leche, chocolate y frutilla a la crema; consultar otros sabores",
       "description": "Lata de helado de 10 litros. Sabores mencionados en la lista: americana, limón, dulce de leche, chocolate y frutilla a la crema. Consultar otros sabores y disponibilidad.",
-      "image": null,
-      "imageStatus": "sin_foto",
+      "image": "/catalogo/lata-helado-10-litros.webp",
+      "imageStatus": "referencial",
       "sourceDriveId": null,
       "sku": "VIA-HEL-046-10L"
     }
-  ]
+  ],
+  "lastReviewed": "2026-11-03",
+  "reviewNote": "Seibom se clasifica en Palitos y conos. Foto de Torta Isabella validada visualmente desde postres-seitu-diplay.webp; resto de precios 45/45 intactos. Foto comercial optimizada de lata Sei Tu 10L Americana asociada a fila 46, como imagen referencial."
 }
