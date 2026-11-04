@@ -22,7 +22,8 @@ describe("seguimiento comercial de WhatsApp",()=>{
   vi.stubGlobal("fetch",send);
   vi.spyOn(window,"confirm").mockReturnValue(true);
   render(<WhatsAppRequests requests={[common]}/>);
-  expect(screen.getByText("Saldo pendiente")).toBeInTheDocument();
+  expect(screen.queryByText("Saldo pendiente")).not.toBeInTheDocument();
+  expect(screen.getByText("Total estimado")).toBeInTheDocument();
   expect(screen.getByRole("button",{name:"Confirmar pedido"})).toBeDisabled();
   const save=screen.getByRole("button",{name:"Guardar stock y envío"});
   expect(save).toBeDisabled();
@@ -60,7 +61,8 @@ describe("seguimiento comercial de WhatsApp",()=>{
    ]}]}/>);
   expect(screen.getByRole("button",{name:"Preparar"})).toBeDisabled();
   expect(screen.getByText("Pago parcial registrado. El pedido no pasará a preparación hasta completar el saldo.")).toBeInTheDocument();
-  expect(screen.getByText(/15.400/)).toBeInTheDocument();
+  expect(screen.getByRole("spinbutton",{name:/Importe recibido/})).toHaveAttribute("max","15400");
+  expect(screen.queryByText("Saldo pendiente")).not.toBeInTheDocument();
   expect(screen.getByRole("button",{name:"Registrar importe recibido"})).toBeEnabled();
   expect(screen.getByText(/Ver pagos registrados/)).toBeInTheDocument();
  });
