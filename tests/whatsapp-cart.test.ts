@@ -43,9 +43,17 @@ describe("finalización por WhatsApp sin pasarela",()=>{
   expect(()=>whatsappCartMessage([{name:"Torta",price:12900,quantity:0}],base)).toThrow("cantidades");
   expect(()=>whatsappCartMessage([{name:"Torta",price:12900,quantity:1}],{...base,name:""})).toThrow("nombre");
  });
- it("el retiro no se presenta como despacho gratuito",()=>{
-  const text=whatsappCartMessage([{name:"Torta",price:12900,quantity:5}],{...base,shippingMethod:"pickup"});
-  expect(text).toContain("Retiro (a confirmar)");
+ it("retiro gratuito: conserva el total de productos y muestra el local",()=>{
+  const text=whatsappCartMessage([{name:"Torta",price:12900,quantity:1}],{
+   ...base,shippingMethod:"pickup",locality:"Lanús Este",address:"",
+   pickupAddress:"Eva Perón 3050, Lanús Este"
+  });
+  expect(text).toContain("Retiro en el local (horario a confirmar)");
+  expect(text).toContain("Punto de retiro: Eva Perón 3050, Lanús Este");
+  expect(text).toContain("Envío: retiro sin cargo");
+  expect(text).toContain("Total estimado de productos y envío: $ 12.900");
+  expect(text).toContain("horario de retiro");
   expect(text).not.toContain("solicitar aplicación de envío sin cargo");
+  expect(text).not.toContain("fecha de entrega");
  });
 });
