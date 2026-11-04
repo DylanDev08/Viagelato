@@ -10,18 +10,18 @@ import {ars,DELIVERY_AREAS,type Product,type Settings,type ShippingZone} from "@
 import {resolveCartView} from "@/lib/cart-view-model";
 import {CATALOG_PRICE_ITEMS,type CatalogPriceItem} from "@/lib/catalog-prices";
 import {checkoutRequestFingerprint,getOrCreateCheckoutKey,clearCheckoutKey,checkoutKeyStorage} from "@/lib/checkout-idempotency";
-import {quoteShipping,matchesPreparedShippingQuote,OUT_OF_ZONE_DELIVERY_COST} from "@/lib/shipping-quote";
+import {quoteShipping,matchesPreparedShippingQuote,OUT_OF_ZONE_DELIVERY_COST,PICKUP_LOCALITY} from "@/lib/shipping-quote";
 
 export function Checkout({products,zones,settings,catalogItems=CATALOG_PRICE_ITEMS}:{products:Product[];zones:ShippingZone[];settings:Settings;demo:boolean;checkoutEnabled:boolean;catalogItems?:CatalogPriceItem[]}){
  const {items,setQuantity,clear}=useCart();
  const [fullName,setFullName]=useState("");
  const [selectedLocality,setSelectedLocality]=useState("");
  const [otherLocality,setOtherLocality]=useState("");
- const locality=selectedLocality==="other"?otherLocality.trim():selectedLocality;
  const [address,setAddress]=useState("");
  const [notes,setNotes]=useState("");
  const [paymentPreference,setPaymentPreference]=useState<"transfer"|"cash_on_delivery">("transfer");
  const [delivery,setDelivery]=useState<"shipping"|"pickup">("shipping");
+ const locality=delivery==="pickup"?PICKUP_LOCALITY:selectedLocality==="other"?otherLocality.trim():selectedLocality;
  const [error,setError]=useState("");
  const [busy,setBusy]=useState(false);
  const [prepared,setPrepared]=useState<{reference:string;url:string;selection:string}|null>(null);
@@ -122,6 +122,8 @@ export function Checkout({products,zones,settings,catalogItems=CATALOG_PRICE_ITE
     <div className="cart-form-heading"><p className="kicker">02 / PREPARÁ TU PEDIDO</p><ClipboardList size={22} aria-hidden="true"/><h2>Entrega y pago</h2></div>
     <p className="hint cart-form-intro">Completá tus datos. En zonas habilitadas, el envío es gratis desde {ars(Number(settings.free_shipping_threshold))}. Fuera de ellas se suman {ars(OUT_OF_ZONE_DELIVERY_COST)}; para compras menores dentro de zona el costo se confirma por WhatsApp si aún no hay tarifa.</p>
     <label>Nombre y apellido<input disabled={busy} required minLength={2} maxLength={120} autoComplete="name" value={fullName} onChange={e=>setFullName(e.target.value)}/></label>
+    {settings.pickup_enabled?<label>Tipo de entrega<select disabled={busy} value={delivery} onChange={e=>setDelivery(e.target.value as "shipping"|"pickup")}><option value="shipping">Envío a domicilio</option><option value="pickup">Retiro en el local — gratis</option></select></label>:null}
+    {delivery==="shipping"?<>
     <label>Zona de entrega<select disabled={busy} required value={selectedLocality} onChange={e=>setSelectedLocality(e.target.value)}>
      <option value="">Elegí tu localidad</option>
      {DELIVERY_AREAS.map(area=><option key={area} value={area}>{area}</option>)}
@@ -130,11 +132,11 @@ export function Checkout({products,zones,settings,catalogItems=CATALOG_PRICE_ITE
     </select></label>
     {selectedLocality==="Capital Federal"?<p className="cart-caba-notice" role="status">Capital Federal: envío fuera de zona con tarifa fija de {ars(OUT_OF_ZONE_DELIVERY_COST)}. Confirmamos cobertura y fecha por WhatsApp.</p>:null}
     {selectedLocality==="other"?<label>Escribí tu localidad<input disabled={busy} required minLength={2} maxLength={100} autoComplete="address-level2" aria-label="Escribí tu localidad" value={otherLocality} onChange={e=>setOtherLocality(e.target.value)} placeholder="Por ejemplo: Quilmes" aria-describedby="other-locality-help"/><small id="other-locality-help">Fuera de las zonas habilitadas, el envío tiene una tarifa fija de {ars(OUT_OF_ZONE_DELIVERY_COST)}. Confirmamos cobertura y fecha por WhatsApp.</small></label>:null}
-    {settings.pickup_enabled?<label>Entrega<select disabled={busy} value={delivery} onChange={e=>setDelivery(e.target.value as "shipping"|"pickup")}><option value="shipping">Envío a domicilio</option><option value="pickup">Consultar retiro</option></select></label>:null}
+    </>:<p className="cart-total-ready" role="status"><strong>Retiro en el local, sin cargo.</strong> Dirección: {settings.address||"Eva Perón 3050, Lanús Este"}. Coordinamos por WhatsApp el horario y la disponibilidad.</p>}
     <section className="cart-price-breakdown" aria-label="Resumen y total del pedido" aria-live="polite">
      <div className="cart-price-breakdown-title"><h3>Tu total</h3><span>{count} {count===1?"presentación":"presentaciones"}</span></div>
      <div className="cart-price-row"><span>Productos</span><strong>{ars(subtotal)}</strong></div>
-     <div className="cart-price-row"><span>Envío{locality&&delivery==="shipping"?` · ${locality}`:""}</span>
+     <div className="cart-price-row"><span>{delivery==="pickup"?"Retiro en local":`Envío${locality?` · ${locality}`:""}`}</span>
       <strong>{shipping.kind==="free"?"Gratis":shipping.kind==="pickup"?"Sin envío":shipping.kind==="priced"?ars(shipping.shippingCost??0):"A confirmar"}</strong></div>
      <div className="cart-price-total"><span>{shipping.total!==null?"Total del pedido":"Total de productos"}</span><strong>{ars(shipping.total??subtotal)}</strong></div>
      {shipping.total===null?<p className="cart-total-pending" role="status">{shipping.kind==="unselected"?"Seleccioná tu zona para calcular el envío.":shipping.covered?"Todavía no hay una tarifa de envío cargada para esta zona. El costo se confirma por WhatsApp.":locality==="Capital Federal"?"Capital Federal requiere consulta de cobertura y precio de envío por WhatsApp.":"Esta localidad está fuera de las zonas indicadas. Consultaremos cobertura y envío por WhatsApp."} El total final será el subtotal más el envío confirmado.</p>:<p className="cart-total-ready">{shipping.kind==="free"?"Tu compra tiene envío gratuito en esta zona.":shipping.kind==="pickup"?"Retiro sin costo de envío.":shipping.covered?"Total calculado con la tarifa de entrega configurada.":"Total con envío fuera de zona incluido."} Confirmamos la disponibilidad antes del pago.</p>}
@@ -148,7 +150,7 @@ export function Checkout({products,zones,settings,catalogItems=CATALOG_PRICE_ITE
       </label>
       <label className={paymentPreference==="cash_on_delivery"?"cart-payment-option selected":"cart-payment-option"}>
        <input disabled={busy} type="radio" name="paymentPreference" value="cash_on_delivery" checked={paymentPreference==="cash_on_delivery"} onChange={()=>setPaymentPreference("cash_on_delivery")}/>
-       <span><strong>Efectivo al recibir</strong><small>Sujeto a confirmación de Viagelato.</small></span>
+       <span><strong>{delivery==="pickup"?"Efectivo al retirar":"Efectivo al recibir"}</strong><small>Sujeto a confirmación de Viagelato.</small></span>
       </label>
      </div>
      <p>Elegí una preferencia: no se cobra desde la web.</p>
@@ -157,7 +159,7 @@ export function Checkout({products,zones,settings,catalogItems=CATALOG_PRICE_ITE
     <label>Observaciones (opcional)<textarea disabled={busy} maxLength={350} rows={3} value={notes} onChange={e=>setNotes(e.target.value)} placeholder="Horarios, preferencias de sabores, etc."/></label>
 
     <div className="whatsapp-payment-info">
-     <strong>{paymentPreference==="transfer"?"Transferencia coordinada por WhatsApp":"Efectivo al recibir, sujeto a confirmación"}</strong>
+     <strong>{paymentPreference==="transfer"?"Transferencia coordinada por WhatsApp":delivery==="pickup"?"Efectivo al retirar, sujeto a confirmación":"Efectivo al recibir, sujeto a confirmación"}</strong>
      <p>{shipping.kind==="free"?`Tu compra alcanza el envío gratuito desde ${ars(Number(settings.free_shipping_threshold))} en la zona seleccionada.`:shipping.kind==="priced"?`El envío a ${locality} está cotizado en ${ars(shipping.shippingCost??0)}.`:delivery==="pickup"?"No se agrega costo de envío al retiro.":shipping.kind==="pending"?"El costo de envío se confirma por WhatsApp. No se suma una tarifa estimada sin verificar.":"Elegí tu zona para saber si corresponde envío gratuito o una tarifa."}</p>
     </div>
     {error?<p className="error" role="alert">{error}</p>:null}
