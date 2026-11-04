@@ -4,7 +4,7 @@ import {NextResponse} from "next/server";
 import {z} from "zod";
 import {connected,privilegedDb} from "@/lib/supabase";
 import {whatsappCartMessage,type WhatsAppCartLine} from "@/lib/whatsapp-cart";
-import {quoteShipping} from "@/lib/shipping-quote";
+import {quoteShipping,PICKUP_LOCALITY} from "@/lib/shipping-quote";
 import type {ShippingZone} from "@/lib/types";
 import {normalizeWhatsAppRequest,whatsappRequestSchema,whatsappRequestReference,paymentFromNotes} from "@/lib/whatsapp-request-rules";
 import {whatsappHref} from "@/lib/whatsapp";
@@ -21,7 +21,7 @@ type RequestSnapshot={
  customer_name:string;locality:string;address:string;notes:string;payment_preference?:"transfer"|"cash_on_delivery";
  shipping_method:"pickup"|"shipping";subtotal:number;items:WhatsAppCartLine[];
 };
-type CommercialSettings={whatsapp:string;free_shipping_threshold:number;pickup_enabled:boolean};
+type CommercialSettings={whatsapp:string;free_shipping_threshold:number;pickup_enabled:boolean;address?:string};
 const snapshotFields="id,request_fingerprint,status,customer_name,locality,address,notes,payment_preference,shipping_method,items,subtotal";
 
 function preparedResponse(record:RequestSnapshot,settings:CommercialSettings,zones:ShippingZone[],created:boolean){
@@ -42,7 +42,7 @@ function preparedResponse(record:RequestSnapshot,settings:CommercialSettings,zon
   "Referencia: "+reference,
   whatsappCartMessage(record.items,{
    name:record.customer_name,locality:record.locality,address:record.address,notes:payment.notes,paymentPreference:payment.paymentPreference,
-   shippingMethod:record.shipping_method,freeShippingThreshold:Number(settings.free_shipping_threshold),shippingQuote:shipping
+   shippingMethod:record.shipping_method,freeShippingThreshold:Number(settings.free_shipping_threshold),shippingQuote:shipping,pickupAddress:settings.address
   })
  ].join("\n");
  const whatsapp_url=whatsappHref(settings.whatsapp,message);
@@ -74,6 +74,8 @@ async function prepareRequest(request:Request){
  const parsed=whatsappRequestSchema.safeParse(body);
  if(!parsed.success)return reply("Revisá tu nombre, localidad y productos",400);
  const input=normalizeWhatsAppRequest(parsed.data);
+ // La sucursal es la ubicación del retiro: nunca usar un destino de envío arbitrario.
+ if(input.shipping_method==="pickup"){input.locality=PICKUP_LOCALITY;input.address="";}
  const db=privilegedDb();
  const {data:allowed,error:rateError}=await db.rpc("consume_checkout_attempt",{
   p_key_hash:rateLimitClientKey(request,rateLimitSalt),p_idempotency_key:key.data,p_limit:8,p_window_minutes:10
@@ -81,7 +83,7 @@ async function prepareRequest(request:Request){
  if(rateError)return reply("No pudimos validar la seguridad de la solicitud",503);
  if(!allowed)return NextResponse.json({error:"Demasiados intentos. Volvé a intentarlo en unos minutos."},{status:429,headers:{"Cache-Control":"no-store","Retry-After":"600"}});
  const hash=fingerprint(input);
- const {data:settings,error:settingsError}=await db.from("site_settings").select("whatsapp,free_shipping_threshold,pickup_enabled").eq("id",true).single();
+ const {data:settings,error:settingsError}=await db.from("site_settings").select("whatsapp,free_shipping_threshold,pickup_enabled,address").eq("id",true).single();
  if(settingsError||!settings)return reply("No encontramos la configuración comercial",503);
  if(input.shipping_method==="pickup"&&!settings.pickup_enabled)return reply("El retiro no está habilitado",409);
  if(!whatsappHref(settings.whatsapp,"Prueba")?.includes("?text="))return reply("El WhatsApp comercial debe configurarse con un número válido",503);
