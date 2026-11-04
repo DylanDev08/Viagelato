@@ -41,7 +41,7 @@ export function whatsappCartMessage(lines:WhatsAppCartLine[],info:WhatsAppChecko
   `Localidad: ${locality}`,
   ...(info.shippingMethod==="shipping"&&display(info.address,250)?[`Dirección: ${display(info.address,250)}`]:[]),
   ...(info.shippingMethod==="pickup"&&info.pickupAddress?.trim()?[`Punto de retiro: ${display(info.pickupAddress,250)}`]:[]),
-  ...(info.paymentPreference?[`Forma de pago preferida: ${info.paymentPreference==="transfer"?"Transferencia":"Efectivo al recibir (a confirmar con Viagelato)"}`]:[]),
+  ...(info.paymentPreference?[`Forma de pago preferida: ${info.paymentPreference==="transfer"?"Transferencia":info.shippingMethod==="pickup"?"Efectivo al retirar (a confirmar con Viagelato)":"Efectivo al recibir (a confirmar con Viagelato)"}`]:[]),
   ...(display(info.notes,350)?[`Observaciones: ${display(info.notes,350)}`]:[]),
   "",
   "Productos (precio por caja o presentación):",
