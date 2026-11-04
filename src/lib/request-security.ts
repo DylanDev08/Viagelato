@@ -10,7 +10,7 @@ import {isIP} from "node:net";
  * La tasa final se valida de forma atómica mediante RPC en Supabase.
  */
 export function rateLimitClientKey(request:Request,secret:string){
- if(!secret)throw new Error("Falta la clave del limitador");
+ if(typeof secret!=="string"||Buffer.byteLength(secret,"utf8")<32)throw new Error("Falta una clave segura para el limitador");
  const forwarded=process.env.VERCEL
   ? request.headers.get("x-vercel-forwarded-for")?.split(",")[0]?.trim()
   : undefined;
