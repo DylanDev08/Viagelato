@@ -46,6 +46,7 @@ describe("consistencia entre carrito, API y panel de WhatsApp",()=>{
   const invalid=[
    {...request,shipping_cost:60000,total:null},
    {...request,shipping_cost:null,total:128700},
+   {...request,shipping_cost:null,total:null,amount_paid:500},
    {...request,shipping_cost:60000,total:68700},
    {...request,shipping_cost:60000,total:128700,amount_paid:128701},
    {...request,shipping_cost:-1,total:68699},
