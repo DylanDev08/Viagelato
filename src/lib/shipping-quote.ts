@@ -1,6 +1,8 @@
 import {DELIVERY_AREAS,type ShippingZone} from "./types";
 
 export const OUT_OF_ZONE_DELIVERY_COST=60000;
+/** Localidad fija del punto de retiro; no requiere ingresar zona de entrega. */
+export const PICKUP_LOCALITY="Lanús Este";
 
 /** Cotización orientativa de entrega. Nunca se interpreta como un pago ni una reserva. */
 export type ShippingQuote={

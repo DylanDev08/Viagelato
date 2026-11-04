@@ -21,8 +21,9 @@ describe("registrar referencia WhatsApp",()=>{
  const catalogRead=vi.fn(async()=>({data:[{slug:"excel-fila-2",name:"Palitos de agua",sku:"VIA-CAT-2",presentation:"Caja x24",price:21900}],error:null}));
  const productRead=vi.fn();
  const shippingRead=vi.fn(async():Promise<{data:Record<string,unknown>[]|null;error:{message:string}|null}>=>({data:[],error:null}));
+ let pickupEnabled=false;
  beforeEach(()=>{
-  vi.clearAllMocks();vi.mocked(connected).mockReturnValue(true);
+  vi.clearAllMocks();pickupEnabled=false;vi.mocked(connected).mockReturnValue(true);
   process.env.SUPABASE_SERVICE_ROLE_KEY="abcdefghijklmnopqrstuvwxyz0123456789SERVICE";
   process.env.CHECKOUT_RATE_LIMIT_SALT="test-only-salt-dedicated-to-rate-limit-2026";
   rpc.mockResolvedValue({data:true,error:null});
@@ -37,7 +38,7 @@ describe("registrar referencia WhatsApp",()=>{
   vi.mocked(privilegedDb).mockReturnValue({
    rpc,
    from:vi.fn((table:string)=>{
-    if(table==="site_settings")return {select:()=>({eq:()=>({single:async()=>({data:{whatsapp:"+5491140962202",free_shipping_threshold:60000,pickup_enabled:false},error:null})})})};
+    if(table==="site_settings")return {select:()=>({eq:()=>({single:async()=>({data:{whatsapp:"+5491140962202",free_shipping_threshold:60000,pickup_enabled:pickupEnabled,address:"Eva Perón 3050, Lanús Este"},error:null})})})};
     if(table==="shipping_zones")return {select:()=>({eq:()=>({eq:()=>({not:shippingRead})})})};
     if(table==="whatsapp_order_requests")return {select:()=>({eq:()=>({maybeSingle:priorRead})}),upsert:insert};
     if(table==="products")return {select:()=>({eq:()=>({in:catalogRead}),in:()=>({eq:()=>({eq:()=>({gt:productRead})})})})};
@@ -89,6 +90,29 @@ describe("registrar referencia WhatsApp",()=>{
   expect(data.total).toBe(103800);
   expect(data.shipping_kind).toBe("priced");
   expect(decodeURIComponent(data.whatsapp_url)).toContain("103.800");
+ });
+ it("impide solicitar retiro en el local cuando esté deshabilitado",async()=>{
+  const response=await POST(make({...payload,shipping_method:"pickup"}));
+  expect(response.status).toBe(409);
+  expect(insert).not.toHaveBeenCalled();
+ });
+ it("retiro habilitado: subtotal exacto, envío cero y punto de retiro en WhatsApp",async()=>{
+  pickupEnabled=true;
+  const response=await POST(make({...payload,shipping_method:"pickup",locality:"Rosario",address:"Dirección ajena"}));
+  expect(response.status).toBe(201);
+  const data=await response.json();
+  expect(data.shipping_kind).toBe("pickup");
+  expect(data.shipping_cost).toBe(0);
+  expect(data.subtotal).toBe(43800);
+  expect(data.total).toBe(43800);
+  expect(insert).toHaveBeenCalledWith(expect.objectContaining({
+   locality:"Lanús Este",address:"",shipping_method:"pickup",subtotal:43800
+  }),expect.anything());
+  const message=decodeURIComponent(data.whatsapp_url);
+  expect(message).toContain("Retiro en el local (horario a confirmar)");
+  expect(message).toContain("Punto de retiro: Eva Perón 3050");
+  expect(message).toContain("Envío: retiro sin cargo");
+  expect(message).not.toContain("Dirección ajena");
  });
  it("no confirma importes de envío cuando no puede verificar las tarifas",async()=>{
   shippingRead.mockResolvedValue({data:null,error:{message:"temporarily unavailable"}});

@@ -19,9 +19,9 @@ const HERO_PRODUCTS=[
 ] as const;
 
 export function Storefront({settings,products,banners,demo,catalogItems=CATALOG_PRICE_ITEMS}:{settings:Settings;products:Product[];categories:Category[];banners:Banner[];demo:boolean;catalogItems?:CatalogPriceItem[]}){
- const featured=products.filter(product=>product.featured).slice(0,6);
- const visible=featured.length?featured:products.slice(0,6);
- const pricedPreview=storefrontSamples(catalogItems,6);
+ const featured=products.filter(product=>product.featured).slice(0,4);
+ const visible=featured.length?featured:products.slice(0,4);
+ const pricedPreview=storefrontSamples(catalogItems,4);
  const catalogGroups=groupCatalogByType(catalogItems);
  const whatsapp=whatsappHref(settings.whatsapp);
  // Respetar textos personalizados en el admin; modernizar sólo el copy original de lanzamiento.
@@ -36,7 +36,7 @@ export function Storefront({settings,products,banners,demo,catalogItems=CATALOG_
   {banners.length>0?<section className="shell promo-grid">{banners.map(banner=><Link key={banner.id} href={banner.href||"/catalogo"} className="promo-card" style={banner.image_url?{backgroundImage:`url(${banner.image_url})`}:undefined}><span>{banner.title}</span><p>{banner.subtitle}</p><ArrowDownRight/></Link>)}</section>:null}
   <section className="home-catalog shell refined-products" aria-label="Explorar productos por tipo" id="productos">
    <div className="section-title"><div><p className="kicker">ELEGÍ TUS PRODUCTOS</p><h2>Helados para tu negocio,<br/>listos para elegir.</h2></div><p>Consultá precios por caja o presentación. Sumá todo al carrito y confirmamos disponibilidad por WhatsApp.</p></div>
-   <div className="home-selected-heading"><div><p className="kicker">PARA EMPEZAR</p><h3>Encontrá tu próxima compra.</h3></div><p>Una selección de nuestras seis líneas. Podés armar un pedido con productos de distintas categorías.</p></div>
+   <div className="home-selected-heading"><div><p className="kicker">PARA EMPEZAR</p><h3>Encontrá tu próxima compra.</h3></div><p>Cuatro productos para empezar. Explorá las seis categorías más abajo.</p></div>
    {visible.length?<div className="home-featured-grid">{visible.map(product=><ProductCard product={product} key={product.id}/>)}</div>:<PricedCatalog items={pricedPreview} compact/>}
    <div className="center-action"><Link className="primary-action" href="/catalogo">Ver {catalogItems.length} productos <ArrowRight size={18}/></Link></div>
    <div className="home-type-intro"><div><p className="kicker">COMPRÁ POR CATEGORÍA</p><h3>¿Qué tipo de helado buscás?</h3></div><p>Entrá directamente a la línea que necesitás.</p></div>
