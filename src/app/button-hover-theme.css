@@ -1,0 +1,111 @@
+/* Viagelato · contraste blanco/negro al interactuar.
+ * Se carga al final: unifica CTA, catálogo, carrito y panel sin tocar formularios.
+ * No invertir alertas de borrado: el rojo comunica una acción destructiva.
+ */
+:root{
+ --via-hover-ink:#111;
+ --via-hover-paper:#fff;
+}
+
+/* La transición de color debe ser suave incluso en componentes antes definidos
+ * con transition:none; las transformaciones son opcionales y discretas.
+ */
+:is(
+ .primary-action,.secondary-action,
+ .btn:not(.danger),.priced-add-button,
+ .category-tabs button,.chips button,
+ .detail-cart-next,.detail-cart-quantity button,
+ .checkout-refresh .qty button,.checkout-refresh .cart-submit,
+ .cart-link,.float-cart,.float-contact,
+ .contact-whatsapp-cta,.menu-trigger,
+ .admin-side nav button,.admin-side-bottom button,.admin-side-bottom a
+){
+ transition:background-color .2s ease,color .2s ease,border-color .2s ease,box-shadow .2s ease,transform .2s ease;
+}
+
+/* Hover solo en dispositivos con puntero. En pantallas táctiles no queda fijo. */
+@media (hover:hover) and (pointer:fine){
+ /* Negro -> blanco: CTA principales, agregar al carrito, enviar WhatsApp. */
+ :is(
+  .primary-action,.btn.primary,.priced-add-button,
+  .category-tabs button.active,.chips button.selected,
+  .buy-row button,.float-cart,.float-contact,.contact-whatsapp-cta
+ ):not(:disabled):hover{
+  background:var(--via-hover-paper);
+  color:var(--via-hover-ink);
+  border-color:var(--via-hover-ink);
+  filter:none;
+ }
+ .checkout-refresh .cart-submit:not(:disabled):hover{
+  background:var(--via-hover-paper);
+  color:var(--via-hover-ink);
+  border-color:var(--via-hover-ink);
+  filter:none;
+  transform:none;
+ }
+
+ /* Blanco / gris claro -> negro. Los botones deshabilitados no cambian. */
+ :is(
+  .secondary-action,.btn.light,.btn.ghost,.btn.tiny:not(.danger),
+  .category-tabs button:not(.active),.chips button:not(.selected),
+  .detail-cart-next,.detail-cart-quantity button,
+  .checkout-refresh .qty button,.cart-link,.menu-trigger
+ ):not(:disabled):hover{
+  background:var(--via-hover-ink);
+  color:var(--via-hover-paper);
+  border-color:var(--via-hover-ink);
+  filter:none;
+ }
+ /* Controles de cantidad que tenían un hover gris de mayor especificidad. */
+ .detail-cart-quantity button:not(:disabled):hover,
+ .checkout-refresh .qty button:not(:disabled):hover{
+  background:var(--via-hover-ink);
+  color:var(--via-hover-paper);
+  border-color:var(--via-hover-ink);
+ }
+ .cart-link:hover .cart-count{background:var(--via-hover-paper);color:var(--via-hover-ink)}
+
+ /* Panel oscuro: accesos de navegación aclaran el fondo e invierten la letra.
+  * El activo sigue identificado hasta que se mueve el puntero.
+  */
+ .admin-side nav button:not(:disabled):hover,
+ .admin-side-bottom :is(button,a):hover{
+  background:var(--via-hover-paper);
+  color:var(--via-hover-ink);
+  border-color:var(--via-hover-paper);
+ }
+ /* Opciones en el panel: claros -> oscuros, excluyendo acciones destructivas. */
+ .admin-main .btn:not(.primary):not(.danger):not(:disabled):hover{
+  background:var(--via-hover-ink);
+  color:var(--via-hover-paper);
+  border-color:var(--via-hover-ink);
+  filter:none;
+ }
+ .admin-main .btn.primary:not(:disabled):hover{
+  background:var(--via-hover-paper);
+  color:var(--via-hover-ink);
+  border-color:var(--via-hover-ink);
+  filter:none;
+ }
+}
+
+/* La interacción por teclado permanece visible sin depender de hover. */
+:is(
+ .primary-action,.secondary-action,
+ .btn,.priced-add-button,.category-tabs button,
+ .detail-cart-next,.detail-cart-quantity button,
+ .checkout-refresh .qty button,.checkout-refresh .cart-submit,
+ .cart-link
+):focus-visible{outline:3px solid #555;outline-offset:3px}
+.admin-side :is(button,a):focus-visible{outline-color:#fff}
+
+@media (prefers-reduced-motion:reduce){
+ :is(
+  .primary-action,.secondary-action,.btn,.priced-add-button,
+  .category-tabs button,.chips button,.detail-cart-next,
+  .detail-cart-quantity button,.checkout-refresh .qty button,
+  .checkout-refresh .cart-submit,.cart-link,.float-cart,
+  .float-contact,.contact-whatsapp-cta,
+  .admin-side nav button,.admin-side-bottom button,.admin-side-bottom a
+ ){transition:none}
+}
