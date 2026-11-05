@@ -42,6 +42,8 @@ const nextConfig:NextConfig={
     return [
       {source:"/:path*",headers:securityHeaders},
       {source:"/api/admin/:path*",headers:[{key:"Cache-Control",value:"private, no-store"},{key:"X-Robots-Tag",value:"noindex, nofollow"}]},
+      {source:"/api/auth/admin-login",headers:[{key:"Cache-Control",value:"private, no-store"},{key:"X-Robots-Tag",value:"noindex, nofollow"}]},
+      ...["/login","/recuperar-acceso","/actualizar-contrasena"].map(source=>({source,headers:[{key:"Cache-Control",value:"private, no-store"},{key:"X-Robots-Tag",value:"noindex, nofollow"}]})),
       {source:"/api/whatsapp-request",headers:[{key:"Cache-Control",value:"no-store"},{key:"X-Robots-Tag",value:"noindex, nofollow"}]},
       {source:"/api/checkout",headers:[{key:"Cache-Control",value:"no-store"}]},
       {source:"/api/cron/:path*",headers:[{key:"Cache-Control",value:"no-store"}]},
