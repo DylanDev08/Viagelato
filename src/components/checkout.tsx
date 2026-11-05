@@ -162,7 +162,7 @@ export function Checkout({products,zones,settings,catalogItems=CATALOG_PRICE_ITE
      <p>Elegí una preferencia: no se cobra desde la web.</p>
     </fieldset>
     {delivery==="shipping"?<label>Dirección de entrega (opcional)<input disabled={busy} maxLength={250} autoComplete="street-address" value={address} onChange={e=>setAddress(e.target.value)} placeholder="Calle, altura y piso"/></label>:null}
-    <label>Observaciones (opcional)<textarea disabled={busy} maxLength={350} rows={3} value={notes} onChange={e=>setNotes(e.target.value)} placeholder="Horarios, preferencias de sabores, etc."/></label>
+    <label>Observaciones (opcional)<textarea disabled={busy} maxLength={350} rows={3} aria-describedby="viagelato-flavor-guidance" value={notes} onChange={e=>setNotes(e.target.value)} placeholder="Ej.: Giovi de frutilla, Carita chocolate-vainilla, horario de entrega…"/><small id="viagelato-flavor-guidance">Si elegiste productos con diferentes variedades, indicá el sabor preferido. Confirmamos disponibilidad por WhatsApp.</small></label>
 
     <div className="whatsapp-payment-info">
      <strong>{paymentPreference==="transfer"?"Transferencia coordinada por WhatsApp":delivery==="pickup"?"Efectivo al retirar, sujeto a confirmación":"Efectivo al recibir, sujeto a confirmación"}</strong>
