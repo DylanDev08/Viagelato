@@ -23,6 +23,8 @@ export const whatsappRequestSchema=z.object({
  shipping_method:z.enum(["shipping","pickup"]),
  // Opcional por compatibilidad con solicitudes y reintentos anteriores.
  payment_preference:paymentPreferenceSchema.optional(),
+ // El token se verifica por Siteverify y NO forma parte de la solicitud ni su hash.
+ turnstile_token:z.string().max(2048).optional(),
  expected_subtotal:z.number().finite().nonnegative().max(1e9).optional(),
  items:z.array(z.object({
   id:z.string().regex(/^(catalog-price-(?:[2-9]|[1-3][0-9]|4[0-6])|[a-f0-9-]{36})$/i),
@@ -34,6 +36,8 @@ export const whatsappRequestSchema=z.object({
 });
 export type WhatsAppRequestInput=z.infer<typeof whatsappRequestSchema>;
 export function normalizeWhatsAppRequest(input:WhatsAppRequestInput){
- return {...input,items:[...input.items].sort((a,b)=>a.id.localeCompare(b.id))};
+ const {turnstile_token:_challenge,...order}=input;
+ void _challenge;
+ return {...order,items:[...order.items].sort((a,b)=>a.id.localeCompare(b.id))};
 }
 export function whatsappRequestReference(id:string){return "VIA-"+id.replaceAll("-","").slice(0,12).toUpperCase();}
