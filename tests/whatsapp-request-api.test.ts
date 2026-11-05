@@ -47,6 +47,42 @@ describe("registrar referencia WhatsApp",()=>{
    })
   } as unknown as ReturnType<typeof privilegedDb>);
  });
+ it("no guarda borrador si el cliente vio envío pendiente pero la tarifa cambió",async()=>{
+  shippingRead.mockResolvedValue({data:[{
+   name:"Lanús",cost:4800,active:true,ready:true,free_shipping_eligible:true
+  }],error:null});
+  const res=await POST(make({...payload,expected_shipping_kind:"pending",
+   expected_shipping_cost:null,expected_total:null}));
+  expect(res.status).toBe(409);
+  expect(await res.json()).toMatchObject({code:"SHIPPING_QUOTE_CHANGED"});
+  expect(insert).not.toHaveBeenCalled();
+ });
+ it("fuera de cobertura: bloquea tarifa alterada antes de registrar",async()=>{
+  const res=await POST(make({...payload,locality:"Rosario",
+   expected_shipping_kind:"priced",expected_shipping_cost:0,expected_total:43800}));
+  expect(res.status).toBe(409);
+  expect(await res.json()).toMatchObject({code:"SHIPPING_QUOTE_CHANGED"});
+  expect(insert).not.toHaveBeenCalled();
+ });
+ it("cotización actual y total exacto: registra la solicitud una sola vez",async()=>{
+  const res=await POST(make({...payload,locality:"Rosario",
+   expected_shipping_kind:"priced",expected_shipping_cost:60000,expected_total:103800}));
+  expect(res.status).toBe(201);
+  expect(await res.json()).toMatchObject({shipping_kind:"priced",shipping_cost:60000,total:103800});
+  expect(insert).toHaveBeenCalledTimes(1);
+ });
+ it("respeta el envío gratis y confirma la cotización de cliente",async()=>{
+  const res=await POST(make({...payload,items:[{id:"catalog-price-2",quantity:3}],
+   expected_shipping_kind:"free",expected_shipping_cost:0,expected_total:65700}));
+  expect(res.status).toBe(201);
+  expect(await res.json()).toMatchObject({shipping_kind:"free",shipping_cost:0,total:65700});
+ });
+ it("rechaza cotizaciones incompletas en lugar de guardar solicitudes",async()=>{
+  const res=await POST(make({...payload,expected_shipping_kind:"priced"}));
+  expect(res.status).toBe(400);
+  expect(insert).not.toHaveBeenCalled();
+  expect(rpc).not.toHaveBeenCalled();
+ });
  it("guarda solicitud con importe fijado en el servidor y sin cobrar",async()=>{
   const res=await POST(make());
   expect(res.status).toBe(201);
