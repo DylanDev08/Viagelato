@@ -50,6 +50,11 @@ export function Checkout({products,zones,settings,catalogItems=CATALOG_PRICE_ITE
     customer_name:fullName,locality,address:delivery==="shipping"?address:"",notes,expected_subtotal:subtotal,
     shipping_method:delivery,payment_preference:paymentPreference,
     items:lines.map(({product,quantity})=>({id:product.id,quantity})),
+    // Cotización que ve el usuario: el servidor exige concordancia antes de
+    // guardar la solicitud; nunca se usa para calcular o confiar en precios.
+    expected_shipping_kind:shipping.kind,
+    expected_shipping_cost:shipping.shippingCost,
+    expected_total:shipping.total,
    };
    // El token de Cloudflare vence y es de un solo uso; no debe cambiar la
    // identidad del pedido ni renovar la clave de idempotencia al reintentarlo.

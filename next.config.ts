@@ -7,9 +7,10 @@ import {PRIVATE_ROUTES} from "./src/lib/seo";
  * mismo servidor que comprueba la sesión y consulta Supabase: así no
  * se mezclan versiones del panel y de la API durante los despliegues.
  *
- * El diagnóstico /api/health pertenece al servidor web de Vercel; no debe
- * depender del backend legado en Render. Checkout legado y cron siguen usando
- * Render mientras se valida la migración de esos dos endpoints.
+ * El diagnóstico /api/health y /api/checkout permanecen en Vercel.
+ * El checkout con reserva de stock está desactivado por ENABLE_CHECKOUT=false;
+ * nunca redirigirlo a la versión antigua de Render porque puede tener otra
+ * configuración comercial. Solo el cron legado mantiene temporalmente proxy.
  * No definir API_ORIGIN en Render (evita bucles).
  */
 const backendOrigin=process.env.API_ORIGIN?.trim();
@@ -24,7 +25,7 @@ function getBackendOrigin(){
 }
 const origin=getBackendOrigin();
 
-const renderRoutes=["/api/checkout","/api/cron/:path*"] as const;
+const renderRoutes=["/api/cron/:path*"] as const;
 
 // Minimal defensive headers applied to storefront and API without restricting Next.js scripts.
 export const securityHeaders=[

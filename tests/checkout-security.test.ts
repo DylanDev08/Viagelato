@@ -7,6 +7,12 @@ const request=(headers:Record<string,string>={},body="{}")=>new Request("https:/
 });
 beforeEach(()=>{vi.clearAllMocks();vi.stubEnv("ENABLE_CHECKOUT","true");vi.stubEnv("CHECKOUT_RATE_LIMIT_SALT","dedicated-test-key-of-at-least-32-ascii-bytes");});
 describe("protecciones del checkout legado",()=>{
+ it("el checkout heredado queda desactivado cuando ENABLE_CHECKOUT=false",async()=>{
+  vi.stubEnv("ENABLE_CHECKOUT","false");
+  const response=await POST(request());
+  expect(response.status).toBe(503);
+  expect(privilegedDb).not.toHaveBeenCalled();
+ });
  it("rechaza origen externo sin usar service role",async()=>{
   expect((await POST(request({Origin:"https://evil.example"}))).status).toBe(403);
   expect(privilegedDb).not.toHaveBeenCalled();
