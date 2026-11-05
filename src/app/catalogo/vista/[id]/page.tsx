@@ -47,7 +47,7 @@ export default async function ProductPage({params}:Props){
    </div>
    <div className="provisional-detail-copy">
     <p className="kicker">{item.category}</p><h1>{item.name}</h1>
-    {item.variants?.trim()?<p className="priced-detail-variants"><strong>Variedades:</strong> {item.variants}</p>:null}
+    {item.variants?.trim()?<><p className="priced-detail-variants"><strong>Variedades indicadas:</strong> {item.variants}</p><p className="hint">Si esta presentación ofrece distintas opciones, indicá el sabor preferido en las observaciones del carrito. Confirmamos disponibilidad y composición de la caja por WhatsApp.</p></>:null}
     <div className="priced-detail-price"><small>PRECIO FINAL POR PRESENTACIÓN</small><strong>{ars(item.price)}</strong><span>{item.presentation}</span></div>
     <PricedAddToCart item={item} detail/>
     <p className="hint detail-purchase-disclaimer">Agregá productos al carrito y finalizá el pedido completo por WhatsApp. Antes de cerrar la compra confirmamos stock y entrega. En las zonas habilitadas, el envío es gratis desde {ars(Number(settings.free_shipping_threshold))}.</p>
