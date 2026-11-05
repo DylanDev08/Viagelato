@@ -1,6 +1,5 @@
 import {DELIVERY_AREAS,type ShippingZone} from "./types";
 
-export const OUT_OF_ZONE_DELIVERY_COST=60000;
 /** Localidad fija del punto de retiro; no requiere ingresar zona de entrega. */
 export const PICKUP_LOCALITY="Lanús Este";
 
@@ -42,9 +41,8 @@ export function quoteShipping(input:{
   const shippingCost=currencyAmount(Number(configured.cost));
   return {kind:"priced",covered:true,shippingCost,total:currencyAmount(subtotal+shippingCost)};
  }
- if(covered)return {kind:"pending",covered:true,shippingCost:null,total:null};
- // Fuera de las zonas habilitadas: tarifa fija comercial, también para CABA.
- return {kind:"priced",covered:false,shippingCost:OUT_OF_ZONE_DELIVERY_COST,total:currencyAmount(subtotal+OUT_OF_ZONE_DELIVERY_COST)};
+ // No hay tarifa comercial confirmada: nunca tratar el mínimo de compra como costo de envío.
+ return {kind:"pending",covered,shippingCost:null,total:null};
 }
 
 /** Comparación estricta del presupuesto de la API con lo que vio el cliente.
