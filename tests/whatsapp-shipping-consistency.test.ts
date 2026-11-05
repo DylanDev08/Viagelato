@@ -24,7 +24,7 @@ describe("consistencia entre carrito, API y panel de WhatsApp",()=>{
    {...server,shipping_kind:"free"},
    {...server,shipping_cost:0},
    {...server,total:68700},
-   {...server,total:null},
+   {...server,total:68701},
    {...server,total:"68700"},
    {shipping_kind:"pending",shipping_cost:null}
   ])expect(matchesPreparedShippingQuote(changed,estimated)).toBe(false);
