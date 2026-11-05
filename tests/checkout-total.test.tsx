@@ -47,7 +47,7 @@ describe("carrito con total y envío visible",()=>{
   expect(summary.querySelector(".cart-price-total strong")).toHaveTextContent("65.700");
   expect(within(summary).queryByText("Gratis")).not.toBeInTheDocument();
   expect(summary.querySelectorAll(".cart-price-row strong")[1]).toHaveTextContent("A confirmar");
-  expect(screen.getByText(/Capital Federal: envío fuera de zona/)).toBeInTheDocument();
+  expect(screen.getByText(/Capital Federal: consultamos cobertura/)).toBeInTheDocument();
  });
  it("al elegir localidad fuera de zonas deja el envío sin cotizar",async()=>{
   const user=userEvent.setup(),summary=setup();
