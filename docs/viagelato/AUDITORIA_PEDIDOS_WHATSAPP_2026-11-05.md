@@ -23,7 +23,7 @@ Ahora el cliente envía opcionalmente el **tipo de envío, costo y total visible
 - La clave de idempotencia de solicitud es única por índice, al igual que las claves de cada pago.
 - `total` es columna generada, igual a `subtotal + shipping_cost`. La confirmación de condiciones exige stock confirmado, y tarifa 0 en retiro o envío gratuito elegible.
 - Los métodos preferidos del pedido WhatsApp son transferencia o efectivo al recibir/retirar. No se realiza un cobro automático, ni se debe inventar un pago.
-- `ENABLE_CHECKOUT=false`: el antiguo endpoint de checkout con reserva de stock no es el flujo público vigente.
+- El endpoint heredado `POST /api/checkout` pasa a devolver **HTTP 410** sin conexión a base de datos ni posibilidad de llamar a `reserve_order` (independiente de `ENABLE_CHECKOUT`).
 - La seguridad opcional Turnstile no se considera activa hasta configurar claves reales.
 - La base tenía **una solicitud contactada** con envío y total aún pendientes, sin pago registrado. No se modificó; el administrador debe verificar el costo antes de confirmarla.
 - En las siete zonas predefinidas, envío gratis desde ARS 60.000; compras menores requieren coordinación. Fuera de zonas se cotiza cobertura y costo manualmente por WhatsApp; los ARS 60.000 NO son una tarifa fija. Retiro local gratis.
@@ -38,18 +38,17 @@ otra rama y tiene variables propias, el `ENABLE_CHECKOUT=false` de Vercel
 **no garantizaba** que la ruta delegada también estuviera desactivada.
 
 - Esta PR elimina sólo la redirección de `/api/checkout`.
-- Vercel responde con su propio handler y `ENABLE_CHECKOUT=false`, sin invocar `reserve_order`.
+- Vercel responde con su propio handler de retiro definitivo (HTTP 410) sin invocar `reserve_order`, aunque alguien habilite `ENABLE_CHECKOUT`.
 - `/api/whatsapp-request` continúa local en Vercel (el flujo de negocio vigente).
 - `/api/cron/:path*` conserva su redirección existente para no cortar tareas antiguas sin revisar.
-- El host independiente `viagelato-api.onrender.com` sigue encendido y accesible;
-  desactivarlo o blindar sus rutas requerirá revisión de variables y dependencias allí.
+- El servicio independiente `viagelato-api.onrender.com` recibió `ENABLE_CHECKOUT=false` el 05/11/2026 y se redeplegó. Para impedir que la ruta se reactive si cambia la variable, se preparó además una PR específica de Render (#66) que responde HTTP 410 incondicionalmente. No considerar el cierre definitivo verificado hasta probar el despliegue de esa PR.
 - Render no devolvió registros de solicitudes a `/api/checkout` en la ventana
   consultada (29 de octubre–5 de noviembre), **lo que no demuestra** que la
   ruta esté inaccesible o que no haya existido tráfico fuera de esa ventana.
 
 Se agregaron pruebas para comprobar que `next.config.ts` no vuelva a
-delegar checkout a Render y que el endpoint local deniegue reservas cuando
-`ENABLE_CHECKOUT=false`.
+delegar checkout a Render y que el endpoint local **siempre** responda 410,
+independientemente del flag, sin utilizar la base de datos.
 
 ## Riesgos pendientes y criterios de aceptación
 1. **Prueba E2E asistida:** comprador prepara pedido de prueba y envía WhatsApp; el admin comprueba que el mensaje se recibió, verifica referencia y marca contacto. Requiere cuentas propias y autorización para crear una solicitud de prueba; aquí no se hizo.

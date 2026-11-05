@@ -8,9 +8,9 @@ import {PRIVATE_ROUTES} from "./src/lib/seo";
  * se mezclan versiones del panel y de la API durante los despliegues.
  *
  * El diagnóstico /api/health y /api/checkout permanecen en Vercel.
- * El checkout con reserva de stock está desactivado por ENABLE_CHECKOUT=false;
- * nunca redirigirlo a la versión antigua de Render porque puede tener otra
- * configuración comercial. Solo el cron legado mantiene temporalmente proxy.
+ * El checkout heredado está retirado: POST /api/checkout devuelve 410 sin
+ * consultar la base, independientemente de ENABLE_CHECKOUT. Nunca redirigirlo
+ * a Render: el cron legado mantiene temporalmente su propio proxy.
  * No definir API_ORIGIN en Render (evita bucles).
  */
 const backendOrigin=process.env.API_ORIGIN?.trim();
