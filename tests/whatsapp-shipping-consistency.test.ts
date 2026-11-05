@@ -9,24 +9,24 @@ const request={
 };
 
 describe("consistencia entre carrito, API y panel de WhatsApp",()=>{
- it("muestra 68.700 + 60.000 = 128.700 fuera de zonas",()=>{
-  expect(estimated).toMatchObject({kind:"priced",covered:false,shippingCost:60000,total:128700});
+ it("deja el total pendiente fuera de zonas y no habilita cobros",()=>{
+  expect(estimated).toMatchObject({kind:"pending",covered:false,shippingCost:null,total:null});
   const finance=resolveWhatsAppRequestFinance(request,estimated);
   expect(finance).toMatchObject({
-   displayedShippingCost:60000,displayedTotal:128700,
+   displayedShippingCost:null,displayedTotal:null,
    remaining:null,termsComplete:false,amountsConfirmed:false
   });
  });
  it("compara tipo, importe de envío y total recibido del servidor",()=>{
-  const server={shipping_kind:"priced",shipping_cost:60000,total:128700};
+  const server={shipping_kind:"pending",shipping_cost:null,total:null};
   expect(matchesPreparedShippingQuote(server,estimated)).toBe(true);
   for(const changed of [
    {...server,shipping_kind:"free"},
    {...server,shipping_cost:0},
    {...server,total:68700},
-   {...server,total:null},
-   {...server,total:"128700"},
-   {shipping_kind:"priced",shipping_cost:60000}
+   {...server,total:68701},
+   {...server,total:"68700"},
+   {shipping_kind:"pending",shipping_cost:null}
   ])expect(matchesPreparedShippingQuote(changed,estimated)).toBe(false);
  });
  it("conserva pendiente el envío bajo el mínimo en zona sin tarifa",()=>{
@@ -35,20 +35,20 @@ describe("consistencia entre carrito, API y panel de WhatsApp",()=>{
   expect(matchesPreparedShippingQuote({shipping_kind:"pending",shipping_cost:null,total:null},quote)).toBe(true);
  });
  it("no permite cobros hasta que stock y total estén confirmados",()=>{
-  const withConfirmedShipping={...request,shipping_cost:60000,total:128700,stock_confirmed:false};
+  const withConfirmedShipping={...request,shipping_cost:6500,total:75200,stock_confirmed:false};
   expect(resolveWhatsAppRequestFinance(withConfirmedShipping,estimated).remaining).toBeNull();
   expect(resolveWhatsAppRequestFinance({...withConfirmedShipping,stock_confirmed:true},estimated)).toMatchObject({
-   termsComplete:true,remaining:128700,amountsConfirmed:true
+   termsComplete:true,remaining:75200,amountsConfirmed:true
   });
-  expect(resolveWhatsAppRequestFinance({...withConfirmedShipping,stock_confirmed:true,amount_paid:50000},estimated).remaining).toBe(78700);
+  expect(resolveWhatsAppRequestFinance({...withConfirmedShipping,stock_confirmed:true,amount_paid:50000},estimated).remaining).toBe(25200);
  });
  it("detecta importes desactualizados o pagos superiores al total",()=>{
   const invalid=[
-   {...request,shipping_cost:60000,total:null},
-   {...request,shipping_cost:null,total:128700},
+   {...request,shipping_cost:6500,total:null},
+   {...request,shipping_cost:null,total:75200},
    {...request,shipping_cost:null,total:null,amount_paid:500},
-   {...request,shipping_cost:60000,total:68700},
-   {...request,shipping_cost:60000,total:128700,amount_paid:128701},
+   {...request,shipping_cost:6500,total:68700},
+   {...request,shipping_cost:6500,total:75200,amount_paid:75201},
    {...request,shipping_cost:-1,total:68699},
   ];
   invalid.forEach(entry=>{

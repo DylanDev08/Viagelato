@@ -41,6 +41,6 @@ describe("retiro en el local de Viagelato",()=>{
   expect(screen.getByRole("button",{name:"Pagar por WhatsApp"})).toBeDisabled();
   await user.selectOptions(screen.getByLabelText("Zona de entrega"),"Capital Federal");
   expect(screen.getByRole("button",{name:"Pagar por WhatsApp"})).toBeEnabled();
-  expect(screen.getByRole("region",{name:"Resumen y total del pedido"}).querySelector(".cart-price-total strong")).toHaveTextContent("81.900");
+  expect(screen.getByRole("region",{name:"Resumen y total del pedido"}).querySelector(".cart-price-total strong")).toHaveTextContent("21.900");
  });
 });

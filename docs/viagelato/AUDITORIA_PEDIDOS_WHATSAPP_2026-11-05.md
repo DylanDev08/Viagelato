@@ -26,7 +26,9 @@ Ahora el cliente envía opcionalmente el **tipo de envío, costo y total visible
 - `ENABLE_CHECKOUT=false`: el antiguo endpoint de checkout con reserva de stock no es el flujo público vigente.
 - La seguridad opcional Turnstile no se considera activa hasta configurar claves reales.
 - La base tenía **una solicitud contactada** con envío y total aún pendientes, sin pago registrado. No se modificó; el administrador debe verificar el costo antes de confirmarla.
-- En las siete zonas predefinidas, envío gratis desde ARS 60.000; compras menores requieren coordinación. Fuera de zonas se cotizan ARS 60.000 con confirmación de cobertura. Retiro local gratis.
+- En las siete zonas predefinidas, envío gratis desde ARS 60.000; compras menores requieren coordinación. Fuera de zonas se cotiza cobertura y costo manualmente por WhatsApp; los ARS 60.000 NO son una tarifa fija. Retiro local gratis.
+
+> **Regla comercial de envíos actualizada:** [Corregir envíos y pedidos](./CORRECCION_ENVIOS_PEDIDOS_2026-11-05.md). Los ARS 60.000 son el umbral de productos para envío gratis dentro de las siete localidades habilitadas, no el importe de envío fuera de zona.
 
 ## Segunda corrección de arquitectura — no abrir checkout de Render desde Vercel
 

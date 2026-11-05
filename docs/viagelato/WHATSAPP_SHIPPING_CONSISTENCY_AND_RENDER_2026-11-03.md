@@ -1,5 +1,7 @@
 # Corte de consistencia: carrito, WhatsApp, panel y Render — 2026-11-03
 
+> **Actualización comercial del 05/11/2026:** los $60.000 son el mínimo para envío gratis en localidades elegibles, NO un costo fijo fuera de cobertura. Esa tarifa histórica deja de aplicar: destinos externos se cotizan por WhatsApp. Documento vigente: [Corrección de envíos y pedidos](./CORRECCION_ENVIOS_PEDIDOS_2026-11-05.md).
+
 ## Regla de importes
 
 - **Subtotal:** suma de `precio × cantidad` validada contra Supabase por API.

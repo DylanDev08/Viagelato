@@ -64,11 +64,11 @@ describe("registrar referencia WhatsApp",()=>{
   expect(await res.json()).toMatchObject({code:"SHIPPING_QUOTE_CHANGED"});
   expect(insert).not.toHaveBeenCalled();
  });
- it("cotización actual y total exacto: registra la solicitud una sola vez",async()=>{
+ it("fuera de zona: presupuesto pendiente coincide y registra una sola solicitud",async()=>{
   const res=await POST(make({...payload,locality:"Rosario",
-   expected_shipping_kind:"priced",expected_shipping_cost:60000,expected_total:103800}));
+   expected_shipping_kind:"pending",expected_shipping_cost:null,expected_total:null}));
   expect(res.status).toBe(201);
-  expect(await res.json()).toMatchObject({shipping_kind:"priced",shipping_cost:60000,total:103800});
+  expect(await res.json()).toMatchObject({shipping_kind:"pending",shipping_cost:null,total:null});
   expect(insert).toHaveBeenCalledTimes(1);
  });
  it("respeta el envío gratis y confirma la cotización de cliente",async()=>{
@@ -118,15 +118,15 @@ describe("registrar referencia WhatsApp",()=>{
   expect(decodeURIComponent(data.whatsapp_url)).toContain("48.600");
   expect(insert).toHaveBeenCalledWith(expect.objectContaining({subtotal:43800}),expect.anything());
  });
- it("fuera de zona: suma tarifa fija de 60.000 con importe de servidor",async()=>{
+ it("fuera de zona: solicita cotización sin cargo automático de 60.000",async()=>{
   const response=await POST(make({...payload,locality:"Quilmes Oeste"}));
   const data=await response.json();
   expect(response.status).toBe(201);
   expect(data.subtotal).toBe(43800);
-  expect(data.shipping_cost).toBe(60000);
-  expect(data.total).toBe(103800);
-  expect(data.shipping_kind).toBe("priced");
-  expect(decodeURIComponent(data.whatsapp_url)).toContain("103.800");
+  expect(data.shipping_cost).toBeNull();
+  expect(data.total).toBeNull();
+  expect(data.shipping_kind).toBe("pending");
+  expect(decodeURIComponent(data.whatsapp_url)).toContain("Total final con envío: a confirmar");
  });
  it("impide solicitar retiro en el local cuando esté deshabilitado",async()=>{
   const response=await POST(make({...payload,shipping_method:"pickup"}));
