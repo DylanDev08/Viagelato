@@ -11,6 +11,7 @@ import {resolveCartView} from "@/lib/cart-view-model";
 import {CATALOG_PRICE_ITEMS,type CatalogPriceItem} from "@/lib/catalog-prices";
 import {checkoutRequestFingerprint,getOrCreateCheckoutKey,clearCheckoutKey,checkoutKeyStorage} from "@/lib/checkout-idempotency";
 import {quoteShipping,matchesPreparedShippingQuote,OUT_OF_ZONE_DELIVERY_COST,PICKUP_LOCALITY} from "@/lib/shipping-quote";
+import {TurnstileChallenge} from "./turnstile-challenge";
 
 export function Checkout({products,zones,settings,catalogItems=CATALOG_PRICE_ITEMS}:{products:Product[];zones:ShippingZone[];settings:Settings;demo:boolean;checkoutEnabled:boolean;catalogItems?:CatalogPriceItem[]}){
  const {items,setQuantity,clear}=useCart();
@@ -21,6 +22,9 @@ export function Checkout({products,zones,settings,catalogItems=CATALOG_PRICE_ITE
  const [notes,setNotes]=useState("");
  const [paymentPreference,setPaymentPreference]=useState<"transfer"|"cash_on_delivery">("transfer");
  const [delivery,setDelivery]=useState<"shipping"|"pickup">("shipping");
+ const [turnstileToken,setTurnstileToken]=useState("");
+ const [challengeVersion,setChallengeVersion]=useState(0);
+ const siteKey=process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY?.trim()??"";
  const locality=delivery==="pickup"?PICKUP_LOCALITY:selectedLocality==="other"?otherLocality.trim():selectedLocality;
  const [error,setError]=useState("");
  const [busy,setBusy]=useState(false);
@@ -31,7 +35,7 @@ export function Checkout({products,zones,settings,catalogItems=CATALOG_PRICE_ITE
   ()=>resolveCartView({items,products,catalogItems}),[items,products,catalogItems]
  );
  const shipping=quoteShipping({subtotal,locality,method:delivery,freeShippingThreshold:Number(settings.free_shipping_threshold),zones});
- const canRequest=!unavailable&&missing===0&&lines.length>0&&lines.length<=30&&fullName.trim().length>=2&&locality.trim().length>=2;
+ const canRequest=!unavailable&&missing===0&&lines.length>0&&lines.length<=30&&fullName.trim().length>=2&&locality.trim().length>=2&&(!siteKey||Boolean(turnstileToken));
 
  async function sendRequest(event:React.FormEvent<HTMLFormElement>){
   event.preventDefault();
@@ -47,8 +51,10 @@ export function Checkout({products,zones,settings,catalogItems=CATALOG_PRICE_ITE
     shipping_method:delivery,payment_preference:paymentPreference,
     items:lines.map(({product,quantity})=>({id:product.id,quantity})),
    };
-   const body=JSON.stringify(payload);
-   const hash=await checkoutRequestFingerprint(body);
+   // El token de Cloudflare vence y es de un solo uso; no debe cambiar la
+   // identidad del pedido ni renovar la clave de idempotencia al reintentarlo.
+   const body=JSON.stringify({...payload,turnstile_token:turnstileToken||undefined});
+   const hash=await checkoutRequestFingerprint(JSON.stringify(payload));
    const key=getOrCreateCheckoutKey(hash,checkoutKeyStorage,()=>crypto.randomUUID());
    const res=await fetch("/api/whatsapp-request",{
     method:"POST",
@@ -78,7 +84,7 @@ export function Checkout({products,zones,settings,catalogItems=CATALOG_PRICE_ITE
    window.location.assign(data.whatsapp_url);
   }catch(reason){
    setError(reason instanceof Error?reason.message:"No se pudo registrar la solicitud.");
-  }finally{setBusy(false);}
+  }finally{setBusy(false);if(siteKey){setTurnstileToken("");setChallengeVersion(v=>v+1);}}
  }
 
  return <SiteShell settings={settings} hideFloatingActions><main className="shell checkout-page checkout-refresh">
@@ -165,6 +171,7 @@ export function Checkout({products,zones,settings,catalogItems=CATALOG_PRICE_ITE
     {error?<p className="error" role="alert">{error}</p>:null}
     {unavailable?<p className="error" role="alert">Hay productos sin precio vigente o cantidades que superan el stock informado. Revisá las cantidades o quitá esos artículos.</p>:null}
     {lines.length>30?<p role="alert" className="error">Máximo 30 productos diferentes por solicitud. Quitá algunos para continuar.</p>:null}
+    {siteKey?<TurnstileChallenge key={challengeVersion} siteKey={siteKey} action="whatsapp_request" onTokenChange={setTurnstileToken}/>:null}
     <button type="submit" className="btn primary full cart-submit" disabled={!canRequest||busy||handled?.selection===selection}>{busy?"Preparando pedido…":<><MessageCircle size={20} aria-hidden="true"/> Pagar por WhatsApp <ArrowRight size={18} aria-hidden="true"/></>}</button>
     {handled?.selection===selection?<div className="cart-existing-order" role="status"><strong>Solicitud {handled.reference} ya gestionada.</strong><p>Tu pedido anterior sigue registrado. No vuelvas a enviarlo por error. Si querés hacer otro pedido con estos productos, iniciá una solicitud nueva.</p><button type="button" disabled={busy} onClick={()=>{if(!window.confirm("¿Crear otro pedido distinto con estos mismos productos? Si no necesitás otra compra, cancelá."))return;clearCheckoutKey(checkoutKeyStorage);setHandled(null);setPrepared(null);setError("");}}>Iniciar un pedido nuevo</button></div>:null}
     {prepared?.selection===selection?<p role="status">Pedido {prepared.reference} preparado. <a href={prepared.url} rel="noopener noreferrer">Abrir WhatsApp para enviar el mensaje</a>. Si no lo enviás, seguirá pendiente de contacto.</p>:null}

@@ -11,6 +11,7 @@ import {whatsappHref} from "@/lib/whatsapp";
 import {readJsonBody,RequestBodyError} from "@/lib/request-body";
 import {isAllowedAdminMutation} from "@/lib/admin-origin";
 import {reportServerFailure} from "@/lib/server-diagnostics";
+import {verifyTurnstile} from "@/lib/turnstile";
 
 export const runtime="nodejs";
 const reply=(error:string,status:number)=>NextResponse.json({error},{status,headers:{"Cache-Control":"no-store"}});
@@ -99,6 +100,11 @@ async function prepareRequest(request:Request){
   if(prior.request_fingerprint!==hash)return reply("Esta solicitud cambió. Revisá el carrito e intentá otra vez.",409);
   return preparedResponse(prior as RequestSnapshot,settings,shippingZones,false);
  }
+ // Validación obligatoria del token si Cloudflare está configurado. Se ejecuta
+ // después de idempotencia para que un reintento legítimo no consuma otro token.
+ const challenge=await verifyTurnstile(parsed.data.turnstile_token,"whatsapp_request");
+ if(!challenge.ok)return reply("No pudimos completar la verificación de seguridad. Recargá el desafío.",
+  challenge.reason==="configuration"||challenge.reason==="unavailable"?503:403);
  const source=new Map<string,{name:string;sku:string;presentation:string;price:number}>();
  // Revalidar cada fila del catálogo en Supabase: nunca cotizar desde el JSON
  // ni aceptar una ficha que el administrador haya ocultado.

@@ -16,6 +16,7 @@ import "./storefront-refresh.css";
 import "./commercial-refinement.css";
 import "./checkout-totals.css";
 import "./cart-experience.css";
+import "./security-loading.css";
 
 const siteUrl=publicSiteUrl();
 const indexingEnabled=process.env.ENABLE_INDEXING==="true"&&siteUrl!==null;
