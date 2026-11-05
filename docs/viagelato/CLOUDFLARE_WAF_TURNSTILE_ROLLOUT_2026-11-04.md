@@ -18,6 +18,27 @@
 6. Carrito y API revalidan precios/stock/envío; rate limiter de pedidos ya existe.
 7. Loading real de Next.js para rutas públicas y admin: el contenido aparece al terminar la carga, sin pausa artificial ni falso desafío.
 
+## Publicación segura de la versión de seguridad
+
+Para no bloquear a los administradores existentes al pasar de Supabase Auth
+del navegador al nuevo POST SSR, el login nuevo está detrás de
+`NEXT_PUBLIC_ADMIN_SERVER_LOGIN_ENABLED=true`. La **ausencia de la variable**
+conserva el login anterior, protegido por los controles de sesión y rol de
+`/admin` y `/api/admin` y por los límites propios de Supabase Auth.
+
+- Lanzar primero a `main` con este flag ausente (o `false`).
+- Confirmar la tienda, el carrito, la URL `/login` y el acceso actual del admin.
+- Preparar el widget Turnstile real; puede permanecer ausente en esta etapa.
+- Habilitar el flag en **Preview**, con credenciales reales sólo en Vercel; probar
+  login de un administrador autorizado, navegación y modificación de un registro
+  inocuo, logout, recuperación y rechazo a usuarios sin permiso.
+- Después de esa validación activar en Production y redeploy. Revertir el flag
+  a `false` y redesplegar ante un bloqueo, sin revertir la tienda.
+
+El login nuevo devuelve `503` si el flag no está activo: los formularios
+no lo llamarán hasta la activación. Las mutaciones siguen protegidas por
+`assertAdmin`, independientemente del formulario de entrada.
+
 ## Activar Turnstile, sin dominio propio (primera etapa de Cloudflare)
 
 En el panel Cloudflare, crear un widget Turnstile de producción, con hostname permitido
