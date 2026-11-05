@@ -60,7 +60,7 @@ describe("contrato de la lista comercial original — 45 filas",()=>{
   expect(row(46).variants).toMatch(/americana.*limón.*chocolate.*frutilla a la crema/i);
   for(const n of [2,8,10,19]){
    expect(row(n).name.toLowerCase()).not.toContain("surtidos");
-   expect(row(n).description.toLowerCase()).not.toMatch(/caja surtida|surtido de.*una sola presentación/);
+   expect(row(n).description.toLowerCase()).toMatch(/confirmá|confirmamos/);
   }
  });
  it("vincula 44 referencias del Drive y respeta una imagen ilustrativa para lata 10 L",()=>{
