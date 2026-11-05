@@ -1,4 +1,4 @@
-import {beforeEach,describe,expect,it,vi} from "vitest";
+import {afterEach,beforeEach,describe,expect,it,vi} from "vitest";
 import {POST} from "@/app/api/auth/admin-login/route";
 import {connected,privilegedDb,userDb} from "@/lib/supabase";
 import {verifyTurnstile} from "@/lib/turnstile";
@@ -22,6 +22,7 @@ const valid={email:"admin@example.com",password:"correct-long-password"};
 
 beforeEach(()=>{
  vi.clearAllMocks();
+ vi.stubEnv("NEXT_PUBLIC_ADMIN_SERVER_LOGIN_ENABLED","true");
  process.env.CHECKOUT_RATE_LIMIT_SALT="test-only-HMAC-key-very-long-at-least-32-bytes";
  vi.mocked(connected).mockReturnValue(true);
  vi.mocked(verifyTurnstile).mockResolvedValue({ok:true});
@@ -35,7 +36,16 @@ beforeEach(()=>{
  vi.mocked(userDb).mockResolvedValue({auth:{signInWithPassword:signIn,signOut}} as unknown as Awaited<ReturnType<typeof userDb>>);
 });
 
+afterEach(()=>vi.unstubAllEnvs());
+
 describe("login de administrador por servidor",()=>{
+ it("no acepta login nuevo mientras no esté activado el corte",async()=>{
+  vi.stubEnv("NEXT_PUBLIC_ADMIN_SERVER_LOGIN_ENABLED","false");
+  const r=await POST(request(valid));
+  expect(r.status).toBe(503);
+  expect(signIn).not.toHaveBeenCalled();
+  expect(privilegedDb).not.toHaveBeenCalled();
+ });
  it("no acepta CSRF/origen externo antes de tocar Supabase",async()=>{
   const r=await POST(request(valid,"https://evil.example"));
   expect(r.status).toBe(403);
