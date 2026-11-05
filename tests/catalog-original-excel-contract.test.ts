@@ -71,7 +71,7 @@ describe("contrato de la lista comercial original — 45 filas",()=>{
   expect(row(46).imageStatus).toBe("referencial");
   for(const item of CATALOG_PRICE_ITEMS){
    expect(item.image).toBeTruthy();
-   expect(existsSync(join(process.cwd(),"public",item.image!.replace(/^\\//,""))),
+   expect(existsSync(join(process.cwd(),"public",item.image!.startsWith("/")?item.image!.slice(1):item.image!)),
     `Imagen faltante: ${item.sourceRow} ${item.image}`).toBe(true);
   }
  });
