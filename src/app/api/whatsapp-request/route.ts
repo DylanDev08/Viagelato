@@ -103,8 +103,8 @@ async function prepareRequest(request:Request){
  // Validación obligatoria del token si Cloudflare está configurado. Se ejecuta
  // después de idempotencia para que un reintento legítimo no consuma otro token.
  const challenge=await verifyTurnstile(parsed.data.turnstile_token,"whatsapp_request");
- if(!challenge.ok)return reply(challenge.reason==="configuration"||challenge.reason==="unavailable"?503:403,
-  "No pudimos completar la verificación de seguridad. Recargá el desafío.");
+ if(!challenge.ok)return reply("No pudimos completar la verificación de seguridad. Recargá el desafío.",
+  challenge.reason==="configuration"||challenge.reason==="unavailable"?503:403);
  const source=new Map<string,{name:string;sku:string;presentation:string;price:number}>();
  // Revalidar cada fila del catálogo en Supabase: nunca cotizar desde el JSON
  // ni aceptar una ficha que el administrador haya ocultado.
