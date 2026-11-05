@@ -28,6 +28,27 @@ Ahora el cliente envía opcionalmente el **tipo de envío, costo y total visible
 - La base tenía **una solicitud contactada** con envío y total aún pendientes, sin pago registrado. No se modificó; el administrador debe verificar el costo antes de confirmarla.
 - En las siete zonas predefinidas, envío gratis desde ARS 60.000; compras menores requieren coordinación. Fuera de zonas se cotizan ARS 60.000 con confirmación de cobertura. Retiro local gratis.
 
+## Segunda corrección de arquitectura — no abrir checkout de Render desde Vercel
+
+El `next.config.ts` anterior tenía una redirección `beforeFiles` de
+`/api/checkout` al origen `API_ORIGIN` en Render. Como Render ejecuta
+otra rama y tiene variables propias, el `ENABLE_CHECKOUT=false` de Vercel
+**no garantizaba** que la ruta delegada también estuviera desactivada.
+
+- Esta PR elimina sólo la redirección de `/api/checkout`.
+- Vercel responde con su propio handler y `ENABLE_CHECKOUT=false`, sin invocar `reserve_order`.
+- `/api/whatsapp-request` continúa local en Vercel (el flujo de negocio vigente).
+- `/api/cron/:path*` conserva su redirección existente para no cortar tareas antiguas sin revisar.
+- El host independiente `viagelato-api.onrender.com` sigue encendido y accesible;
+  desactivarlo o blindar sus rutas requerirá revisión de variables y dependencias allí.
+- Render no devolvió registros de solicitudes a `/api/checkout` en la ventana
+  consultada (29 de octubre–5 de noviembre), **lo que no demuestra** que la
+  ruta esté inaccesible o que no haya existido tráfico fuera de esa ventana.
+
+Se agregaron pruebas para comprobar que `next.config.ts` no vuelva a
+delegar checkout a Render y que el endpoint local deniegue reservas cuando
+`ENABLE_CHECKOUT=false`.
+
 ## Riesgos pendientes y criterios de aceptación
 1. **Prueba E2E asistida:** comprador prepara pedido de prueba y envía WhatsApp; el admin comprueba que el mensaje se recibió, verifica referencia y marca contacto. Requiere cuentas propias y autorización para crear una solicitud de prueba; aquí no se hizo.
 2. **Idempotencia y cotización histórica:** la API reconstruye el presupuesto de una solicitud existente a partir de las **tarifas vigentes**, no de un snapshot persistido al crearla. El precio de los artículos sí queda fijado. Ante cambios posteriores de zonas se puede informar una tarifa distinta en el reintento. Para congelar el presupuesto inicial en todos los casos se requiere un campo de cotización inmutable y migración coordinada; no mezclar en esta corrección sin pruebas de migración.
