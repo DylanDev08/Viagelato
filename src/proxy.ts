@@ -30,7 +30,7 @@ export async function proxy(request:NextRequest){
  });
  try{
   const {data,error}=await supabase.auth.getClaims();
-  if(error||!data.claims?.sub)return unauthorized();
+  if(error||!data?.claims?.sub)return unauthorized();
  }catch{return unauthorized();}
  response.headers.set("Cache-Control","private, no-store");
  response.headers.set("X-Robots-Tag","noindex, nofollow");
