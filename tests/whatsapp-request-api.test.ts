@@ -82,15 +82,15 @@ describe("registrar referencia WhatsApp",()=>{
   expect(decodeURIComponent(data.whatsapp_url)).toContain("48.600");
   expect(insert).toHaveBeenCalledWith(expect.objectContaining({subtotal:43800}),expect.anything());
  });
- it("fuera de zona: suma tarifa fija de 60.000 con importe de servidor",async()=>{
+ it("fuera de zona: solicita cotización sin crear cargo automático de 60.000",async()=>{
   const response=await POST(make({...payload,locality:"Quilmes Oeste"}));
   const data=await response.json();
   expect(response.status).toBe(201);
   expect(data.subtotal).toBe(43800);
-  expect(data.shipping_cost).toBe(60000);
-  expect(data.total).toBe(103800);
-  expect(data.shipping_kind).toBe("priced");
-  expect(decodeURIComponent(data.whatsapp_url)).toContain("103.800");
+  expect(data.shipping_cost).toBeNull();
+  expect(data.total).toBeNull();
+  expect(data.shipping_kind).toBe("pending");
+  expect(decodeURIComponent(data.whatsapp_url)).toContain("Total final con envío: a confirmar");
  });
  it("impide solicitar retiro en el local cuando esté deshabilitado",async()=>{
   const response=await POST(make({...payload,shipping_method:"pickup"}));
