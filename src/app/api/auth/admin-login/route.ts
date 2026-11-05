@@ -18,6 +18,9 @@ const response=(status:number,error:string)=>NextResponse.json(
  {error},{status,headers:{"Cache-Control":"private, no-store","X-Robots-Tag":"noindex"}}
 );
 export async function POST(request:Request){
+ // Reversible rollout. Do not enable the new server login until a real admin
+ // has successfully signed in on a protected preview.
+ if(process.env.NEXT_PUBLIC_ADMIN_SERVER_LOGIN_ENABLED!=="true")return response(503,"El nuevo acceso está deshabilitado.");
  if(!isAllowedAdminMutation(request))return response(403,"Origen no permitido");
  if(!connected())return response(503,"Acceso administrativo temporalmente no disponible");
  let raw:unknown;
