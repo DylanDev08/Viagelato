@@ -33,7 +33,7 @@ async function fill(){
 describe("login administrativo de transición",()=>{
  it("en modo seguro por defecto conserva login existente y verifica permisos",async()=>{
   vi.stubEnv("NEXT_PUBLIC_ADMIN_SERVER_LOGIN_ENABLED","false");
-  const fetcher=vi.fn(async()=>Response.json({authorized:true}));
+  const fetcher=vi.fn(async(_url:string)=>Response.json({authorized:true}));
   vi.stubGlobal("fetch",fetcher);
   await fill();
   await waitFor(()=>expect(router.replace).toHaveBeenCalledWith("/admin"));
