@@ -1,7 +1,7 @@
 # Auditoría de creación y gestión de pedidos — Viagelato
 **Corte:** 2026-11-05  
 **Producción revisada:** `9f647ec` (`viagelato.vercel.app`)  
-**Alcance:** análisis de solo lectura de Supabase, Vercel y código GitHub; pruebas de regresión sin pedidos reales.
+**Alcance:** análisis de Supabase en solo lectura, código GitHub y pruebas sin pedidos reales; actualización de seguridad de Render desplegada por separado.
 
 ## Ruta comercial vigente
 1. El comprador agrega cajas/presentaciones y selecciona método de entrega y pago preferido.
@@ -17,7 +17,7 @@ Anteriormente el navegador descubría una diferencia de tarifa **después** de q
 
 Ahora el cliente envía opcionalmente el **tipo de envío, costo y total visibles** junto al subtotal. Una comparación estricta, tras recalcular precios en servidor, rechaza la discrepancia con `409 SHIPPING_QUOTE_CHANGED` **antes del INSERT**. Cero confianza en los importes del navegador; estos campos sólo previenen conflictos por cambios simultáneos. Clientes anteriores sin campos nuevos siguen siendo compatibles. Pruebas para zona con tarifa recién publicada, fuera de zona manipulada, tarifa vigente, envío gratis y campos parciales.
 
-## Estado verificado (sin escribir en producción)
+## Estado de datos y reglas (Supabase inspeccionado sin modificaciones)
 - La fuente de precio es `public.products`: los artículos del Excel se leen si `catalog_visible=true`, los UUID comerciales requieren `active=true`, `commercially_verified=true` y stock suficiente.
 - `whatsapp_order_requests`, `whatsapp_request_payments` y `whatsapp_request_events` tienen RLS habilitada y ninguna política pública.
 - La clave de idempotencia de solicitud es única por índice, al igual que las claves de cada pago.
@@ -41,7 +41,7 @@ otra rama y tiene variables propias, el `ENABLE_CHECKOUT=false` de Vercel
 - Vercel responde con su propio handler de retiro definitivo (HTTP 410) sin invocar `reserve_order`, aunque alguien habilite `ENABLE_CHECKOUT`.
 - `/api/whatsapp-request` continúa local en Vercel (el flujo de negocio vigente).
 - `/api/cron/:path*` conserva su redirección existente para no cortar tareas antiguas sin revisar.
-- El servicio independiente `viagelato-api.onrender.com` recibió `ENABLE_CHECKOUT=false` el 05/11/2026 y se redeplegó. Para impedir que la ruta se reactive si cambia la variable, se preparó además una PR específica de Render (#66) que responde HTTP 410 incondicionalmente. No considerar el cierre definitivo verificado hasta probar el despliegue de esa PR.
+- El servicio independiente `viagelato-api.onrender.com` recibió `ENABLE_CHECKOUT=false` el 05/11/2026. La **PR #66** se fusionó en la rama de Render y se desplegó con éxito a las 14:36 UTC (commit `3e92c0e`, deploy `dep-dbm97v3bc2fs738lr9m0`, estado `live`). El handler responde HTTP 410 incondicionalmente y no accede a la base. CI, build y arranque verificados; queda pendiente un smoke test HTTP POST real contra el host porque el entorno de pruebas no tuvo conectividad saliente.
 - Render no devolvió registros de solicitudes a `/api/checkout` en la ventana
   consultada (29 de octubre–5 de noviembre), **lo que no demuestra** que la
   ruta esté inaccesible o que no haya existido tráfico fuera de esa ventana.
@@ -49,6 +49,11 @@ otra rama y tiene variables propias, el `ENABLE_CHECKOUT=false` de Vercel
 Se agregaron pruebas para comprobar que `next.config.ts` no vuelva a
 delegar checkout a Render y que el endpoint local **siempre** responda 410,
 independientemente del flag, sin utilizar la base de datos.
+
+## Corte de publicación Vercel
+- La PR de integración **#65** contiene el handler HTTP 410, la validación de presupuesto de pedidos y la corrección del mínimo de envío gratis. CI completó correctamente.
+- Vercel no permitió generar una preview nueva del commit de integración: error 402 `api-deployments-free-per-day` (límite de 100 despliegues por día). No se hizo merge a `main`, ni se modificó el deploy productivo de Vercel.
+- El despliegue exclusivo de Render realizado para cerrar la ruta heredada es independiente de esta integración.
 
 ## Riesgos pendientes y criterios de aceptación
 1. **Prueba E2E asistida:** comprador prepara pedido de prueba y envía WhatsApp; el admin comprueba que el mensaje se recibió, verifica referencia y marca contacto. Requiere cuentas propias y autorización para crear una solicitud de prueba; aquí no se hizo.
