@@ -4,7 +4,7 @@ import {NextResponse} from "next/server";
 import {z} from "zod";
 import {connected,privilegedDb} from "@/lib/supabase";
 import {whatsappCartMessage,type WhatsAppCartLine} from "@/lib/whatsapp-cart";
-import {quoteShipping,PICKUP_LOCALITY} from "@/lib/shipping-quote";
+import {quoteShipping,matchesPreparedShippingQuote,PICKUP_LOCALITY} from "@/lib/shipping-quote";
 import type {ShippingZone} from "@/lib/types";
 import {normalizeWhatsAppRequest,whatsappRequestSchema,whatsappRequestReference,paymentFromNotes} from "@/lib/whatsapp-request-rules";
 import {whatsappHref} from "@/lib/whatsapp";
@@ -147,6 +147,23 @@ async function prepareRequest(request:Request){
  if(!Number.isFinite(subtotal)||subtotal<=0||subtotal>1e9)return reply("El subtotal no es válido",400);
  if(input.expected_subtotal!==undefined&&Math.abs(input.expected_subtotal-subtotal)>0.01)
   return reply("Los precios cambiaron. Actualizá el carrito para revisarlos antes de enviar el pedido.",409);
+ // Comprobar la cotización ANTES de guardar un borrador. De otra forma el
+ // navegador detecta el cambio después del INSERT y queda un pedido huérfano
+ // que el cliente nunca pudo enviar a WhatsApp.
+ const currentQuote=quoteShipping({
+  subtotal,locality:input.locality,method:input.shipping_method,
+  freeShippingThreshold:Number(settings.free_shipping_threshold),zones:shippingZones
+ });
+ if(input.expected_shipping_kind!==undefined&&!matchesPreparedShippingQuote({
+  shipping_kind:input.expected_shipping_kind,
+  shipping_cost:input.expected_shipping_cost,
+  total:input.expected_total
+ },currentQuote)){
+  return NextResponse.json({
+   error:"El costo o las condiciones del envío cambiaron. Actualizá el carrito antes de enviar el pedido.",
+   code:"SHIPPING_QUOTE_CHANGED"
+  },{status:409,headers:{"Cache-Control":"no-store"}});
+ }
  const insert={idempotency_key:key.data,request_fingerprint:hash,customer_name:input.customer_name,
   locality:input.locality,address:input.address,notes:input.notes,payment_preference:input.payment_preference??"transfer",shipping_method:input.shipping_method,
   items:safeLines,subtotal};

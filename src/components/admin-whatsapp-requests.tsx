@@ -124,7 +124,7 @@ function RequestCard({request,freeShippingThreshold,zones}:{request:WhatsAppRequ
    <label>Costo de envío acordado (ARS)
     <input type="number" inputMode="decimal" min="0" max="10000000" step="0.01" value={shipping}
      onChange={event=>setShipping(event.target.value)} disabled={busy||freeShipping} required/>
-    <small>{shippingQuote.kind==="free"?`Envío gratuito por superar ${ars(freeShippingThreshold)} en zona elegible. Se aplica $0 sin cargos adicionales.`:shippingQuote.kind==="pickup"?"Para retiro, el costo de envío es 0.":shippingQuote.kind==="priced"&&!shippingQuote.covered?`Tarifa fuera de las zonas de reparto: ${ars(shippingQuote.shippingCost??0)}. Confirmá la entrega con el cliente.`:"Ingresá 0 solo si confirmaste que el envío es sin cargo."}</small>
+    <small>{shippingQuote.kind==="free"?`Envío gratuito por superar ${ars(freeShippingThreshold)} en zona elegible. Se aplica $0 sin cargos adicionales.`:shippingQuote.kind==="pickup"?"Para retiro, el costo de envío es 0.":shippingQuote.kind==="priced"?`Tarifa configurada: ${ars(shippingQuote.shippingCost??0)}. Confirmá las condiciones con el cliente.`:"Ingresá el costo acordado con el cliente; si no hay tarifa configurada, no se supone ningún valor. Usá 0 solo si se confirmó sin cargo."}</small>
    </label>
    <button type="submit" className="btn tiny" disabled={busy||!stock||!shipping.trim()}>Guardar stock y envío</button>
   </form>:null}

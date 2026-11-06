@@ -10,7 +10,7 @@ import {ars,DELIVERY_AREAS,type Product,type Settings,type ShippingZone} from "@
 import {resolveCartView} from "@/lib/cart-view-model";
 import {CATALOG_PRICE_ITEMS,type CatalogPriceItem} from "@/lib/catalog-prices";
 import {checkoutRequestFingerprint,getOrCreateCheckoutKey,clearCheckoutKey,checkoutKeyStorage} from "@/lib/checkout-idempotency";
-import {quoteShipping,matchesPreparedShippingQuote,OUT_OF_ZONE_DELIVERY_COST,PICKUP_LOCALITY} from "@/lib/shipping-quote";
+import {quoteShipping,freeShippingGoal,matchesPreparedShippingQuote,PICKUP_LOCALITY} from "@/lib/shipping-quote";
 import {TurnstileChallenge} from "./turnstile-challenge";
 
 export function Checkout({products,zones,settings,catalogItems=CATALOG_PRICE_ITEMS}:{products:Product[];zones:ShippingZone[];settings:Settings;demo:boolean;checkoutEnabled:boolean;catalogItems?:CatalogPriceItem[]}){
@@ -35,6 +35,7 @@ export function Checkout({products,zones,settings,catalogItems=CATALOG_PRICE_ITE
   ()=>resolveCartView({items,products,catalogItems}),[items,products,catalogItems]
  );
  const shipping=quoteShipping({subtotal,locality,method:delivery,freeShippingThreshold:Number(settings.free_shipping_threshold),zones});
+ const shippingGoal=freeShippingGoal({subtotal,locality,method:delivery,freeShippingThreshold:Number(settings.free_shipping_threshold),zones});
  const canRequest=!unavailable&&missing===0&&lines.length>0&&lines.length<=30&&fullName.trim().length>=2&&locality.trim().length>=2&&(!siteKey||Boolean(turnstileToken));
 
  async function sendRequest(event:React.FormEvent<HTMLFormElement>){
@@ -50,6 +51,11 @@ export function Checkout({products,zones,settings,catalogItems=CATALOG_PRICE_ITE
     customer_name:fullName,locality,address:delivery==="shipping"?address:"",notes,expected_subtotal:subtotal,
     shipping_method:delivery,payment_preference:paymentPreference,
     items:lines.map(({product,quantity})=>({id:product.id,quantity})),
+    // Cotización que ve el usuario: el servidor exige concordancia antes de
+    // guardar la solicitud; nunca se usa para calcular o confiar en precios.
+    expected_shipping_kind:shipping.kind,
+    expected_shipping_cost:shipping.shippingCost,
+    expected_total:shipping.total,
    };
    // El token de Cloudflare vence y es de un solo uso; no debe cambiar la
    // identidad del pedido ni renovar la clave de idempotencia al reintentarlo.
@@ -122,11 +128,18 @@ export function Checkout({products,zones,settings,catalogItems=CATALOG_PRICE_ITE
     <section className="cart-price-overview" aria-label="Importe de productos">
      <span>Subtotal de productos</span><strong>{ars(subtotal)}</strong>
     </section>
+    <section className={`cart-shipping-goal cart-shipping-goal-${shippingGoal.kind}`} aria-label="Beneficio de envío gratis">
+     <div className="cart-shipping-goal-content"><Truck size={19} aria-hidden="true"/><div>
+      <strong>{shippingGoal.kind==="remaining"?`Te faltan ${ars(Math.ceil(shippingGoal.remaining))} para el envío gratis`:shippingGoal.kind==="reached"?"¡Tu compra tiene envío gratis!":shippingGoal.kind==="pickup"?"Retiro en el local sin cargo":shippingGoal.kind==="choose_zone"?"Elegí tu zona para revisar el envío gratis":"Envío gratuito no disponible en esta localidad"}</strong>
+      <p>{shippingGoal.kind==="remaining"?`El beneficio se aplica en ${locality} desde ${ars(shippingGoal.threshold)} en productos.`:shippingGoal.kind==="reached"?`Alcanzaste el mínimo de ${ars(shippingGoal.threshold)} en ${locality}. La entrega se confirma por WhatsApp.`:shippingGoal.kind==="pickup"?"El retiro es gratis y no tiene compra mínima. Coordinamos el horario por WhatsApp.":shippingGoal.kind==="choose_zone"?"El envío sin cargo depende del monto de productos y de la localidad elegida.":"Fuera de las zonas habilitadas, se consulta cobertura y costo por WhatsApp. No se suma una tarifa automática."}</p>
+     </div></div>
+     {shippingGoal.kind==="remaining"?<div className="cart-shipping-goal-track" role="progressbar" aria-label="Progreso para envío gratis" aria-valuemin={0} aria-valuemax={100} aria-valuenow={shippingGoal.percentage} aria-valuetext={`Faltan ${ars(Math.ceil(shippingGoal.remaining))}`}><span style={{width:`${shippingGoal.percentage}%`}}/></div>:null}
+    </section>
 
    </div>
    <form className="panel cart-form-panel cart-order-form" onSubmit={sendRequest}>
     <div className="cart-form-heading"><p className="kicker">02 / PREPARÁ TU PEDIDO</p><ClipboardList size={22} aria-hidden="true"/><h2>Entrega y pago</h2></div>
-    <p className="hint cart-form-intro">Completá tus datos. En zonas habilitadas, el envío es gratis desde {ars(Number(settings.free_shipping_threshold))}. Fuera de ellas se suman {ars(OUT_OF_ZONE_DELIVERY_COST)}; para compras menores dentro de zona el costo se confirma por WhatsApp si aún no hay tarifa.</p>
+    <p className="hint cart-form-intro">Completá tus datos. En zonas habilitadas, el envío es gratis desde {ars(Number(settings.free_shipping_threshold))}. Por debajo del mínimo o fuera de las zonas indicadas, el costo se cotiza y confirma por WhatsApp cuando no hay una tarifa configurada.</p>
     <label>Nombre y apellido<input disabled={busy} required minLength={2} maxLength={120} autoComplete="name" value={fullName} onChange={e=>setFullName(e.target.value)}/></label>
     {settings.pickup_enabled?<label>Tipo de entrega<select disabled={busy} value={delivery} onChange={e=>setDelivery(e.target.value as "shipping"|"pickup")}><option value="shipping">Envío a domicilio</option><option value="pickup">Retiro en el local — gratis</option></select></label>:null}
     {delivery==="shipping"?<>
@@ -136,8 +149,8 @@ export function Checkout({products,zones,settings,catalogItems=CATALOG_PRICE_ITE
      <option value="Capital Federal">Capital Federal (fuera de zona)</option>
      <option value="other">Fuera de las zonas indicadas / Otra localidad</option>
     </select></label>
-    {selectedLocality==="Capital Federal"?<p className="cart-caba-notice" role="status">Capital Federal: envío fuera de zona con tarifa fija de {ars(OUT_OF_ZONE_DELIVERY_COST)}. Confirmamos cobertura y fecha por WhatsApp.</p>:null}
-    {selectedLocality==="other"?<label>Escribí tu localidad<input disabled={busy} required minLength={2} maxLength={100} autoComplete="address-level2" aria-label="Escribí tu localidad" value={otherLocality} onChange={e=>setOtherLocality(e.target.value)} placeholder="Por ejemplo: Quilmes" aria-describedby="other-locality-help"/><small id="other-locality-help">Fuera de las zonas habilitadas, el envío tiene una tarifa fija de {ars(OUT_OF_ZONE_DELIVERY_COST)}. Confirmamos cobertura y fecha por WhatsApp.</small></label>:null}
+    {selectedLocality==="Capital Federal"?<p className="cart-caba-notice" role="status">Capital Federal: consultamos cobertura, costo y fecha de entrega por WhatsApp. No se suma ningún envío sin cotizar.</p>:null}
+    {selectedLocality==="other"?<label>Escribí tu localidad<input disabled={busy} required minLength={2} maxLength={100} autoComplete="address-level2" aria-label="Escribí tu localidad" value={otherLocality} onChange={e=>setOtherLocality(e.target.value)} placeholder="Por ejemplo: Quilmes" aria-describedby="other-locality-help"/><small id="other-locality-help">Fuera de las zonas habilitadas, consultamos cobertura, costo y fecha por WhatsApp. No hay una tarifa fija general.</small></label>:null}
     </>:<p className="cart-total-ready" role="status"><strong>Retiro en el local, sin cargo.</strong> Dirección: {settings.address||"Eva Perón 3050, Lanús Este"}. Coordinamos por WhatsApp el horario y la disponibilidad.</p>}
     <section className="cart-price-breakdown" aria-label="Resumen y total del pedido" aria-live="polite">
      <div className="cart-price-breakdown-title"><h3>Tu total</h3><span>{count} {count===1?"presentación":"presentaciones"}</span></div>
