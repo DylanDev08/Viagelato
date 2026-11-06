@@ -34,8 +34,9 @@ describe("cotización de entrega en carrito y WhatsApp",()=>{
  });
  it("sin zona configurada, CABA no suma una tarifa general",()=>{
   const caba=activeZone("Capital Federal",4500,true);
-  expect(quoteShipping({...base,locality:"Capital Federal",subtotal:90000,zones:[caba]})).toEqual({kind:"free",covered:true,shippingCost:0,total:90000});
+  expect(quoteShipping({...base,locality:"Capital Federal",subtotal:90000,zones:[caba]})).toEqual({kind:"pending",covered:false,shippingCost:null,total:null});
   expect(quoteShipping({...base,locality:"CABA",subtotal:90000,zones:[]})).toEqual({kind:"pending",covered:false,shippingCost:null,total:null});
+  expect(quoteShipping({...base,locality:"Quilmes Oeste",subtotal:90000,zones:[activeZone("Quilmes Oeste",6700,true)]})).toEqual({kind:"priced",covered:true,shippingCost:6700,total:96700});
  });
  it("Rosario: 68.700 en productos requiere cotización de envío",()=>{
   expect(quoteShipping({...base,subtotal:68700,locality:"Rosario"})).toEqual({kind:"pending",covered:false,shippingCost:null,total:null});

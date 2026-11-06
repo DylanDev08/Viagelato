@@ -60,4 +60,20 @@ describe("carrito con total y envío visible",()=>{
   await user.type(screen.getByLabelText("Nombre y apellido"),"Ana Gomez");
   expect(screen.getByRole("button",{name:"Pagar por WhatsApp"})).toBeEnabled();
  });
+ it("muestra cuánto falta para obtener envío gratis solo en las zonas elegibles",async()=>{
+  const user=userEvent.setup();setup();
+  await user.click(screen.getByRole("button",{name:"Agregar presentación de prueba"}));
+  const benefit=screen.getByRole("region",{name:"Beneficio de envío gratis"});
+  expect(benefit).toHaveTextContent(/Elegí tu zona/);
+  await user.selectOptions(screen.getByLabelText("Zona de entrega"),"Lanús");
+  expect(benefit).toHaveTextContent("38.100");
+  expect(screen.getByRole("progressbar",{name:"Progreso para envío gratis"})).toHaveAttribute("aria-valuenow","37");
+  await user.click(screen.getByRole("button",{name:"Agregar presentación de prueba"}));
+  await user.click(screen.getByRole("button",{name:"Agregar presentación de prueba"}));
+  expect(benefit).toHaveTextContent(/Tu compra tiene envío gratis/);
+  expect(screen.queryByRole("progressbar",{name:"Progreso para envío gratis"})).not.toBeInTheDocument();
+  await user.selectOptions(screen.getByLabelText("Zona de entrega"),"Capital Federal");
+  expect(benefit).toHaveTextContent(/Envío gratuito no disponible/);
+  expect(benefit).not.toHaveTextContent("38.100");
+ });
 });

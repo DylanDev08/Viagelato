@@ -71,6 +71,16 @@ describe("registrar referencia WhatsApp",()=>{
   expect(await res.json()).toMatchObject({shipping_kind:"pending",shipping_cost:null,total:null});
   expect(insert).toHaveBeenCalledTimes(1);
  });
+ it("fuera de las siete zonas no regala envío aunque una tarifa tenga el indicador habilitado",async()=>{
+  shippingRead.mockResolvedValue({data:[{
+   name:"Quilmes Oeste",cost:7000,active:true,ready:true,free_shipping_eligible:true
+  }],error:null});
+  const res=await POST(make({...payload,locality:"Quilmes Oeste",items:[{id:"catalog-price-2",quantity:3}],
+   expected_shipping_kind:"priced",expected_shipping_cost:7000,expected_total:72700}));
+  expect(res.status).toBe(201);
+  expect(await res.json()).toMatchObject({shipping_kind:"priced",shipping_cost:7000,total:72700});
+  expect(insert).toHaveBeenCalledTimes(1);
+ });
  it("respeta el envío gratis y confirma la cotización de cliente",async()=>{
   const res=await POST(make({...payload,items:[{id:"catalog-price-2",quantity:3}],
    expected_shipping_kind:"free",expected_shipping_cost:0,expected_total:65700}));
