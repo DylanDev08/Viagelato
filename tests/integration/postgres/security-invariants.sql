@@ -89,13 +89,13 @@ set local role service_role;
 select public.admin_update_whatsapp_request('70000000-0000-4000-8000-000000000002','contacted','90000000-0000-4000-8000-000000000001');
 select public.admin_confirm_whatsapp_terms('70000000-0000-4000-8000-000000000002','90000000-0000-4000-8000-000000000001',true,7000);
 select public.admin_update_whatsapp_request('70000000-0000-4000-8000-000000000003','contacted','90000000-0000-4000-8000-000000000001');
-do $ declare gratuidad_cumplida boolean := false; begin
+do $shipping_scope$ declare gratuidad_cumplida boolean := false; begin
  begin perform public.admin_confirm_whatsapp_terms('70000000-0000-4000-8000-000000000003','90000000-0000-4000-8000-000000000001',true,7000);
  exception when others then
   if sqlerrm like 'Este pedido alcanza envío gratuito:%' then gratuidad_cumplida:=true; else raise; end if;
  end;
  if not gratuidad_cumplida then raise exception 'La RPC permitió cobrar el envío gratis a LANUS'; end if;
-end $;
+end $shipping_scope$;
 select public.admin_update_whatsapp_request('70000000-0000-4000-8000-000000000001','contacted','90000000-0000-4000-8000-000000000001');
 select public.admin_confirm_whatsapp_terms('70000000-0000-4000-8000-000000000001','90000000-0000-4000-8000-000000000001',true,0);
 select public.admin_update_whatsapp_request('70000000-0000-4000-8000-000000000001','confirmed','90000000-0000-4000-8000-000000000001');
