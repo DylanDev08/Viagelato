@@ -10,7 +10,7 @@ import {ars,DELIVERY_AREAS,type Product,type Settings,type ShippingZone} from "@
 import {resolveCartView} from "@/lib/cart-view-model";
 import {CATALOG_PRICE_ITEMS,type CatalogPriceItem} from "@/lib/catalog-prices";
 import {checkoutRequestFingerprint,getOrCreateCheckoutKey,clearCheckoutKey,checkoutKeyStorage} from "@/lib/checkout-idempotency";
-import {quoteShipping,matchesPreparedShippingQuote,PICKUP_LOCALITY} from "@/lib/shipping-quote";
+import {quoteShipping,freeShippingGoal,matchesPreparedShippingQuote,PICKUP_LOCALITY} from "@/lib/shipping-quote";
 import {TurnstileChallenge} from "./turnstile-challenge";
 
 export function Checkout({products,zones,settings,catalogItems=CATALOG_PRICE_ITEMS}:{products:Product[];zones:ShippingZone[];settings:Settings;demo:boolean;checkoutEnabled:boolean;catalogItems?:CatalogPriceItem[]}){
@@ -35,6 +35,7 @@ export function Checkout({products,zones,settings,catalogItems=CATALOG_PRICE_ITE
   ()=>resolveCartView({items,products,catalogItems}),[items,products,catalogItems]
  );
  const shipping=quoteShipping({subtotal,locality,method:delivery,freeShippingThreshold:Number(settings.free_shipping_threshold),zones});
+ const shippingGoal=freeShippingGoal({subtotal,locality,method:delivery,freeShippingThreshold:Number(settings.free_shipping_threshold),zones});
  const canRequest=!unavailable&&missing===0&&lines.length>0&&lines.length<=30&&fullName.trim().length>=2&&locality.trim().length>=2&&(!siteKey||Boolean(turnstileToken));
 
  async function sendRequest(event:React.FormEvent<HTMLFormElement>){
@@ -126,6 +127,13 @@ export function Checkout({products,zones,settings,catalogItems=CATALOG_PRICE_ITE
     </section>
     <section className="cart-price-overview" aria-label="Importe de productos">
      <span>Subtotal de productos</span><strong>{ars(subtotal)}</strong>
+    </section>
+    <section className={`cart-shipping-goal cart-shipping-goal-${shippingGoal.kind}`} aria-label="Beneficio de envío gratis">
+     <div className="cart-shipping-goal-content"><Truck size={19} aria-hidden="true"/><div>
+      <strong>{shippingGoal.kind==="remaining"?`Te faltan ${ars(Math.ceil(shippingGoal.remaining))} para el envío gratis`:shippingGoal.kind==="reached"?"¡Tu compra tiene envío gratis!":shippingGoal.kind==="pickup"?"Retiro en el local sin cargo":shippingGoal.kind==="choose_zone"?"Elegí tu zona para revisar el envío gratis":"Envío gratuito no disponible en esta localidad"}</strong>
+      <p>{shippingGoal.kind==="remaining"?`El beneficio se aplica en ${locality} desde ${ars(shippingGoal.threshold)} en productos.`:shippingGoal.kind==="reached"?`Alcanzaste el mínimo de ${ars(shippingGoal.threshold)} en ${locality}. La entrega se confirma por WhatsApp.`:shippingGoal.kind==="pickup"?"El retiro es gratis y no tiene compra mínima. Coordinamos el horario por WhatsApp.":shippingGoal.kind==="choose_zone"?"El envío sin cargo depende del monto de productos y de la localidad elegida.":"Fuera de las zonas habilitadas, se consulta cobertura y costo por WhatsApp. No se suma una tarifa automática."}</p>
+     </div></div>
+     {shippingGoal.kind==="remaining"?<div className="cart-shipping-goal-track" role="progressbar" aria-label="Progreso para envío gratis" aria-valuemin={0} aria-valuemax={100} aria-valuenow={shippingGoal.percentage} aria-valuetext={`Faltan ${ars(Math.ceil(shippingGoal.remaining))}`}><span style={{width:`${shippingGoal.percentage}%`}}/></div>:null}
     </section>
 
    </div>

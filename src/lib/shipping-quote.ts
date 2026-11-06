@@ -27,13 +27,18 @@ export function quoteShipping(input:{
  if(method==="pickup")return {kind:"pickup",covered:true,shippingCost:0,total:currencyAmount(subtotal)};
  if(!locality.trim())return {kind:"unselected",covered:false,shippingCost:null,total:null};
  const target=normalized(locality);
+ // Capital Federal se cotiza siempre por WhatsApp: no inferir gratuidad ni tarifa.
+ if(target==="capital federal"||target==="caba")return {kind:"pending",covered:false,shippingCost:null,total:null};
  const configured=zones.find(zone=>
   zone.active===true&&zone.ready===true&&zone.cost!==null&&
   Number.isFinite(Number(zone.cost))&&Number(zone.cost)>=0&&
   normalized(zone.name)===target
  );
- const covered=DELIVERY_AREAS.some(area=>normalized(area)===target)||Boolean(configured);
- const freeEligible=configured?configured.free_shipping_eligible===true:DELIVERY_AREAS.some(area=>normalized(area)===target);
+ const includedArea=DELIVERY_AREAS.some(area=>normalized(area)===target);
+ const covered=includedArea||Boolean(configured);
+ // Solo las siete localidades comerciales pueden obtener envío gratuito.
+ // Configurar una tarifa en otra localidad no la convierte en beneficiaria.
+ const freeEligible=includedArea&&(!configured||configured.free_shipping_eligible===true);
  const threshold=Number(freeShippingThreshold);
  if(freeEligible&&Number.isFinite(threshold)&&threshold>=0&&subtotal>0&&subtotal>=threshold)
   return {kind:"free",covered:true,shippingCost:0,total:currencyAmount(subtotal)};
@@ -43,6 +48,20 @@ export function quoteShipping(input:{
  }
  // No hay tarifa comercial confirmada: nunca tratar el mínimo de compra como costo de envío.
  return {kind:"pending",covered,shippingCost:null,total:null};
+}
+
+/** Indicador comercial, calculado con la misma regla de cotización que usa la API. */
+export function freeShippingGoal(input:Parameters<typeof quoteShipping>[0]){
+ const threshold=Number(input.freeShippingThreshold);
+ const subtotal=Number.isFinite(input.subtotal)?Math.max(0,input.subtotal):0;
+ const basic={threshold:Number.isFinite(threshold)?threshold:0,remaining:0,percentage:0};
+ if(input.method==="pickup")return {...basic,kind:"pickup" as const};
+ if(!input.locality.trim())return {...basic,kind:"choose_zone" as const};
+ if(!Number.isFinite(threshold)||threshold<=0)return {...basic,kind:"ineligible" as const};
+ // Consultar el presupuesto al alcanzar el umbral evita duplicar reglas de zonas.
+ if(quoteShipping({...input,subtotal:threshold}).kind!=="free")return {...basic,kind:"ineligible" as const};
+ if(subtotal>=threshold)return {...basic,kind:"reached" as const,percentage:100};
+ return {...basic,kind:"remaining" as const,remaining:Number((threshold-subtotal).toFixed(2)),percentage:Math.min(99,Math.round(subtotal/threshold*100))};
 }
 
 /** Comparación estricta del presupuesto de la API con lo que vio el cliente.
