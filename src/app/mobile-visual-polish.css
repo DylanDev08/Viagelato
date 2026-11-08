@@ -5,8 +5,8 @@
  background-repeat:no-repeat;z-index:0;transform:scale(1);
 }
 .promo-card::before{z-index:1;pointer-events:none}
-.promo-card>:not(.promo-card-media){position:relative;z-index:2}
-.promo-card>svg{position:absolute;right:30px;bottom:30px}
+.promo-card>:not(.promo-card-media):not(svg){position:relative;z-index:2}
+.promo-card>svg{position:absolute;right:30px;bottom:30px;z-index:2}
 .hero-v2 .hero-visual.custom-hero>img{object-fit:cover}
 .home-type-photo,.provisional-image,.priced-image,.catalog-art{overflow:hidden}
 /* Zoom liviano: no se aplica en pantallas táctiles ni con movimiento reducido. */
