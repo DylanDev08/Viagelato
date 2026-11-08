@@ -1,7 +1,7 @@
 import {beforeEach,describe,expect,it,vi} from "vitest";
 import {getStore} from "@/lib/site";
-import {publicDb,connected} from "@/lib/supabase";
-vi.mock("@/lib/supabase",()=>({publicDb:vi.fn(),connected:vi.fn(()=>true)}));
+import {publicDb,connected,publicConnected} from "@/lib/supabase";
+vi.mock("@/lib/supabase",()=>({publicDb:vi.fn(),connected:vi.fn(()=>true),publicConnected:vi.fn(()=>true)}));
 const tables=["site_settings","products","categories","shipping_zones","banners"];
 function database(failing?:string){return {from:(table:string)=>{
  const response={data:table==="site_settings"?{name:"Tienda vigente"}:[],error:table===failing?{message:"PRIVATE SQL DETAIL"}:null};
@@ -9,7 +9,7 @@ function database(failing?:string){return {from:(table:string)=>{
   single:async()=>response,order:async()=>response,then:(resolve:(value:unknown)=>void)=>Promise.resolve(response).then(resolve)};
  return query;
 }};}
-beforeEach(()=>vi.mocked(connected).mockReturnValue(true));
+beforeEach(()=>{vi.mocked(connected).mockReturnValue(true);vi.mocked(publicConnected).mockReturnValue(true);});
 describe("lectura de tienda ante errores",()=>{
  for(const table of tables)it(`no publica valores comerciales por defecto si falla ${table}`,async()=>{
   vi.mocked(publicDb).mockReturnValue(database(table) as unknown as ReturnType<typeof publicDb>);

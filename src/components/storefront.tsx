@@ -19,9 +19,9 @@ const HERO_PRODUCTS=[
 ] as const;
 
 export function Storefront({settings,products,banners,demo,catalogItems=CATALOG_PRICE_ITEMS}:{settings:Settings;products:Product[];categories:Category[];banners:Banner[];demo:boolean;catalogItems?:CatalogPriceItem[]}){
- const featured=products.filter(product=>product.featured).slice(0,6);
- const visible=featured.length?featured:products.slice(0,6);
- const pricedPreview=storefrontSamples(catalogItems,6);
+ const featured=products.filter(product=>product.featured).slice(0,4);
+ const visible=featured.length?featured:products.slice(0,4);
+ const pricedPreview=storefrontSamples(catalogItems,4);
  const catalogGroups=groupCatalogByType(catalogItems);
  const whatsapp=whatsappHref(settings.whatsapp);
  // Respetar textos personalizados en el admin; modernizar sólo el copy original de lanzamiento.
@@ -33,10 +33,10 @@ export function Storefront({settings,products,banners,demo,catalogItems=CATALOG_
   {demo?<div className="demo-strip">TIENDA EN PREPARACIÓN · Los pedidos permanecen deshabilitados hasta completar la configuración comercial.</div>:null}
   <section className="hero-v2"><div className="hero-grid shell"><div className="hero-copy"><p className="kicker"><Snowflake/>HELADOS Y CONGELADOS · VENTA POR PRESENTACIÓN</p><h1>{heroTitle}</h1><p className="hero-lead">{heroSubtitle}</p><div className="hero-cta"><Link className="primary-action" href="/catalogo">Ver productos y precios <ArrowRight/></Link><Link className="secondary-action" href="#como-comprar">Cómo comprar</Link></div><p className="hero-reassurance">Elegí online · Confirmá por WhatsApp · Sin pagos en la web</p></div><div className={`hero-visual ${settings.hero_image_url?"custom-hero":"product-composition"}`}>{settings.hero_image_url?<Image src={settings.hero_image_url} alt="Productos distribuidos por Viagelato" fill priority sizes="(max-width: 960px) 100vw, 46vw" unoptimized/>:<>{HERO_PRODUCTS.map((image,index)=><div className={`hero-product hero-product-${index+1}`} key={image.src}><Image src={image.src} alt={image.alt} fill priority={index===0} sizes="(max-width: 640px) 70vw, 30vw"/></div>)}</>}<div className="temperature-card"><small>VIAGELATO</small><strong>Helados para tu comercio.</strong><span>Distribución en Zona Sur</span></div></div></div><div className="shell hero-facts"><div><strong>Zona Sur</strong><span>Distribución en Buenos Aires</span></div><div><strong>{ars(settings.free_shipping_threshold)}</strong><span>Envío gratis en zonas elegibles</span></div><div><strong>WhatsApp</strong><span>Confirmación personalizada del pedido</span></div></div></section>
 
-  {banners.length>0?<section className="shell promo-grid">{banners.map(banner=><Link key={banner.id} href={banner.href||"/catalogo"} className="promo-card" style={banner.image_url?{backgroundImage:`url(${banner.image_url})`}:undefined}><span>{banner.title}</span><p>{banner.subtitle}</p><ArrowDownRight/></Link>)}</section>:null}
+  {banners.length>0?<section className="shell promo-grid">{banners.map(banner=><Link key={banner.id} href={banner.href||"/catalogo"} className="promo-card"><span className="promo-card-media" style={banner.image_url?{backgroundImage:`url(${banner.image_url})`}:undefined} aria-hidden="true"/><span className="promo-card-title">{banner.title}</span><p>{banner.subtitle}</p><ArrowDownRight/></Link>)}</section>:null}
   <section className="home-catalog shell refined-products" aria-label="Explorar productos por tipo" id="productos">
    <div className="section-title"><div><p className="kicker">ELEGÍ TUS PRODUCTOS</p><h2>Helados para tu negocio,<br/>listos para elegir.</h2></div><p>Consultá precios por caja o presentación. Sumá todo al carrito y confirmamos disponibilidad por WhatsApp.</p></div>
-   <div className="home-selected-heading"><div><p className="kicker">PARA EMPEZAR</p><h3>Encontrá tu próxima compra.</h3></div><p>Una selección de nuestras seis líneas. Podés armar un pedido con productos de distintas categorías.</p></div>
+   <div className="home-selected-heading"><div><p className="kicker">PARA EMPEZAR</p><h3>Encontrá tu próxima compra.</h3></div><p>Cuatro productos para empezar. Explorá las seis categorías más abajo.</p></div>
    {visible.length?<div className="home-featured-grid">{visible.map(product=><ProductCard product={product} key={product.id}/>)}</div>:<PricedCatalog items={pricedPreview} compact/>}
    <div className="center-action"><Link className="primary-action" href="/catalogo">Ver {catalogItems.length} productos <ArrowRight size={18}/></Link></div>
    <div className="home-type-intro"><div><p className="kicker">COMPRÁ POR CATEGORÍA</p><h3>¿Qué tipo de helado buscás?</h3></div><p>Entrá directamente a la línea que necesitás.</p></div>

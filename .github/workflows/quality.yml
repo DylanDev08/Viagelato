@@ -8,6 +8,22 @@ on:
       - 'package.json'
       - 'package-lock.json'
       - 'supabase/**'
+      - 'public/**'
+      - 'docs/viagelato/**'
+      - 'scripts/**'
+      - 'next.config.ts'
+      - '.github/workflows/quality.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'src/**'
+      - 'tests/**'
+      - 'package.json'
+      - 'package-lock.json'
+      - 'supabase/**'
+      - 'public/**'
+      - 'docs/viagelato/**'
+      - 'scripts/**'
       - 'next.config.ts'
       - '.github/workflows/quality.yml'
   workflow_dispatch:
@@ -34,6 +50,8 @@ jobs:
         with:
           node-version: '22'
           cache: npm
+      - name: Inspect public source and ZIP archives for secrets
+        run: python3 scripts/check-public-repo-secrets.py
       - name: Install locked dependencies
         run: npm ci
       - name: Run unit and component tests

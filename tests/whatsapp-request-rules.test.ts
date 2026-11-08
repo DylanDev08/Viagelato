@@ -16,6 +16,15 @@ describe("solicitudes comerciales WhatsApp",()=>{
   expect(whatsappRequestSchema.safeParse({...one,customer_name:""}).success).toBe(false);
   expect(whatsappRequestSchema.safeParse({...one,items:[{id:"cualquier-cosa",quantity:1}]}).success).toBe(false);
  });
+ it("valida los tres campos de cotización como una unidad",()=>{
+  const original={...one,expected_shipping_kind:"pending",expected_shipping_cost:null,expected_total:null};
+  expect(whatsappRequestSchema.safeParse(original).success).toBe(true);
+  expect(whatsappRequestSchema.safeParse({...one,expected_shipping_kind:"pending"}).success).toBe(false);
+  expect(whatsappRequestSchema.safeParse({...one,expected_shipping_cost:0,expected_total:0}).success).toBe(false);
+  expect(whatsappRequestSchema.safeParse({...one,
+   expected_shipping_kind:"priced",expected_shipping_cost:-10,expected_total:1000}).success).toBe(false);
+  expect(whatsappRequestSchema.safeParse(one).success).toBe(true); // clientes anteriores
+ });
  it("crea referencias compactas sin exponer datos personales",()=>{
   expect(whatsappRequestReference("11111111-2222-4333-8444-555555555555")).toBe("VIA-111111112222");
  });

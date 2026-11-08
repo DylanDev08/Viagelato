@@ -15,6 +15,18 @@ export function CartProvider({children}:{children:React.ReactNode}){
  const [items,setItems]=useState<CartLine[]>([]);const [ready,setReady]=useState(false);
  useEffect(()=>{const timer=window.setTimeout(()=>{setItems(current=>current.length?current:readCart());setReady(true);},0);return()=>window.clearTimeout(timer);},[]);
  useEffect(()=>{if(ready)saveCart(items);},[items,ready]);
+ // La tienda puede permanecer abierta en varias pestañas. Sin este evento una
+ // pestaña vieja sobrescribía el carrito actualizado al volver a usarla.
+ useEffect(()=>{
+  const onStorage=(event:StorageEvent)=>{
+   if(event.storageArea&&event.storageArea!==window.localStorage)return;
+   if(event.key!==null&&event.key!==CART_KEY&&event.key!==LEGACY_CART_KEY)return;
+   setItems(readCart());
+   setReady(true);
+  };
+  window.addEventListener("storage",onStorage);
+  return ()=>window.removeEventListener("storage",onStorage);
+ },[]);
  const value=useMemo(()=>({items,count:items.reduce((s,i)=>s+i.quantity,0),add:(id:string,quantity=1,maxStock=99)=>setItems(prev=>{const limit=Number.isFinite(maxStock)?Math.max(0,Math.min(Math.floor(maxStock),99)):0;if(!limit||!Number.isFinite(quantity))return prev;const amount=Math.max(1,Math.min(Math.floor(quantity),limit));const x=prev.find(i=>i.id===id);return x?prev.map(i=>i.id===id?{...i,quantity:Math.min(i.quantity+amount,limit)}:i):prev.length>=50?prev:[...prev,{id,quantity:amount}];}),setQuantity:(id:string,n:number)=>setItems(prev=>!Number.isFinite(n)?prev:n<=0?prev.filter(i=>i.id!==id):prev.map(i=>i.id===id?{...i,quantity:Math.max(1,Math.min(Math.floor(n),99))}:i)),clear:()=>setItems([])}),[items]);
  return <ctx.Provider value={value}>{children}</ctx.Provider>;
 }

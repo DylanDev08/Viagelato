@@ -24,7 +24,7 @@ export function catalogFromDatabase(rows:CatalogDbRow[],categories:Pick<Category
    ...original,name:record.name,description:record.description,sku:record.sku,
    price,presentation:record.presentation||original.presentation,
    category:(record.category_id&&names.get(record.category_id))||original.category,
-   image:photo,imageStatus:photo?"coincidencia_exacta":"sin_foto",
+   image:photo,imageStatus:photo?(photo===original.image&&original.imageStatus==="referencial"?"referencial":"coincidencia_exacta"):"sin_foto",
   });
  }
  return collected.sort((a,b)=>a.sourceRow-b.sourceRow);

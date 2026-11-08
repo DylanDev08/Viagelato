@@ -1,18 +1,4 @@
 /* Acceso administrativo sencillo en teléfonos; nunca altera autenticación ni permisos. */
-.footer-admin-entry {
- font-size: 11px;
- font-weight: 700;
- text-decoration: underline;
- text-underline-offset: 3px;
- color: #555;
-}
-.mobile-admin-entry {
- border-top: 1px solid #dedede;
- margin-top: 10px;
- font-size: 16px !important;
- color: #444;
- font-weight: 800;
-}
 .admin-mobile-bottom-nav,.admin-mobile-more { display: none; }
 .admin-login-heading {
  display: flex;
@@ -140,7 +126,6 @@
 
 @media(max-width:640px) {
  .footer-bottom { gap: 8px; }
- .footer-admin-entry { min-height: 40px; display: inline-flex; align-items: center; }
  .auth-shell { padding: 16px; min-height: 100dvh; }
  .auth-panel { width: 100%; max-width: 440px; padding: 24px 20px; }
  .auth-panel h1 { font-size: 26px; line-height: 1.2; }

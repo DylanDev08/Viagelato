@@ -20,6 +20,7 @@ function CatalogProductCard({item}:{item:CatalogPriceItem}){
    <div className="provisional-card-body priced-card-body">
     <p>{item.category}</p><h3>{item.name}</h3>
     <span className="priced-presentation">{item.presentation}</span>
+    {item.variants?.trim()&&normalizeCatalogText(item.variants)!==normalizeCatalogText(item.name)?<span className="priced-flavors"><strong>Variedades:</strong> {item.variants}</span>:null}
     <div className="priced-card-bottom"><div><small>PRECIO POR PRESENTACIÓN</small><strong>{ars(item.price)}</strong></div><ArrowUpRight aria-hidden="true"/></div>
     <span className="priced-view-detail">Ver detalles del producto <ArrowUpRight size={13} aria-hidden="true"/></span>
     {item.imageStatus==="referencial"&&<span className="priced-image-note">Fotografía general de referencia</span>}

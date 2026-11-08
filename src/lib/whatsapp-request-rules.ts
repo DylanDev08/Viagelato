@@ -23,17 +23,33 @@ export const whatsappRequestSchema=z.object({
  shipping_method:z.enum(["shipping","pickup"]),
  // Opcional por compatibilidad con solicitudes y reintentos anteriores.
  payment_preference:paymentPreferenceSchema.optional(),
+ // El token se verifica por Siteverify y NO forma parte de la solicitud ni su hash.
+ turnstile_token:z.string().max(2048).optional(),
  expected_subtotal:z.number().finite().nonnegative().max(1e9).optional(),
+ // Presupuesto visible al cliente: únicamente para comprobar cambios entre
+ // pantalla y servidor. Nunca usar estos importes como fuente del precio.
+ expected_shipping_kind:z.enum(["unselected","pickup","free","priced","pending"]).optional(),
+ expected_shipping_cost:z.number().finite().nonnegative().max(1e9).nullable().optional(),
+ expected_total:z.number().finite().nonnegative().max(2e9).nullable().optional(),
  items:z.array(z.object({
   id:z.string().regex(/^(catalog-price-(?:[2-9]|[1-3][0-9]|4[0-6])|[a-f0-9-]{36})$/i),
   quantity:z.number().int().min(1).max(99),
  })).min(1).max(30)
 }).superRefine((v,ctx)=>{
+ const quoteFields=[
+  v.expected_shipping_kind!==undefined,
+  v.expected_shipping_cost!==undefined,
+  v.expected_total!==undefined
+ ];
+ if(quoteFields.some(Boolean)&&!quoteFields.every(Boolean))
+  ctx.addIssue({code:"custom",path:["expected_shipping_kind"],message:"Presupuesto de envío incompleto"});
  const unique=new Set(v.items.map(item=>item.id));
  if(unique.size!==v.items.length)ctx.addIssue({code:"custom",path:["items"],message:"Hay artículos repetidos en el carrito"});
 });
 export type WhatsAppRequestInput=z.infer<typeof whatsappRequestSchema>;
 export function normalizeWhatsAppRequest(input:WhatsAppRequestInput){
- return {...input,items:[...input.items].sort((a,b)=>a.id.localeCompare(b.id))};
+ const {turnstile_token:_challenge,...order}=input;
+ void _challenge;
+ return {...order,items:[...order.items].sort((a,b)=>a.id.localeCompare(b.id))};
 }
 export function whatsappRequestReference(id:string){return "VIA-"+id.replaceAll("-","").slice(0,12).toUpperCase();}

@@ -1,0 +1,93 @@
+/* Ajustes finales: importado al final para no quedar anulado por estilos heredados. */
+.promo-card{overflow:hidden;isolation:isolate}
+.promo-card>.promo-card-media{
+ position:absolute;inset:0;display:block;background-position:center;background-size:cover;
+ background-repeat:no-repeat;z-index:0;transform:scale(1);
+}
+.promo-card::before{z-index:1;pointer-events:none}
+.promo-card>:not(.promo-card-media):not(svg){position:relative;z-index:2}
+.promo-card>svg{position:absolute;right:30px;bottom:30px;z-index:2}
+.hero-v2 .hero-visual.custom-hero>img{object-fit:cover}
+.home-type-photo,.provisional-image,.priced-image,.catalog-art{overflow:hidden}
+/* Zoom liviano: no se aplica en pantallas táctiles ni con movimiento reducido. */
+@media(hover:hover) and (pointer:fine) and (prefers-reduced-motion:no-preference){
+ .promo-card>.promo-card-media,
+ .hero-v2 .hero-visual.custom-hero>img,
+ .hero-v2 .hero-product img,
+ .home-type-photo img,
+ .catalog-art img,
+ .provisional-card-link .provisional-image img{
+  transform:scale(1);
+  transition:transform .42s cubic-bezier(.2,.75,.3,1);
+  will-change:transform;
+ }
+ .promo-card:is(:hover,:focus-visible)>.promo-card-media{transform:scale(1.075)}
+ .hero-v2 .hero-visual.custom-hero:hover>img{transform:scale(1.055)}
+ .hero-v2 .hero-visual.product-composition:hover .hero-product img{transform:scale(1.045)}
+ .home-type-card:is(:hover,:focus-visible) .home-type-photo img{transform:scale(1.075)}
+ .catalog-art:is(:hover,:focus-within) img{transform:scale(1.055)}
+ .provisional-card-link:is(:hover,:focus-visible) .provisional-image img{transform:scale(1.065)}
+}
+/* No transformar imágenes si el usuario prefiere menos movimiento. */
+@media(prefers-reduced-motion:reduce),(hover:none){
+ .promo-card>.promo-card-media,
+ .hero-v2 .hero-visual.custom-hero>img,
+ .hero-v2 .hero-product img,
+ .home-type-photo img,
+ .catalog-art img,
+ .provisional-card-link .provisional-image img{transform:none!important;transition:none!important;will-change:auto}
+}
+@media(max-width:960px){
+ .home-type-grid,.home-featured-grid,.provisional-grid,.priced-grid{min-width:0}
+ .promo-card{min-width:0}
+ .hero-v2 .hero-grid>*{min-width:0}
+ .provisional-controls,.provisional-toolbar,.catalog-toolbar{min-width:0}
+ .mobile-nav.is-open{z-index:70;box-shadow:0 15px 25px rgba(0,0,0,.08)}
+}
+@media(max-width:640px){
+ /* Solo reservar espacio para la barra flotante cuando esa barra existe. */
+ body{padding-bottom:0}
+ body:has(.floating-actions){padding-bottom:calc(76px + env(safe-area-inset-bottom,0px))}
+ .hero-v2 .hero-copy{padding-block:36px 24px}
+ .hero-v2 .hero-visual{min-height:clamp(265px,75vw,350px)}
+ .temperature-card{max-width:calc(100% - 24px)}
+ .promo-grid{gap:12px}
+ .promo-card{min-height:178px;padding:22px 20px}
+ .promo-card>.promo-card-title{font-size:clamp(22px,6vw,27px);overflow-wrap:anywhere;max-width:90%}
+ .promo-card p{font-size:13px;line-height:1.5;overflow-wrap:anywhere;max-width:80%}
+ .home-type-card{min-width:0}
+ .home-type-info{min-width:0}
+ .home-type-info strong{overflow-wrap:anywhere}
+ .priced-card-bottom strong,.catalog-buy strong{overflow-wrap:anywhere}
+ .checkout-refresh .cart-form-panel :is(input,select,textarea){font-size:16px}
+ .checkout-refresh .cart-checkout-tools{flex-wrap:wrap}
+ .checkout-refresh .cart-page-heading{min-width:0}
+ .checkout-refresh .cart-progress{overflow-x:auto;max-width:100%;scrollbar-width:thin}
+ .checkout-refresh .cart-payment-options>*{min-width:0}
+ .checkout-refresh .cart-price-row{min-width:0}
+ .checkout-refresh .cart-price-row>strong{max-width:56%;overflow-wrap:anywhere;white-space:normal;text-align:right}
+ .checkout-refresh .cart-line-actions{min-width:0;flex-wrap:wrap}
+ .checkout-refresh .cart-submit{min-height:54px}
+}
+@media(max-width:420px){
+ /* Una columna evita precios y botones aplastados en equipos de 320–420 px. */
+ .home-featured-grid,
+ .home-catalog .compact-catalog .priced-grid,
+ .provisional-grid,.priced-grid,
+ .catalog-grid{grid-template-columns:minmax(0,1fr)}
+ .home-type-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+ .priced-card,.provisional-card,.catalog-card{min-width:0}
+ .priced-card-body{min-height:0}
+ .priced-image,.provisional-image{aspect-ratio:1.55}
+ .catalog-art{height:auto;aspect-ratio:1.42}
+ .home-type-photo{height:112px}
+ .header-row{gap:5px}
+ .header-cart>span{display:none}
+ .checkout-refresh .cart-line-actions>strong{font-size:16px}
+}
+@media(max-width:350px){
+ .home-type-grid{grid-template-columns:minmax(0,1fr)}
+ .home-type-card{grid-template-columns:112px minmax(0,1fr)}
+ .home-type-photo{height:auto;min-height:112px}
+ .home-type-info{padding:10px}
+}

@@ -22,7 +22,8 @@ describe("seguimiento comercial de WhatsApp",()=>{
   vi.stubGlobal("fetch",send);
   vi.spyOn(window,"confirm").mockReturnValue(true);
   render(<WhatsAppRequests requests={[common]}/>);
-  expect(screen.getByText("Saldo pendiente")).toBeInTheDocument();
+  expect(screen.queryByText("Saldo pendiente")).not.toBeInTheDocument();
+  expect(screen.getByText("Total estimado")).toBeInTheDocument();
   expect(screen.getByRole("button",{name:"Confirmar pedido"})).toBeDisabled();
   const save=screen.getByRole("button",{name:"Guardar stock y envío"});
   expect(save).toBeDisabled();
@@ -60,9 +61,29 @@ describe("seguimiento comercial de WhatsApp",()=>{
    ]}]}/>);
   expect(screen.getByRole("button",{name:"Preparar"})).toBeDisabled();
   expect(screen.getByText("Pago parcial registrado. El pedido no pasará a preparación hasta completar el saldo.")).toBeInTheDocument();
-  expect(screen.getByText(/15.400/)).toBeInTheDocument();
+  expect(screen.getByRole("spinbutton",{name:/Importe recibido/})).toHaveAttribute("max","15400");
+  expect(screen.queryByText("Saldo pendiente")).not.toBeInTheDocument();
   expect(screen.getByRole("button",{name:"Registrar importe recibido"})).toBeEnabled();
   expect(screen.getByText(/Ver pagos registrados/)).toBeInTheDocument();
+ });
+ it("Rosario: no muestra un total de envío inventado ni habilita cobros",()=>{
+  render(<WhatsAppRequests requests={[{...common,status:"draft",locality:"Rosario",subtotal:68700,shipping_cost:null,total:null}]}/>);
+  expect(screen.getByText("Total estimado")).toBeInTheDocument();
+  expect(screen.getByText("Envío estimado")).toBeInTheDocument();
+  expect(screen.getByText(/68.700/)).toBeInTheDocument();
+  expect(screen.queryByText(/128.700/)).not.toBeInTheDocument();
+  expect(screen.getAllByText("A confirmar")).toHaveLength(2);
+  expect(screen.queryByText("Saldo pendiente")).not.toBeInTheDocument();
+  expect(screen.queryByRole("button",{name:"Registrar importe recibido"})).not.toBeInTheDocument();
+ });
+ it("no permite cobrar ni preparar pedidos con total guardado inconsistente",()=>{
+  render(<WhatsAppRequests requests={[{...common,status:"confirmed",stock_confirmed:true,
+   locality:"Rosario",subtotal:68700,shipping_cost:60000,total:68700,
+   payment_status:"pending"}]}/>);
+  expect(screen.getByRole("alert")).toHaveTextContent(/no coinciden/);
+  expect(screen.getAllByText("A revisar")).toHaveLength(2);
+  expect(screen.getByRole("button",{name:"Preparar"})).toBeDisabled();
+  expect(screen.queryByRole("button",{name:"Registrar importe recibido"})).not.toBeInTheDocument();
  });
  it("permite preparar un pedido contra entrega, pero exige registrar efectivo antes de cerrarlo",async()=>{
   const user=userEvent.setup();

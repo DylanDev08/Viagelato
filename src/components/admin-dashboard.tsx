@@ -1,11 +1,14 @@
 "use client";
-import {useEffect,useMemo,useState,type FormEvent} from "react";
+import {useEffect,useMemo,useRef,useState,type FormEvent} from "react";
 import {useRouter} from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
-import {LayoutDashboard,Package,Layers,Truck,Image as ImageIcon,Settings,ShoppingBag,MessageCircle,ExternalLink,LogOut,UploadCloud,Menu,X} from "lucide-react";
+import {LayoutDashboard,Package,Layers,Truck,Image as ImageIcon,Settings,ShoppingBag,MessageCircle,ExternalLink,LogOut,UploadCloud,Menu,X,RefreshCw} from "lucide-react";
 import {browserDb} from "@/lib/browser";
 import {WhatsAppRequests} from "@/components/admin-whatsapp-requests";
+import {AdminOverview} from "@/components/admin-overview";
+import {AdminProductRemovalDialog} from "@/components/admin-product-removal-dialog";
+import {whatsappRequestCounts} from "@/lib/admin-whatsapp-ui";
 import {normalizeCatalogText} from "@/lib/catalog-search";
 import {nextOrderStep,orderStatusLabel} from "@/lib/order-ui";
 import {publicationMissingFields} from "@/lib/product-publication";
@@ -32,12 +35,23 @@ function friendlyIssue(issue:{path?:(string|number)[];message?:string}|undefined
 async function request(path:string,method:string,data?:unknown){
  const r=await fetch(`/api/admin/${path}`,{method,headers:{"Content-Type":"application/json"},body:JSON.stringify(data)});
  const d=await r.json().catch(()=>({error:"El servidor devolvió una respuesta inválida"}));
+ if(r.status===401)throw new Error("Tu sesión venció. Volvé a iniciar sesión para seguir administrando.");
+ if(r.status===403)throw new Error("La solicitud fue bloqueada por seguridad. Abrí el panel desde el dominio oficial de Viagelato.");
  if(!r.ok)throw new Error([d.error||"No se pudo completar la operación",friendlyIssue(d.issues?.[0])].filter(Boolean).join(" · "));
  return d;
 }
 export function AdminDashboard({initialProducts,initialCategories,initialOrders,initialWhatsAppRequests=[],initialZones,initialSettings,initialBanners}:{initialProducts:Product[];initialCategories:Category[];initialOrders:Order[];initialWhatsAppRequests?:WhatsAppRequest[];initialZones:ShippingZone[];initialSettings:StoreSettings;initialBanners:Banner[]}){
  const [tab,setTab]=useState<Tab>("overview"),[mobileMoreOpen,setMobileMoreOpen]=useState(false),[draft,setDraft]=useState<Draft>({...empty}),[settings,setSettings]=useState(initialSettings),[notice,setNotice]=useState(""),[noticeError,setNoticeError]=useState(false),[busy,setBusy]=useState(false);
- const [productQuery,setProductQuery]=useState(""),[productStatus,setProductStatus]=useState<"all"|"published"|"hidden"|"pending">("all");
+ const [editorOpen,setEditorOpen]=useState(false);
+ const [removal,setRemoval]=useState<{product:Product;mode:"hide"|"delete"}|null>(null);
+ const [confirmPermanent,setConfirmPermanent]=useState(false);
+ const modalRef=useRef<HTMLElement>(null);
+ const returnFocusRef=useRef<HTMLElement|null>(null);
+ const [productQuery,setProductQuery]=useState(""),[productStatus,setProductStatus]=useState<"all"|"published"|"inquiry"|"hidden"|"pending">("all");
+ const [showCatalogPicker,setShowCatalogPicker]=useState(false),[catalogQuery,setCatalogQuery]=useState(""),[catalogType,setCatalogType]=useState("all");
+ const [showCandidatePicker,setShowCandidatePicker]=useState(false),[candidateQuery,setCandidateQuery]=useState("");
+ const editorHeadingRef=useRef<HTMLHeadingElement>(null);
+ const counts=useMemo(()=>whatsappRequestCounts(initialWhatsAppRequests),[initialWhatsAppRequests]);
  const [savedDraft,setSavedDraft]=useState<Draft>({...empty});
  const [savedSettings,setSavedSettings]=useState<StoreSettings>(initialSettings);
  const productHasChanges=useMemo(()=>JSON.stringify(draft)!==JSON.stringify(savedDraft),[draft,savedDraft]);
@@ -49,7 +63,7 @@ export function AdminDashboard({initialProducts,initialCategories,initialOrders,
   return ()=>window.removeEventListener("beforeunload",warn);
  },[productHasChanges,settingsHaveChanges]);
  function canLeaveEditor(next:Tab){
-  if(tab==="products"&&next!=="products"&&productHasChanges){
+  if(tab==="products"&&next!=="products"&&editorOpen&&productHasChanges){
    if(!window.confirm("Hay cambios sin guardar en el producto. ¿Salir y descartarlos?"))return false;
    setDraft({...savedDraft});
   }
@@ -59,7 +73,62 @@ export function AdminDashboard({initialProducts,initialCategories,initialOrders,
   }
   return true;
  }
- function changeTab(next:Tab){if(next!==tab&&!canLeaveEditor(next))return;setTab(next);setMobileMoreOpen(false);}
+ function changeTab(next:Tab){
+  if(next!==tab&&!canLeaveEditor(next))return;
+  if(tab==="products"&&next!==tab){setEditorOpen(false);setRemoval(null);}
+  setTab(next);setMobileMoreOpen(false);
+ }
+ function closeProductEditor(){
+  if(busy)return;
+  if(productHasChanges&&!window.confirm("Hay cambios sin guardar en este producto. ¿Descartarlos?"))return;
+  setDraft({...savedDraft});
+  setEditorOpen(false);setShowCatalogPicker(false);setShowCandidatePicker(false);
+ }
+ function askRemoval(product:Product){
+  if(busy)return;
+  returnFocusRef.current=document.activeElement as HTMLElement;
+  setConfirmPermanent(false);
+  setRemoval({product,mode:product.active||product.catalog_visible?"hide":"delete"});
+  setNotice("");setNoticeError(false);
+ }
+ async function performRemoval(){
+  if(!removal||busy)return;
+  const {product,mode}=removal;
+  if(mode==="delete"&&!confirmPermanent)return;
+  await act(async()=>{
+   await request("products","DELETE",mode==="delete"?{id:product.id,action:"delete_permanently"}:{id:product.id});
+   setRemoval(null);
+   if(draft.id===product.id){setDraft({...empty});setSavedDraft({...empty});}
+  },true,mode==="delete"?"Producto eliminado definitivamente":"Producto oculto correctamente");
+ }
+ useEffect(()=>{
+  if(!editorOpen&&!removal)return;
+  const oldOverflow=document.body.style.overflow;
+  document.body.style.overflow="hidden";
+  modalRef.current?.querySelector<HTMLElement>("[data-dialog-autofocus]")?.focus();
+  return ()=>{document.body.style.overflow=oldOverflow;};
+ },[editorOpen,removal]);
+ useEffect(()=>{
+  if(!editorOpen&&!removal){returnFocusRef.current?.focus();return;}
+  function onKeyDown(event:KeyboardEvent){
+   if(event.key==="Escape"){
+    event.preventDefault();
+    if(removal){if(!busy)setRemoval(null);}
+    else closeProductEditor();
+   }
+   if(event.key!=="Tab")return;
+   const controls=Array.from(modalRef.current?.querySelectorAll<HTMLElement>('button:not(:disabled), input:not(:disabled), select:not(:disabled), textarea:not(:disabled), a[href], [tabindex]:not([tabindex="-1"])')??[]);
+   if(!controls.length)return;
+   const first=controls[0],last=controls[controls.length-1];
+   if(event.shiftKey&&(document.activeElement===first||!modalRef.current?.contains(document.activeElement))){
+    event.preventDefault();last.focus();
+   }else if(!event.shiftKey&&(document.activeElement===last||!modalRef.current?.contains(document.activeElement))){
+    event.preventDefault();first.focus();
+   }
+  }
+  window.addEventListener("keydown",onKeyDown);
+  return ()=>window.removeEventListener("keydown",onKeyDown);
+ },[editorOpen,removal,productHasChanges,busy]);
  async function saveProduct(mode:"save"|"publish") {
   const next:Draft={...draft,price:Number(draft.price),stock:Number(draft.stock),
    active:mode==="publish"?true:Boolean(draft.active),
@@ -84,30 +153,17 @@ export function AdminDashboard({initialProducts,initialCategories,initialOrders,
    setSavedDraft({...persisted});
   },true,mode==="publish"?"Producto publicado correctamente":next.active?"Producto actualizado en la tienda":next.catalog_visible?"Producto guardado y visible en el catálogo":"Borrador guardado. Podés seguir editándolo.");
  }
- async function hideProduct(product:Product){
-  if(busy)return;
-  if(draft.id===product.id&&productHasChanges&&
-     !window.confirm("Hay cambios sin guardar en esta ficha. ¿Descartarlos para ocultar el producto?"))return;
-  if(!window.confirm(`¿Ocultar «${product.name}»? Dejará de aparecer en la tienda.`))return;
-  await act(async()=>{
-   await request("products","DELETE",{id:product.id});
-   if(draft.id===product.id){
-    const hidden:Draft={...product,price:Number(product.price),stock:Number(product.stock),
-      active:false,catalog_visible:false};
-    setDraft(hidden);setSavedDraft({...hidden});
-   }
-  },true,"Producto oculto correctamente");
- }
  function startProduct(value:Draft){
-  if(productHasChanges&&!window.confirm("Hay cambios sin guardar. ¿Descartarlos y abrir otra ficha?"))return false;
+  if(busy)return false;
+  if(editorOpen&&productHasChanges&&!window.confirm("Hay cambios sin guardar. ¿Descartarlos y abrir otra ficha?"))return false;
+  if(!editorOpen)returnFocusRef.current=document.activeElement as HTMLElement;
   const snapshot={...value};
   setDraft(snapshot);setSavedDraft({...snapshot});
+  setEditorOpen(true);
+  setShowCatalogPicker(false);setShowCandidatePicker(false);
   setNotice("");setNoticeError(false);
   return true;
  }
-
- const [showCatalogPicker,setShowCatalogPicker]=useState(false),[catalogQuery,setCatalogQuery]=useState(""),[catalogType,setCatalogType]=useState("all");
- const [showCandidatePicker,setShowCandidatePicker]=useState(false),[candidateQuery,setCandidateQuery]=useState("");
  const [newCat,setNewCat]=useState({name:"",slug:"",id:""}),[zoneId,setZoneId]=useState(""),[zoneName,setZoneName]=useState(""),[zoneCodes,setZoneCodes]=useState(""),[zoneCost,setZoneCost]=useState(""),[zoneReady,setZoneReady]=useState(false),[zoneFree,setZoneFree]=useState(false),[banner,setBanner]=useState({id:"",title:"",subtitle:"",image_url:"",href:"/catalogo",active:true,sort_order:0});
  const router=useRouter();
  useEffect(()=>{
@@ -155,15 +211,21 @@ export function AdminDashboard({initialProducts,initialCategories,initialOrders,
  }
  const filteredProducts=useMemo(()=>initialProducts.filter(p=>{
   const matchesQuery=normalizeCatalogText(`${p.name} ${p.sku??""} ${p.slug}`).includes(normalizeCatalogText(productQuery));
-  const matchesStatus=productStatus==="all"||(productStatus==="published"&&(p.active||p.catalog_visible))||
+  const matchesStatus=productStatus==="all"||(productStatus==="published"&&p.active)||(productStatus==="inquiry"&&p.catalog_visible)||
    (productStatus==="hidden"&&!p.active&&!p.catalog_visible)||(productStatus==="pending"&&!p.commercially_verified);
   return matchesQuery&&matchesStatus;
  }),[initialProducts,productQuery,productStatus]);
  return <div className="admin-shell"><aside className="admin-side"><h2>Viagelato<span>Administración</span></h2><nav aria-label="Panel de administración">{nav.map(n=><button key={n.id} disabled={busy} aria-pressed={tab===n.id} onClick={()=>changeTab(n.id)} className={tab===n.id?"active":""}><n.icon size={18}/>{n.label}</button>)}</nav><div className="admin-side-bottom"><Link href="/" target="_blank" rel="noreferrer"><ExternalLink size={17}/> Ver tienda como cliente</Link><button disabled={busy} onClick={logout}><LogOut size={17}/> Cerrar sesión</button></div></aside>
- <main className="admin-main" aria-busy={busy}><div className="admin-bar"><div><small>PANEL DE ADMINISTRACIÓN</small><h1>{nav.find(n=>n.id===tab)?.label}</h1><p className="admin-tab-help">{({overview:"Consultá el estado de la tienda y elegí qué gestionar.",products:"Cargá productos, revisá precios y decidí cuáles se muestran.",categories:"Organizá los productos para que los clientes los encuentren fácilmente.",orders:"Revisá las compras realizadas mediante el sistema de pedidos online.",requests:"Gestioná los pedidos preparados para WhatsApp y su seguimiento.",zones:"Configurá dónde hacés entregas y sus condiciones.",banners:"Cambiá las imágenes promocionales que aparecen en la tienda.",settings:"Actualizá los datos de contacto, medios de pago y contenido comercial."} satisfies Record<Tab,string>)[tab]}</p></div><Link href="/" target="_blank" rel="noreferrer" className="btn ghost"><ExternalLink size={17}/> Vista cliente</Link></div>{notice&&<div className={`notification ${noticeError?"notification-error":""}`} role={noticeError?"alert":"status"} aria-live="polite">{notice}</div>}
- {tab==="overview"&&<><div className="stats"><article><small>Productos publicados</small><strong>{initialProducts.filter(p=>p.active).length}</strong></article><article><small>Catálogo para consulta</small><strong>{initialProducts.filter(p=>p.catalog_visible).length}</strong></article><article><small>Borradores</small><strong>{initialProducts.filter(p=>!p.active&&!p.catalog_visible).length}</strong></article><article><small>Solicitudes WhatsApp</small><strong>{initialWhatsAppRequests.length}</strong></article><article><small>Stock bajo (≤5)</small><strong>{initialProducts.filter(p=>p.active&&p.stock<=5).length}</strong></article></div><section className="panel"><h2>¿Qué necesitás hacer hoy?</h2><p>Empezá por Productos: podés cargar fotos, completar datos y guardar borradores sin que aparezcan en la tienda. Cuando estén revisados, vas a poder publicarlos.</p><div className="admin-quick-actions"><button className="btn primary" onClick={()=>changeTab("products")}>Administrar productos</button><button className="btn ghost" onClick={()=>changeTab("requests")}>Ver pedidos de WhatsApp</button><button className="btn ghost" onClick={()=>changeTab("zones")}>Configurar entregas</button></div></section></>}
- {tab==="products"&&<div className="admin-2col"><div className="panel"><h2>{draft.id?"Editar producto":"Agregar producto"}</h2>
- <p className="admin-editor-guide">Completá nombre, precio y foto. Guardá el borrador para seguir después o publicá cuando tengas los datos confirmados.</p>
+ <main className="admin-main" aria-busy={busy}><div className="admin-bar"><div><small>PANEL DE ADMINISTRACIÓN</small><h1>{nav.find(n=>n.id===tab)?.label}</h1><p className="admin-tab-help">{({overview:"Consultá el estado de la tienda y elegí qué gestionar.",products:"Cargá productos, revisá precios y decidí cuáles se muestran.",categories:"Organizá los productos para que los clientes los encuentren fácilmente.",orders:"Revisá las compras realizadas mediante el sistema de pedidos online.",requests:"Gestioná los pedidos preparados para WhatsApp y su seguimiento.",zones:"Configurá dónde hacés entregas y sus condiciones.",banners:"Cambiá las imágenes promocionales que aparecen en la tienda.",settings:"Actualizá los datos de contacto, medios de pago y contenido comercial."} satisfies Record<Tab,string>)[tab]}</p></div><div className="admin-bar-actions">{(productHasChanges||settingsHaveChanges)&&<span className="admin-dirty-indicator" role="status">Cambios sin guardar</span>}<button type="button" className="btn ghost admin-refresh" disabled={busy} onClick={()=>{if(!canLeaveEditor("overview"))return;setNotice("Actualizando los datos del panel…");setNoticeError(false);router.refresh();}}><RefreshCw size={17} aria-hidden="true"/>Actualizar datos</button><Link href="/" target="_blank" rel="noreferrer" className="btn ghost"><ExternalLink size={17}/> Vista cliente</Link></div></div>{notice&&!editorOpen&&!removal&&<div className={`notification ${noticeError?"notification-error":""}`} role={noticeError?"alert":"status"} aria-live="polite">{notice}{notice.startsWith("Tu sesión venció")?<Link className="admin-session-link" href="/login">Volver a ingresar</Link>:null}</div>}
+ {tab==="overview"&&<AdminOverview counts={counts} products={initialProducts} requestsLoaded={initialWhatsAppRequests.length} busy={busy} onNavigate={changeTab}/>} 
+  {tab==="products"&&<div className="admin-products-layout">
+ {editorOpen&&<div className="admin-product-modal-backdrop" role="presentation" onMouseDown={event=>{if(event.target===event.currentTarget)closeProductEditor();}}>
+  <section ref={modalRef} role="dialog" aria-modal="true" aria-labelledby="admin-product-dialog-title" aria-describedby="admin-product-dialog-description" className="admin-product-modal">
+   <div className="admin-product-modal-top"><span>VIAGELATO · PRODUCTOS</span><button data-dialog-autofocus type="button" aria-label="Cerrar ventana de producto" disabled={busy} onClick={closeProductEditor}><X size={22} aria-hidden="true"/></button></div>
+   <div className="admin-product-modal-scroll"><div className="admin-product-editor">
+    <h2 id="admin-product-dialog-title" ref={editorHeadingRef} tabIndex={-1} className="admin-editor-heading">{draft.id?"Editar producto":"Agregar producto"}</h2>
+ <p id="admin-product-dialog-description" className="admin-editor-guide">Completá nombre, precio y foto. Guardá el borrador para seguir después o publicá cuando tengas los datos confirmados.</p>
+ {notice&&<p role={noticeError?"alert":"status"} className={`notification ${noticeError?"notification-error":""}`}>{notice}</p>}
  {productHasChanges&&<p className="admin-unsaved" role="status">Tenés cambios sin guardar en esta ficha.</p>}
  <div className="admin-catalog-import">
   <div><strong>Cargar desde el catálogo</strong><p>Seleccioná un producto existente para completar nombre, precio, código, descripción y foto. Después, confirmá el stock.</p></div>
@@ -233,10 +295,11 @@ export function AdminDashboard({initialProducts,initialCategories,initialOrders,
  <div className="admin-product-actions">
   <button type="submit" disabled={busy||(draft.active&&publicationIssues.length>0)} className="btn primary">{draft.id?"Guardar cambios":draft.catalog_visible?"Guardar y mostrar en catálogo":"Guardar borrador"}</button>
   {!draft.active?<button type="button" className="btn ghost" disabled={busy||publicationIssues.length>0} onClick={()=>void saveProduct("publish")}>Publicar en la tienda</button>:null}
-  <button type="button" className="btn ghost" disabled={busy} onClick={()=>startProduct({...empty})}>{draft.id?"Dejar de editar":"Limpiar formulario"}</button>
- </div></form></div>
- <div className="panel"><div className="admin-list-heading"><h2>Productos cargados</h2><button type="button" className="btn ghost" disabled={busy} onClick={()=>startProduct({...empty})}>+ Nuevo producto</button></div><p className="admin-list-guide">Oculto = no aparece en la tienda. Visible para consulta = se puede agregar al carrito, sin stock garantizado. Publicado = verificado.</p><div className="admin-product-filters"><label>Buscar producto o SKU<input aria-label="Buscar producto o SKU" type="search" value={productQuery} onChange={e=>setProductQuery(e.target.value)} placeholder="Nombre, SKU o URL"/></label><label>Estado<select aria-label="Filtrar productos por estado" value={productStatus} onChange={e=>setProductStatus(e.target.value as typeof productStatus)}><option value="all">Todos</option><option value="published">Publicados</option><option value="hidden">Borradores</option><option value="pending">Pendientes de revisar</option></select></label></div><p className="admin-count" aria-live="polite">{filteredProducts.length} de {initialProducts.length} productos</p><div className="admin-list">{filteredProducts.map(p=><article key={p.id} className="admin-list-row"><div className="mini-art">{p.image_url?<Image src={p.image_url} alt={p.name} fill sizes="56px" unoptimized/>:"📦"}</div><div className="grow"><strong>{p.name}</strong><small>{p.price>0?ars(Number(p.price)):"Precio pendiente"} · {p.stock} unidades</small><span className={`admin-item-state ${p.active?"live":"draft"}`}>{p.active?"Publicado":p.catalog_visible?"Visible para consulta":p.commercially_verified?"Borrador":"Pendiente de revisar"}</span></div><button className="btn tiny" onClick={()=>startProduct({...p,price:Number(p.price),stock:Number(p.stock)})}>Editar</button>{(p.active||p.catalog_visible)&&<button className="btn tiny danger" disabled={busy} onClick={()=>void hideProduct(p)}>Ocultar</button>}</article>)}{!initialProducts.length?<p>Agregá tu primer producto.</p>:!filteredProducts.length?<p>No se encontraron productos con esos filtros. <button className="admin-reset-filter" type="button" onClick={()=>{setProductQuery("");setProductStatus("all");}}>Limpiar filtros</button></p>:null}</div></div></div>}
- {tab==="categories"&&<div className="panel narrow"><h2>Categorías</h2><p className="hint">Organizá los productos por grupo. Para eliminar una categoría, primero mové sus productos a otra.</p><form onSubmit={e=>{e.preventDefault();void act(async()=>{await request("categories",newCat.id?"PATCH":"POST",newCat);setNewCat({id:"",name:"",slug:""});});}}><label>Nombre<input required value={newCat.name} onChange={e=>setNewCat(v=>({...v,name:e.target.value,slug:v.id?v.slug:slugify(e.target.value)}))}/></label><details className="admin-advanced"><summary>Editar la dirección de la categoría (opcional)</summary><label>Dirección de la categoría<input required value={newCat.slug} onChange={e=>setNewCat(v=>({...v,slug:e.target.value}))}/><small>Se genera sola. Si la categoría ya existe, se conserva su enlace para no romper vínculos.</small></label></details><button disabled={busy} className="btn primary">{newCat.id?"Guardar categoría":"Crear categoría"}</button>{newCat.id&&<button type="button" className="btn ghost" onClick={()=>setNewCat({id:"",name:"",slug:""})}>Cancelar edición</button>}</form><div className="admin-list">{initialCategories.map(c=><div className="admin-list-row" key={c.id}><strong className="grow">{c.name} <small className="hint">({initialProducts.filter(p=>p.category_id===c.id).length} productos)</small></strong><button className="btn tiny" onClick={()=>setNewCat({id:c.id,name:c.name,slug:c.slug})}>Editar</button><button className="btn tiny danger" disabled={busy||initialProducts.some(p=>p.category_id===c.id)} title={initialProducts.some(p=>p.category_id===c.id)?"Mové sus productos antes de eliminarla":undefined} onClick={()=>{if(confirm("¿Eliminar esta categoría?"))void act(()=>request("categories","DELETE",{id:c.id}));}}>Eliminar</button></div>)}</div></div>}
+  <button type="button" className="btn ghost" disabled={busy} onClick={closeProductEditor}>Cerrar</button>
+ </div></form></div></div></section></div>}
+ <div className="panel admin-products-list"><div className="admin-list-heading"><h2>Productos cargados</h2><button type="button" className="btn ghost" disabled={busy} onClick={()=>startProduct({...empty})}>+ Nuevo producto</button></div><p className="admin-list-guide">Oculto = no aparece en la tienda. Visible para consulta = se puede agregar al carrito, sin stock garantizado. Publicado = verificado.</p><div className="admin-product-filters"><label>Buscar producto o SKU<input aria-label="Buscar producto o SKU" type="search" value={productQuery} onChange={e=>setProductQuery(e.target.value)} placeholder="Nombre, SKU o URL"/></label><label>Estado<select aria-label="Filtrar productos por estado" value={productStatus} onChange={e=>setProductStatus(e.target.value as typeof productStatus)}><option value="all">Todos</option><option value="published">Publicados</option><option value="inquiry">Visibles para consulta</option><option value="hidden">Borradores</option><option value="pending">Pendientes de revisar</option></select></label></div><p className="admin-count" aria-live="polite">{filteredProducts.length} de {initialProducts.length} productos</p><div className="admin-list">{filteredProducts.map(p=><article key={p.id} className="admin-list-row"><div className="mini-art">{p.image_url?<Image src={p.image_url} alt={p.name} fill sizes="56px" unoptimized/>:"📦"}</div><div className="grow"><strong>{p.name}</strong><small>{p.price>0?ars(Number(p.price)):"Precio pendiente"} · {p.stock} unidades</small><span className={`admin-item-state ${p.active?"live":"draft"}`}>{p.active?"Publicado":p.catalog_visible?"Visible para consulta":p.commercially_verified?"Borrador":"Pendiente de revisar"}</span></div><button className="btn tiny" disabled={busy} onClick={()=>startProduct({...p,price:Number(p.price),stock:Number(p.stock)})}>Editar</button><button type="button" className="btn tiny danger" disabled={busy} onClick={()=>askRemoval(p)}>{p.active||p.catalog_visible?"Ocultar":"Eliminar"}</button></article>)}{!initialProducts.length?<p>Agregá tu primer producto con el botón «Nuevo producto».</p>:!filteredProducts.length?<p>No se encontraron productos con esos filtros. <button className="admin-reset-filter" type="button" onClick={()=>{setProductQuery("");setProductStatus("all");}}>Limpiar filtros</button></p>:null}</div></div></div>}
+ {removal&&<AdminProductRemovalDialog removal={removal} dialogRef={modalRef} busy={busy} confirmPermanent={confirmPermanent} onConfirmPermanentChange={setConfirmPermanent} onClose={()=>setRemoval(null)} onSubmit={()=>void performRemoval()} error={noticeError?notice:""}/>}
+  {tab==="categories"&&<div className="panel narrow"><h2>Categorías</h2><p className="hint">Organizá los productos por grupo. Para eliminar una categoría, primero mové sus productos a otra.</p><form onSubmit={e=>{e.preventDefault();void act(async()=>{await request("categories",newCat.id?"PATCH":"POST",newCat);setNewCat({id:"",name:"",slug:""});});}}><label>Nombre<input required value={newCat.name} onChange={e=>setNewCat(v=>({...v,name:e.target.value,slug:v.id?v.slug:slugify(e.target.value)}))}/></label><details className="admin-advanced"><summary>Editar la dirección de la categoría (opcional)</summary><label>Dirección de la categoría<input required value={newCat.slug} onChange={e=>setNewCat(v=>({...v,slug:e.target.value}))}/><small>Se genera sola. Si la categoría ya existe, se conserva su enlace para no romper vínculos.</small></label></details><button disabled={busy} className="btn primary">{newCat.id?"Guardar categoría":"Crear categoría"}</button>{newCat.id&&<button type="button" className="btn ghost" onClick={()=>setNewCat({id:"",name:"",slug:""})}>Cancelar edición</button>}</form><div className="admin-list">{initialCategories.map(c=><div className="admin-list-row" key={c.id}><strong className="grow">{c.name} <small className="hint">({initialProducts.filter(p=>p.category_id===c.id).length} productos)</small></strong><button className="btn tiny" onClick={()=>setNewCat({id:c.id,name:c.name,slug:c.slug})}>Editar</button><button className="btn tiny danger" disabled={busy||initialProducts.some(p=>p.category_id===c.id)} title={initialProducts.some(p=>p.category_id===c.id)?"Mové sus productos antes de eliminarla":undefined} onClick={()=>{if(confirm("¿Eliminar esta categoría?"))void act(()=>request("categories","DELETE",{id:c.id}));}}>Eliminar</button></div>)}</div></div>}
  {tab==="zones"&&<div className="panel narrow"><h2>Configurar zona de entrega</h2><p className="hint">Elegí dónde repartís y confirmá la tarifa antes de activarla.</p><form onSubmit={e=>{e.preventDefault();void act(()=>request("zones",zoneId?"PATCH":"POST",{...(zoneId?{id:zoneId}:{}),name:zoneName,postal_codes:zoneCodes.split(",").map(x=>x.trim().toUpperCase()).filter(Boolean),cost:zoneCost===""?null:Number(zoneCost),free_shipping_eligible:zoneFree,ready:zoneReady,active:zoneReady}));}}><label>Zona o barrio<input required value={zoneName} onChange={e=>setZoneName(e.target.value)} placeholder="Ej.: Lomas de Zamora"/></label><label>Códigos postales separados por comas<input value={zoneCodes} onChange={e=>setZoneCodes(e.target.value)} placeholder="1832, B1832"/></label><label>Tarifa bajo el umbral (ARS)<input required={zoneReady} min="0" type="number" value={zoneCost} onChange={e=>setZoneCost(e.target.value)}/></label><label className="inline-check"><input type="checkbox" checked={zoneFree} onChange={e=>setZoneFree(e.target.checked)}/> Elegible para envío gratis desde el umbral</label><label className="inline-check"><input type="checkbox" checked={zoneReady} onChange={e=>setZoneReady(e.target.checked)}/> Tarifa y cobertura verificadas; activar zona</label><p className="hint">Una tarifa vacía significa pendiente. El valor 0 sólo debe usarse si la entrega es realmente gratuita por debajo del umbral.</p><button className="btn primary" disabled={busy}>{zoneId?"Guardar zona":"Agregar zona"}</button>{zoneId&&<button type="button" className="btn ghost" onClick={()=>{setZoneId("");setZoneName("");setZoneCodes("");setZoneCost("");setZoneReady(false);setZoneFree(false)}}>Cancelar edición</button>}</form><h3>Zonas configuradas</h3><div className="admin-list">{initialZones.map(z=><div key={z.id} className="admin-list-row"><div className="grow"><strong>{z.name}</strong><small>{z.cost===null?"Tarifa pendiente":ars(Number(z.cost))} · {z.free_shipping_eligible?"Elegible para gratis":"Sin envío gratis"} · {z.active?"Activa":"Inactiva"}</small></div><button className="btn tiny" onClick={()=>{setZoneId(z.id);setZoneName(z.name);setZoneCodes(z.postal_codes.join(", "));setZoneCost(z.cost===null?"":String(z.cost));setZoneReady(Boolean(z.ready));setZoneFree(Boolean(z.free_shipping_eligible))}}>Editar</button><button className="btn tiny danger" onClick={()=>{if(confirm(`¿Desactivar la zona ${z.name}? Dejará de aparecer como opción de envío.`))void act(()=>request("zones","DELETE",{id:z.id}));}}>Desactivar</button></div>)}</div></div>}
  {tab==="banners"&&<div className="panel narrow"><h2>Banner promocional</h2><form onSubmit={e=>{e.preventDefault();void act(async()=>{await request("banners",banner.id?"PATCH":"POST",banner);setBanner({id:"",title:"",subtitle:"",image_url:"",href:"/catalogo",active:true,sort_order:0});});}}><label>Título<input required value={banner.title} onChange={e=>setBanner(v=>({...v,title:e.target.value}))}/></label><label>Texto<input value={banner.subtitle} onChange={e=>setBanner(v=>({...v,subtitle:e.target.value}))}/></label><label>Enlace<input value={banner.href} onChange={e=>setBanner(v=>({...v,href:e.target.value}))}/></label><label>URL de imagen<input value={banner.image_url} onChange={e=>setBanner(v=>({...v,image_url:e.target.value}))}/></label>{uploader("banner")}{banner.image_url&&<Image className="upload-preview" src={banner.image_url} width={180} height={130} unoptimized alt="Banner"/>}<button className="btn primary" disabled={busy}>{banner.id?"Guardar banner":"Crear banner"}</button>{banner.id&&<button type="button" className="btn ghost" onClick={()=>setBanner({id:"",title:"",subtitle:"",image_url:"",href:"/catalogo",active:true,sort_order:0})}>Cancelar edición</button>}</form><div className="admin-list">{initialBanners.map(b=><div key={b.id} className="admin-list-row"><div className="grow"><strong>{b.title}</strong><small>{b.subtitle}</small></div><button className="btn tiny" onClick={()=>setBanner({...b,image_url:b.image_url||""})}>Editar</button><button className="btn tiny danger" onClick={()=>{if(confirm("¿Eliminar este banner?"))void act(()=>request("banners","DELETE",{id:b.id}));}}>Eliminar</button></div>)}</div></div>}
  {tab==="settings"&&<div className="panel wide"><h2>Información de la tienda</h2><p>Acá cambiás los datos que ven los clientes. El botón Guardar aplica todo junto o no cambia nada si ocurre un error.</p>{settingsHaveChanges&&<p className="admin-unsaved" role="status">Hay cambios en la configuración que todavía no guardaste.</p>}<form onSubmit={e=>{e.preventDefault();const value=Object.fromEntries(Object.entries(settings).filter(([key])=>key!=="id"));void act(async()=>{await request("settings","PUT",value);setSavedSettings({...settings});});}}><div className="settings-grid">
@@ -251,7 +314,7 @@ export function AdminDashboard({initialProducts,initialCategories,initialOrders,
  <label>URL de la portada<input value={settings.hero_image_url||""} onChange={e=>setSettings(s=>({...s,hero_image_url:e.target.value}))}/>{uploader("hero")}{settings.hero_image_url&&<Image className="upload-preview" src={settings.hero_image_url} width={180} height={130} unoptimized alt="Vista previa de la portada"/>}</label>
  <label className="span-two">Política de cambios y devoluciones<textarea rows={7} value={settings.returns_policy} onChange={e=>setSettings(s=>({...s,returns_policy:e.target.value}))}/></label><label className="span-two">Política de privacidad<textarea rows={7} value={settings.privacy_policy} onChange={e=>setSettings(s=>({...s,privacy_policy:e.target.value}))}/></label>
  </div><p className="hint">Estos textos son contenido editable, no políticas legales generadas automáticamente. Revisalas antes de publicar.</p><button className="btn primary" disabled={busy}>Guardar configuración</button></form></div>}
- {tab==="requests"&&<WhatsAppRequests requests={initialWhatsAppRequests} freeShippingThreshold={Number(initialSettings.free_shipping_threshold)}/>}
+ {tab==="requests"&&<WhatsAppRequests requests={initialWhatsAppRequests} freeShippingThreshold={Number(initialSettings.free_shipping_threshold)} zones={initialZones}/>}
  {tab==="orders"&&<div className="panel"><h2>Pedidos recibidos</h2><p>Avanzá cada pedido con los botones de estado. Solo marcá un pago como cobrado si comprobaste que lo recibiste.</p><div className="admin-list">{initialOrders.map(o=>{const next=nextOrderStep(o);return <article className="admin-list-row" key={o.id}><div className="grow"><strong>#{o.id.slice(0,8)} · {o.customer_name}</strong><small>{o.customer_email} · {o.customer_phone} · {new Date(o.created_at).toLocaleDateString("es-AR")}</small><small>{o.shipping_method==="pickup"?"Retiro":"Envío: "+o.address}</small><small>Pago: {o.payment_method==="transfer"?"Transferencia":"Al recibir"} · {o.payment_status==="paid"?"Cobrado":"Pendiente"}</small></div><div className="grow">{o.order_items?.map((it,i)=><small key={i}>{it.quantity} × {it.product_name} · {ars(Number(it.unit_price))}</small>)}</div><strong>{ars(Number(o.total))}</strong><span className="status-pill">{orderStatusLabel(o.status)}</span>{o.payment_status!=="paid"&&!(["cancelled","expired"] as string[]).includes(o.status)&&<button className="btn tiny" disabled={busy} onClick={()=>{if(confirm("¿Verificaste que el pago se recibió realmente?"))void act(()=>request("orders","PATCH",{id:o.id,action:"mark_paid"}));}}>Marcar cobrado</button>}{next&&<button className="btn tiny" disabled={busy} onClick={()=>{if(next.status==="delivered"&&!confirm("¿Confirmás que el cliente recibió el pedido?"))return;void act(()=>request("orders","PATCH",{id:o.id,action:"set_status",status:next.status}),true,"Estado del pedido actualizado");}}>{next.label}</button>}{o.payment_status!=="paid"&&!(["delivered","cancelled","expired"] as string[]).includes(o.status)&&<button className="btn tiny danger" disabled={busy} onClick={()=>{if(confirm("¿Cancelar pedido y devolver el stock?"))void act(()=>request("orders","PATCH",{id:o.id,action:"cancel"}));}}>Cancelar</button>}</article>;})}{!initialOrders.length&&<p>No hay pedidos todavía. Los pedidos nuevos aparecerán acá cuando se habiliten las ventas.</p>}</div></div>}
 
  </main>

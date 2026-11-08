@@ -1,5 +1,7 @@
 # Viagelato — Kit de imágenes y contrato comercial
 
+> **Archivo histórico de preparación comercial (28/10/2026).** No describe el estado actual de despliegue o migraciones. Para la infraestructura vigente ver [auditoría RLS 02/11](ESTADO_SUPABASE_RLS_20261102.md) y [runbook](RUNBOOK_MIGRACIONES_RLS.md).
+
 **Estado:** material preparado, no integrado a repositorio local de Codex. Fecha de revisión: 28/10/2026.
 
 ## Contenido

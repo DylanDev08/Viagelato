@@ -31,6 +31,6 @@ export function SiteFooter({settings}:{settings:Settings}){
     <div className="footer-location"><MapPin size={17} aria-hidden="true"/><div><strong>{address?"Dirección comercial":"Ubicación comercial"}</strong>{address?<p>{address}</p>:<p>Consultá nuestra ubicación exacta por WhatsApp o desde Contacto.</p>}{map&&<a href={map} target="_blank" rel="noopener noreferrer">Cómo llegar <ArrowUpRight size={14}/></a>}{!address&&<Link href="/contacto">Consultar ubicación <ArrowUpRight size={14}/></Link>}</div></div>
    </div>
   </div>
-  <div className="shell footer-bottom"><span>© {new Date().getFullYear()} {settings.name}</span><span>Precios, stock y entrega sujetos a confirmación comercial.</span><Link className="footer-admin-entry" href="/admin">Acceso administración</Link></div>
+  <div className="shell footer-bottom"><span>© {new Date().getFullYear()} {settings.name}</span><span>Precios, stock y entrega sujetos a confirmación comercial.</span></div>
  </footer>;
 }

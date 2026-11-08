@@ -1,31 +1,28 @@
-import {createHash,createHmac} from "node:crypto";
+import {createHash} from "node:crypto";
+import {rateLimitClientKey} from "@/lib/request-security";
 import {NextResponse} from "next/server";
 import {z} from "zod";
 import {connected,privilegedDb} from "@/lib/supabase";
 import {whatsappCartMessage,type WhatsAppCartLine} from "@/lib/whatsapp-cart";
-import {quoteShipping} from "@/lib/shipping-quote";
+import {quoteShipping,matchesPreparedShippingQuote,PICKUP_LOCALITY} from "@/lib/shipping-quote";
 import type {ShippingZone} from "@/lib/types";
 import {normalizeWhatsAppRequest,whatsappRequestSchema,whatsappRequestReference,paymentFromNotes} from "@/lib/whatsapp-request-rules";
 import {whatsappHref} from "@/lib/whatsapp";
 import {readJsonBody,RequestBodyError} from "@/lib/request-body";
 import {isAllowedAdminMutation} from "@/lib/admin-origin";
+import {reportServerFailure} from "@/lib/server-diagnostics";
+import {verifyTurnstile} from "@/lib/turnstile";
 
 export const runtime="nodejs";
 const reply=(error:string,status:number)=>NextResponse.json({error},{status,headers:{"Cache-Control":"no-store"}});
 const uuid=z.uuid();
 function fingerprint(body:unknown){return createHash("sha256").update(JSON.stringify(body)).digest("hex");}
-function rateKey(request:Request){
- const secret=process.env.CHECKOUT_RATE_LIMIT_SALT||process.env.SUPABASE_SERVICE_ROLE_KEY;
- if(!secret)throw new Error("Falta clave del limitador");
- const ip=request.headers.get("x-real-ip")||request.headers.get("x-forwarded-for")?.split(",")[0]?.trim()||"unknown";
- return createHmac("sha256",secret).update(ip).digest("hex");
-}
 type RequestSnapshot={
  id:string;request_fingerprint:string;status:string;
  customer_name:string;locality:string;address:string;notes:string;payment_preference?:"transfer"|"cash_on_delivery";
  shipping_method:"pickup"|"shipping";subtotal:number;items:WhatsAppCartLine[];
 };
-type CommercialSettings={whatsapp:string;free_shipping_threshold:number;pickup_enabled:boolean};
+type CommercialSettings={whatsapp:string;free_shipping_threshold:number;pickup_enabled:boolean;address?:string};
 const snapshotFields="id,request_fingerprint,status,customer_name,locality,address,notes,payment_preference,shipping_method,items,subtotal";
 
 function preparedResponse(record:RequestSnapshot,settings:CommercialSettings,zones:ShippingZone[],created:boolean){
@@ -46,7 +43,7 @@ function preparedResponse(record:RequestSnapshot,settings:CommercialSettings,zon
   "Referencia: "+reference,
   whatsappCartMessage(record.items,{
    name:record.customer_name,locality:record.locality,address:record.address,notes:payment.notes,paymentPreference:payment.paymentPreference,
-   shippingMethod:record.shipping_method,freeShippingThreshold:Number(settings.free_shipping_threshold),shippingQuote:shipping
+   shippingMethod:record.shipping_method,freeShippingThreshold:Number(settings.free_shipping_threshold),shippingQuote:shipping,pickupAddress:settings.address
   })
  ].join("\n");
  const whatsapp_url=whatsappHref(settings.whatsapp,message);
@@ -60,12 +57,17 @@ export async function POST(request:Request){
  try{return await prepareRequest(request);}
  catch(error){
   if(error instanceof RequestBodyError)return reply(error.message,error.status);
+  reportServerFailure("whatsapp_prepare_failed");
   return reply("No pudimos preparar la solicitud. Volvé a intentar con el mismo carrito.",503);
  }
 }
 
 async function prepareRequest(request:Request){
  if(!connected())return reply("La recepción de solicitudes todavía no está configurada",503);
+ // Evitar reutilizar credenciales privilegiadas como sal para el limitador.
+ // No iniciar consultas ni registrar pedidos si falta la clave independiente.
+ const rateLimitSalt=process.env.CHECKOUT_RATE_LIMIT_SALT;
+ if(!rateLimitSalt||rateLimitSalt.length<32)return reply("El control de solicitudes no está configurado",503);
  if(!isAllowedAdminMutation(request,process.env.NEXT_PUBLIC_SITE_URL,""))return reply("Origen no permitido",403);
  const key=uuid.safeParse(request.headers.get("idempotency-key"));
  if(!key.success)return reply("Falta identificar esta solicitud",400);
@@ -73,14 +75,16 @@ async function prepareRequest(request:Request){
  const parsed=whatsappRequestSchema.safeParse(body);
  if(!parsed.success)return reply("Revisá tu nombre, localidad y productos",400);
  const input=normalizeWhatsAppRequest(parsed.data);
+ // La sucursal es la ubicación del retiro: nunca usar un destino de envío arbitrario.
+ if(input.shipping_method==="pickup"){input.locality=PICKUP_LOCALITY;input.address="";}
  const db=privilegedDb();
  const {data:allowed,error:rateError}=await db.rpc("consume_checkout_attempt",{
-  p_key_hash:rateKey(request),p_idempotency_key:key.data,p_limit:8,p_window_minutes:10
+  p_key_hash:rateLimitClientKey(request,rateLimitSalt),p_idempotency_key:key.data,p_limit:8,p_window_minutes:10
  });
  if(rateError)return reply("No pudimos validar la seguridad de la solicitud",503);
  if(!allowed)return NextResponse.json({error:"Demasiados intentos. Volvé a intentarlo en unos minutos."},{status:429,headers:{"Cache-Control":"no-store","Retry-After":"600"}});
  const hash=fingerprint(input);
- const {data:settings,error:settingsError}=await db.from("site_settings").select("whatsapp,free_shipping_threshold,pickup_enabled").eq("id",true).single();
+ const {data:settings,error:settingsError}=await db.from("site_settings").select("whatsapp,free_shipping_threshold,pickup_enabled,address").eq("id",true).single();
  if(settingsError||!settings)return reply("No encontramos la configuración comercial",503);
  if(input.shipping_method==="pickup"&&!settings.pickup_enabled)return reply("El retiro no está habilitado",409);
  if(!whatsappHref(settings.whatsapp,"Prueba")?.includes("?text="))return reply("El WhatsApp comercial debe configurarse con un número válido",503);
@@ -96,6 +100,11 @@ async function prepareRequest(request:Request){
   if(prior.request_fingerprint!==hash)return reply("Esta solicitud cambió. Revisá el carrito e intentá otra vez.",409);
   return preparedResponse(prior as RequestSnapshot,settings,shippingZones,false);
  }
+ // Validación obligatoria del token si Cloudflare está configurado. Se ejecuta
+ // después de idempotencia para que un reintento legítimo no consuma otro token.
+ const challenge=await verifyTurnstile(parsed.data.turnstile_token,"whatsapp_request");
+ if(!challenge.ok)return reply("No pudimos completar la verificación de seguridad. Recargá el desafío.",
+  challenge.reason==="configuration"||challenge.reason==="unavailable"?503:403);
  const source=new Map<string,{name:string;sku:string;presentation:string;price:number}>();
  // Revalidar cada fila del catálogo en Supabase: nunca cotizar desde el JSON
  // ni aceptar una ficha que el administrador haya ocultado.
@@ -138,6 +147,23 @@ async function prepareRequest(request:Request){
  if(!Number.isFinite(subtotal)||subtotal<=0||subtotal>1e9)return reply("El subtotal no es válido",400);
  if(input.expected_subtotal!==undefined&&Math.abs(input.expected_subtotal-subtotal)>0.01)
   return reply("Los precios cambiaron. Actualizá el carrito para revisarlos antes de enviar el pedido.",409);
+ // Comprobar la cotización ANTES de guardar un borrador. De otra forma el
+ // navegador detecta el cambio después del INSERT y queda un pedido huérfano
+ // que el cliente nunca pudo enviar a WhatsApp.
+ const currentQuote=quoteShipping({
+  subtotal,locality:input.locality,method:input.shipping_method,
+  freeShippingThreshold:Number(settings.free_shipping_threshold),zones:shippingZones
+ });
+ if(input.expected_shipping_kind!==undefined&&!matchesPreparedShippingQuote({
+  shipping_kind:input.expected_shipping_kind,
+  shipping_cost:input.expected_shipping_cost,
+  total:input.expected_total
+ },currentQuote)){
+  return NextResponse.json({
+   error:"El costo o las condiciones del envío cambiaron. Actualizá el carrito antes de enviar el pedido.",
+   code:"SHIPPING_QUOTE_CHANGED"
+  },{status:409,headers:{"Cache-Control":"no-store"}});
+ }
  const insert={idempotency_key:key.data,request_fingerprint:hash,customer_name:input.customer_name,
   locality:input.locality,address:input.address,notes:input.notes,payment_preference:input.payment_preference??"transfer",shipping_method:input.shipping_method,
   items:safeLines,subtotal};

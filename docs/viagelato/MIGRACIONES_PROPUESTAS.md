@@ -1,11 +1,19 @@
-# Migraciones propuestas (no aplicadas)
+# Backlog de migraciones propuestas — no confundir con las aplicadas
 
-`supabase/schema.sql` queda congelado mientras se prepara la base. No se aplicó ninguna migración ni se modificó ningún proyecto Supabase.
+**Estado del documento:** actualizado el 02/11/2026. Las frases históricas "no se aplicó ninguna migración" ya no describen el estado actual.
 
-Antes de conectar producción conviene versionar el esquema actual como migración inicial y ejecutar las pruebas de `tests/integration/postgres` en una base descartable. Las ampliaciones siguientes deben evaluarse recién con datos comerciales reales:
+## Cambios que ya existen en producción
 
-- galería de múltiples imágenes por producto, si una sola imagen resulta insuficiente;
-- registro de comprobantes de transferencia con bucket privado y acceso temporal;
-- historial editable de contenido institucional, si se necesita auditoría editorial.
+Supabase `Viagelato-ECommerce` (`mxopaakzlmjbnrwolpgh`) registra 10 migraciones. La última, `20261102115243_viagelato_rls_default_grants_lockdown`, **ya está aplicada**, versionada en Git y validada con pruebas de permisos. Consultar [estado del esquema y RLS](ESTADO_SUPABASE_RLS_20261102.md) y [runbook de migraciones](RUNBOOK_MIGRACIONES_RLS.md).
 
-No son requisitos para la conexión inicial y no deben agregarse antes de validar CRUD, autenticación, stock y pedidos reales.
+## Propuestas que NO están autorizadas ni implementadas por este corte
+
+- Galería de múltiples imágenes por producto si la experiencia comercial lo exige.
+- Adjuntos privados para comprobantes de transferencia, con política explícita de acceso y retención.
+- Auditoría editorial de cambios de contenido institucional, si existe necesidad operativa.
+
+Ninguna de estas propuestas debe convertirse en SQL de producción sin especificación, impacto sobre permisos/RLS, pruebas de staging y aprobación comercial. **No ejecutar de nuevo el esquema inicial ni los parches históricos para 'actualizar' una base existente.**
+
+## Próxima migración
+
+Generarla con Supabase CLI, comprobar el historial remoto, revisarla en PR y aplicarla de forma individual siguiendo el runbook. Incluir verificación de permisos de `anon`, `authenticated` y `service_role`, y que los nuevos objetos no hereden privilegios públicos.

@@ -1,7 +1,9 @@
 "use client";
 import {useMemo,useRef,useState,type FormEvent} from "react";
 import {useRouter} from "next/navigation";
-import {ars,type WhatsAppRequest} from "@/lib/types";
+import {ars,type WhatsAppRequest,type ShippingZone} from "@/lib/types";
+import {quoteShipping} from "@/lib/shipping-quote";
+import {resolveWhatsAppRequestFinance} from "@/lib/whatsapp-request-finance";
 import {whatsappRequestReference,paymentFromNotes} from "@/lib/whatsapp-request-rules";
 import {searchWhatsAppRequests,whatsappRequestCounts,type WhatsAppAdminFilter} from "@/lib/admin-whatsapp-ui";
 
@@ -19,15 +21,14 @@ function nextAction(request:WhatsAppRequest){
 }
 function money(value:string){return /^\d+(?:\.\d{1,2})?$/.test(value.trim())?Number(value):NaN;}
 type Operation={id:string;action:string;[key:string]:string|number|boolean};
-function RequestCard({request,freeShippingThreshold}:{request:WhatsAppRequest;freeShippingThreshold:number}){
+function RequestCard({request,freeShippingThreshold,zones}:{request:WhatsAppRequest;freeShippingThreshold:number;zones:ShippingZone[]}){
  const router=useRouter();
- const freeShipping=request.shipping_method==="shipping"&&
-  ["Lomas de Zamora","Lanús","Banfield","Avellaneda","Valentín Alsina","Don Bosco","Wilde"].includes(request.locality)&&
-  Number(request.subtotal)>=freeShippingThreshold;
+ const shippingQuote=quoteShipping({subtotal:Number(request.subtotal),locality:request.locality,method:request.shipping_method,freeShippingThreshold,zones});
+ const freeShipping=shippingQuote.kind==="free"||shippingQuote.kind==="pickup";
  const legacyPayment=paymentFromNotes(request.notes);
  const paymentPreference=request.payment_preference??legacyPayment.paymentPreference??"transfer";
  const cashOnDelivery=paymentPreference==="cash_on_delivery";
- const [shipping,setShipping]=useState(request.shipping_method==="pickup"||freeShipping?"0":request.shipping_cost===null?"":String(Number(request.shipping_cost)));
+ const [shipping,setShipping]=useState(request.shipping_cost===null?shippingQuote.shippingCost===null?"":String(shippingQuote.shippingCost):String(Number(request.shipping_cost)));
  const [stock,setStock]=useState(request.stock_confirmed);
  const [paymentAmount,setPaymentAmount]=useState("");
  const [bankReference,setBankReference]=useState("");
@@ -37,15 +38,14 @@ function RequestCard({request,freeShippingThreshold}:{request:WhatsAppRequest;fr
  const lastPayment=useRef<{fingerprint:string;key:string}|null>(null);
  const lastCashKey=useRef<string|null>(null);
  const next=nextAction(request);
- const finalTotal=request.total===null?null:Number(request.total);
+ const finance=resolveWhatsAppRequestFinance(request,shippingQuote);
+ const {displayedTotal:finalTotal,displayedShippingCost,remaining,termsComplete}=finance;
  const received=Number(request.amount_paid);
- const remaining=finalTotal===null?null:Math.max(0,Math.round((finalTotal-received)*100)/100);
- const termsComplete=request.stock_confirmed&&request.shipping_cost!==null;
  const canEditTerms=(request.status==="contacted"||request.status==="confirmed")&&received===0;
  const canRegisterPayment=["confirmed","preparing","shipped","delivered"].includes(request.status)&&termsComplete&&remaining!==null&&remaining>0;
  const blockedConfirm=request.status==="contacted"&&!termsComplete;
- const blockedPreparing=request.status==="confirmed"&&!cashOnDelivery&&(request.payment_status!=="paid"||remaining!==0);
- const blockedDelivered=next?.action==="delivered"&&(request.payment_status!=="paid"||remaining!==0);
+ const blockedPreparing=request.status==="confirmed"&&(!termsComplete||(!cashOnDelivery&&(request.payment_status!=="paid"||remaining!==0)));
+ const blockedDelivered=next?.action==="delivered"&&(!termsComplete||request.payment_status!=="paid"||remaining!==0);
  const canRegisterCash=cashOnDelivery&&termsComplete&&remaining!==null&&remaining>0&&
   (request.status==="shipped"||(request.status==="preparing"&&request.shipping_method==="pickup"));
  async function apply(data:Operation,success:string){
@@ -113,18 +113,18 @@ function RequestCard({request,freeShippingThreshold}:{request:WhatsAppRequest;fr
   </details>
   <div className="whatsapp-finance-summary">
    <div><small>Productos</small><strong>{ars(Number(request.subtotal))}</strong></div>
-   <div><small>Envío confirmado</small><strong>{request.shipping_cost===null?"Pendiente":ars(Number(request.shipping_cost))}</strong></div>
-   <div><small>Total final</small><strong>{finalTotal===null?"Pendiente":ars(finalTotal)}</strong></div>
+   <div><small>{finance.amountsConfirmed?"Envío confirmado":"Envío estimado"}</small><strong>{finance.inconsistent?"A revisar":displayedShippingCost===null?"A confirmar":ars(displayedShippingCost)}</strong></div>
+   <div><small>{finance.amountsConfirmed?"Total del pedido":"Total estimado"}</small><strong>{finance.inconsistent?"A revisar":finalTotal===null?"A confirmar":ars(finalTotal)}</strong></div>
    <div><small>Pagos registrados</small><strong>{ars(received)}</strong></div>
-   <div><small>Saldo pendiente</small><strong>{remaining===null?"Por definir":ars(remaining)}</strong></div>
   </div>
+  {finance.inconsistent?<p role="alert" className="notification notification-error">Los importes guardados no coinciden con productos más envío. Revisá este pedido antes de registrar pagos o avanzar.</p>:null}
   {canEditTerms?<form className="whatsapp-request-form" onSubmit={event=>void saveTerms(event)}>
    <h3>1. Confirmar disponibilidad y envío</h3>
    <label className="inline-check"><input type="checkbox" checked={stock} onChange={event=>setStock(event.target.checked)} disabled={busy}/> Verifiqué que hay stock disponible para este pedido.</label>
    <label>Costo de envío acordado (ARS)
     <input type="number" inputMode="decimal" min="0" max="10000000" step="0.01" value={shipping}
      onChange={event=>setShipping(event.target.value)} disabled={busy||freeShipping} required/>
-    <small>{freeShipping?`Envío gratuito por superar ${ars(freeShippingThreshold)} en zona elegible. Se aplica $0 sin cargos adicionales.`:"Ingresá 0 solo si confirmaste que el envío es sin cargo. Para retiro, siempre 0."}</small>
+    <small>{shippingQuote.kind==="free"?`Envío gratuito por superar ${ars(freeShippingThreshold)} en zona elegible. Se aplica $0 sin cargos adicionales.`:shippingQuote.kind==="pickup"?"Para retiro, el costo de envío es 0.":shippingQuote.kind==="priced"?`Tarifa configurada: ${ars(shippingQuote.shippingCost??0)}. Confirmá las condiciones con el cliente.`:"Ingresá el costo acordado con el cliente; si no hay tarifa configurada, no se supone ningún valor. Usá 0 solo si se confirmó sin cargo."}</small>
    </label>
    <button type="submit" className="btn tiny" disabled={busy||!stock||!shipping.trim()}>Guardar stock y envío</button>
   </form>:null}
@@ -145,7 +145,7 @@ function RequestCard({request,freeShippingThreshold}:{request:WhatsAppRequest;fr
    {request.whatsapp_request_payments.map(payment=><small key={payment.id}>{ars(Number(payment.amount))} · {payment.payment_method==="cash"?"Efectivo":"Transferencia"} · {new Date(payment.created_at).toLocaleString("es-AR")}{payment.transfer_reference?` · Ref. ${payment.transfer_reference}`:""}</small>)}
   </details>:null}
   <div className="whatsapp-request-actions">
-   {next?<button className="btn tiny" type="button" disabled={busy||blockedConfirm||blockedPreparing||blockedDelivered}
+   {next?<button className="btn tiny" type="button" disabled={busy||finance.inconsistent||blockedConfirm||blockedPreparing||blockedDelivered}
     onClick={()=>void move(next.action)}>{next.label}</button>:null}
    {blockedConfirm?<small>Primero guardá stock y costo de envío.</small>:null}
    {blockedPreparing?<small>Para transferencia, primero acreditá el pago completo.</small>:null}
@@ -164,7 +164,7 @@ const filterOptions:{id:WhatsAppAdminFilter;label:string}[]=[
  {id:"finished",label:"Finalizados"},
  {id:"all",label:"Todos"}
 ];
-export function WhatsAppRequests({requests,freeShippingThreshold=60000}:{requests:WhatsAppRequest[];freeShippingThreshold?:number}){
+export function WhatsAppRequests({requests,freeShippingThreshold=60000,zones=[]}:{requests:WhatsAppRequest[];freeShippingThreshold?:number;zones?:ShippingZone[]}){
  const [filter,setFilter]=useState<WhatsAppAdminFilter>("attention");
  const [search,setSearch]=useState("");
  const counts=useMemo(()=>whatsappRequestCounts(requests),[requests]);
@@ -189,7 +189,7 @@ export function WhatsAppRequests({requests,freeShippingThreshold=60000}:{request
    {search?<button type="button" className="btn tiny" onClick={()=>setSearch("")}>Limpiar búsqueda</button>:null}
   </div>
   <p className="hint" aria-live="polite">{visible.length} resultados · {requests.length} solicitudes recientes cargadas (máximo 100)</p>
-  <div className="whatsapp-request-list">{visible.map(request=><RequestCard key={request.id} request={request} freeShippingThreshold={freeShippingThreshold}/>)}</div>
+  <div className="whatsapp-request-list">{visible.map(request=><RequestCard key={request.id} request={request} freeShippingThreshold={freeShippingThreshold} zones={zones}/>)}</div>
   {!visible.length?<div className="whatsapp-admin-empty"><strong>{search?"No encontramos pedidos con esa búsqueda":filter==="attention"?"No hay pedidos que necesiten atención":"No hay pedidos en este estado"}</strong>
    <p>Probá otra búsqueda o revisá todas las solicitudes recientes.</p>
    <button type="button" className="btn ghost" onClick={()=>{setFilter("all");setSearch("");}}>Mostrar todos</button>

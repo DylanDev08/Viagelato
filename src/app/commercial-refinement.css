@@ -102,3 +102,18 @@
  .checkout-refresh .cart-empty .primary-action{width:100%}
  .checkout-refresh .cart-summary-panel{padding:20px}
 }
+
+
+/* Catálogo Seitu: datos claros sin alargar las fichas comerciales. */
+.catalog-free-shipping-note{display:inline-block;margin:14px 0 0;padding:11px 14px;border:1px solid #d8e7de;border-radius:9px;background:#f3f9f5;color:#24453a;font-size:13px;line-height:1.6}
+.catalog-free-shipping-note strong{font-weight:800}
+.priced-catalog .priced-flavors{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;line-clamp:2;overflow:hidden;min-height:0;color:#46504e;font-size:11px;line-height:1.55;overflow-wrap:anywhere}
+.priced-catalog .priced-flavors strong{font-weight:800;color:#202827}
+.priced-detail-variants{max-width:540px;border-left:3px solid #426a5d;background:#f4f8f6;padding:12px 14px;color:#2f4540;font-size:13px;line-height:1.65}
+.priced-detail-media{min-width:0}
+.priced-detail-gallery{display:flex;flex-wrap:wrap;gap:12px;margin-top:12px}
+.priced-detail-gallery figure{width:min(100%,180px);margin:0;border:1px solid #e4e8e6;border-radius:9px;overflow:hidden;background:#f8f9f8}
+.priced-detail-gallery figure>div{height:140px;position:relative}
+.priced-detail-gallery img{object-fit:contain;padding:8px}
+.priced-detail-gallery figcaption{padding:9px 10px;font-size:11px;line-height:1.35;color:#394844}
+@media(max-width:640px){.catalog-free-shipping-note{font-size:12px}.priced-detail-gallery figure{width:140px}.priced-detail-gallery figure>div{height:110px}}

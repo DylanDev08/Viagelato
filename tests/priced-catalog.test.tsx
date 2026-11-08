@@ -11,11 +11,20 @@ describe("precios del catálogo Viagelato de Excel",()=>{
   expect(CATALOG_PRICE_ITEMS.map(item=>item.sourceRow)).toEqual(Array.from({length:45},(_,i)=>i+2));
   expect(new Set(CATALOG_PRICE_ITEMS.map(item=>item.id)).size).toBe(45);
   expect(CATALOG_PRICE_ITEMS.every(item=>Number.isInteger(item.price)&&item.price>0)).toBe(true);
-  expect(CATALOG_PRICE_ITEMS.filter(item=>item.imageStatus==="coincidencia_exacta")).toHaveLength(43);
-  expect(CATALOG_PRICE_ITEMS.filter(item=>item.imageStatus==="referencial")).toHaveLength(0);
-  expect(CATALOG_PRICE_ITEMS.filter(item=>item.imageStatus==="sin_foto")).toHaveLength(2);
+  expect(CATALOG_PRICE_ITEMS.filter(item=>item.imageStatus==="coincidencia_exacta")).toHaveLength(44);
+  expect(CATALOG_PRICE_ITEMS.filter(item=>item.imageStatus==="referencial")).toHaveLength(1);
+  expect(CATALOG_PRICE_ITEMS.filter(item=>item.imageStatus==="sin_foto")).toHaveLength(0);
   expect(findCatalogPriceItem(1000)?.price).toBe(45900);
   expect(CATALOG_PRICE_ITEMS.find(item=>item.sourceRow===45)?.price).toBe(19900);
+ });
+ it("ubica Seibom en Palitos y conos y utiliza la foto verificada de Isabella",()=>{
+  expect(CATALOG_PRICE_ITEMS.find(item=>item.sourceRow===15)?.category).toBe("Palitos y conos");
+  expect(CATALOG_PRICE_ITEMS.find(item=>item.sourceRow===15)).toMatchObject({name:"Palitos Seibom",variants:"Almendras, blanco y cookies"});
+  expect(CATALOG_PRICE_ITEMS.find(item=>item.sourceRow===3)).toMatchObject({name:"Palito Sei Tu Fan Naranja",variants:"Naranja"});
+  expect(CATALOG_PRICE_ITEMS.find(item=>item.sourceRow===34)?.variants).toBe("Dulce de leche (clásico) y nevado");
+  expect(CATALOG_PRICE_ITEMS.find(item=>item.sourceRow===16)?.category).toBe("Palitos y conos");
+  expect(CATALOG_PRICE_ITEMS.find(item=>item.sourceRow===35)?.image).toBe("/catalogo/postres-seitu-diplay.webp");
+  expect(CATALOG_PRICE_ITEMS.find(item=>item.sourceRow===46)?.image).toBe("/catalogo/lata-helado-10-litros.webp");
  });
  it("abre fichas reales y rechaza rutas inexistentes sin dejarlas en 404",()=>{
   expect(findCatalogPriceItemByPath("44")?.name).toBe("Palitos de agua: limón, frutilla y uva");
@@ -44,6 +53,7 @@ describe("precios del catálogo Viagelato de Excel",()=>{
   expect(screen.getByText("Ver detalles del producto")).toBeInTheDocument();
   expect(screen.getByRole("button",{name:`Agregar ${item.name} al carrito`})).toBeInTheDocument();
   expect(screen.queryByText(item.description)).not.toBeInTheDocument();
+  expect(screen.getByText(/Variedades:/)).toBeInTheDocument();
  });
 
 });
