@@ -19,7 +19,7 @@
  .provisional-card-link .provisional-image img{
   transform:scale(1);
   transition:transform .42s cubic-bezier(.2,.75,.3,1);
-  will-change:transform;
+  will-change:auto;
  }
  .promo-card:is(:hover,:focus-visible)>.promo-card-media{transform:scale(1.075)}
  .hero-v2 .hero-visual.custom-hero:hover>img{transform:scale(1.055)}
@@ -90,4 +90,94 @@
  .home-type-card{grid-template-columns:112px minmax(0,1fr)}
  .home-type-photo{height:auto;min-height:112px}
  .home-type-info{padding:10px}
+}
+
+
+/* Corte Mobile 08/11: navegación, catálogo y compra con objetivos táctiles cómodos. */
+@media(max-width:960px){
+ .site-header{isolation:isolate}
+ .mobile-nav{border-radius:0 0 16px 16px}
+ .mobile-nav.is-open{
+  max-height:min(440px,calc(100dvh - 86px - env(safe-area-inset-bottom,0px)));
+  overflow-y:auto;overscroll-behavior:contain;
+ }
+ .mobile-nav nav{display:grid;gap:2px;padding-block:10px 14px}
+ .mobile-nav nav a:not(.mobile-shop-entry){font-size:clamp(17px,2.4vw,21px);line-height:1.3}
+ .menu-trigger{border-radius:10px;touch-action:manipulation}
+ .menu-trigger[aria-expanded="true"]{background:#171c19;color:white}
+ .site-header :is(a,button),.category-tabs button,.priced-add-button{touch-action:manipulation}
+}
+@media(max-width:640px){
+ /* Borde a borde en el hero sin ensanchar los textos de la grilla. */
+ .hero-v2 .hero-grid{grid-template-columns:minmax(0,1fr)}
+ .hero-v2 .hero-copy{padding-block:32px 24px}
+ .hero-v2 .hero-copy h1{font-size:clamp(32px,9vw,48px);line-height:1.06;overflow-wrap:anywhere}
+ .hero-v2 .hero-visual{width:calc(100% + 32px);margin-inline:-16px;min-height:clamp(282px,75vw,385px)}
+ .hero-v2 .temperature-card{min-width:0;max-width:calc(100% - 28px);padding:12px 14px;bottom:14px;left:14px;right:14px}
+ .hero-v2 .temperature-card strong{font-size:clamp(14px,4.1vw,17px)}
+ .hero-v2 .hero-cta :is(a,button){min-height:48px;justify-content:center;touch-action:manipulation}
+ .hero-reassurance{line-height:1.55}
+ .promo-grid{grid-template-columns:minmax(0,1fr);gap:14px}
+ .promo-card{display:flex;flex-direction:column;justify-content:flex-end;min-width:0;min-height:190px;padding:20px 58px 22px 20px}
+ .promo-card>.promo-card-title{font-size:clamp(22px,6vw,28px);line-height:1.14;max-width:100%}
+ .promo-card>p{font-size:13px;line-height:1.45;margin:9px 0 0;max-width:100%;overflow-wrap:anywhere}
+ .promo-card>svg{right:17px;bottom:22px}
+ .promo-card::before{background:linear-gradient(90deg,rgba(0,0,0,.79),rgba(0,0,0,.13))}
+ .refined-products :is(.section-title,.home-selected-heading,.home-type-intro){min-width:0}
+ .home-type-grid>*{min-width:0}
+ .home-type-info strong{hyphens:auto}
+ /* El carrito ocupa el espacio real disponible, sin recortar precios o zonas. */
+ .checkout-refresh .cart-experience-grid,
+ .checkout-refresh .cart-order-form,
+ .checkout-refresh .cart-products-panel,
+ .checkout-refresh .cart-price-breakdown,
+ .checkout-refresh .cart-shipping-goal{min-width:0;max-width:100%}
+ .checkout-refresh .cart-progress li{min-width:0;overflow-wrap:anywhere}
+ .checkout-refresh .cart-progress li strong{font-size:clamp(9px,2.5vw,11px);line-height:1.35}
+ .checkout-refresh .cart-line{grid-template-columns:68px minmax(0,1fr);gap:9px 12px}
+ .checkout-refresh .cart-line-art{width:68px;height:68px}
+ .checkout-refresh .cart-line .qty button{min-height:44px;min-width:44px;touch-action:manipulation}
+ .checkout-refresh .cart-line-actions{gap:12px}
+ .checkout-refresh .cart-line-actions>strong{min-width:0;overflow-wrap:anywhere}
+ .checkout-refresh .cart-form-panel :is(input,select,textarea){font-size:16px}
+ .checkout-refresh .cart-price-total{gap:10px}
+ .checkout-refresh .cart-price-total strong{min-width:0;max-width:64%;font-size:clamp(23px,7vw,30px);overflow-wrap:anywhere;text-align:right}
+ .checkout-refresh .cart-submit{min-height:54px;line-height:1.35;white-space:normal;touch-action:manipulation}
+ .floating-actions{max-width:100%;padding-left:calc(12px + env(safe-area-inset-left,0px));padding-right:calc(12px + env(safe-area-inset-right,0px))}
+ .floating-actions :is(.float-cart,.float-contact){min-height:48px;touch-action:manipulation}
+}
+@media(min-width:390px) and (max-width:640px){
+ /* Dos tarjetas por fila sin sacrificar botones de 44px ni precios. */
+ .home-featured-grid,.home-catalog .compact-catalog .priced-grid,
+ .priced-grid,.provisional-grid,.catalog-grid{
+  grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;
+ }
+ .priced-catalog .priced-card-body,.home-featured-grid .catalog-body{min-height:0;padding:12px}
+ .priced-catalog .priced-card h3,.home-featured-grid .catalog-body h3{font-size:13px;line-height:1.4}
+ .priced-card-bottom strong,.home-featured-grid .catalog-buy strong{font-size:clamp(15px,4.1vw,19px);overflow-wrap:anywhere}
+ .priced-image,.provisional-image{aspect-ratio:1.12}
+ .home-featured-grid .catalog-art{height:auto;aspect-ratio:1.12}
+ .priced-catalog .priced-cart-action{padding:0 10px 11px}
+ .priced-catalog .priced-add-button{min-height:44px;font-size:12px;padding-inline:7px;white-space:normal}
+ .priced-catalog .priced-cart-link{font-size:11px;overflow-wrap:anywhere}
+ .home-featured-grid .catalog-buy button{min-width:44px;min-height:44px}
+}
+@media(max-width:389px){
+ /* En 320–389px las fichas quedan legibles en una sola columna. */
+ .home-featured-grid,.home-catalog .compact-catalog .priced-grid,
+ .priced-grid,.provisional-grid,.catalog-grid{grid-template-columns:minmax(0,1fr)}
+ .priced-catalog .priced-card-body{min-height:0}
+ .priced-catalog .priced-add-button{min-height:48px}
+}
+@media(max-width:420px){
+ /* La shell usa 14px de margen lateral en equipos estrechos. */
+ .hero-v2 .hero-visual{width:calc(100% + 28px);margin-inline:-14px}
+ .hero-v2 .hero-visual.product-composition .temperature-card{bottom:10px}
+ .site-brand small{letter-spacing:.03em}
+ .mobile-nav.is-open{max-height:min(430px,calc(100dvh - 68px - env(safe-area-inset-bottom,0px)))}
+}
+@media(hover:none){
+ /* Evitar el hover persistente que ciertos navegadores táctiles simulan. */
+ .home-type-card:hover,.priced-catalog .priced-card:hover,
+ .home-catalog .compact-catalog .provisional-card:hover{transform:none!important}
 }

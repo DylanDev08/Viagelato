@@ -41,6 +41,24 @@ describe("hover y adaptación visual",()=>{
   expect(css).toContain("@media(prefers-reduced-motion:reduce),(hover:none)");
   expect(css).toContain(":focus-visible");
  });
+ it("usa dos tarjetas legibles en móviles medianos y una en móviles estrechos",()=>{
+  expect(css).toContain("@media(min-width:390px) and (max-width:640px)");
+  expect(css).toContain("@media(max-width:389px)");
+  expect(css).toContain("grid-template-columns:repeat(2,minmax(0,1fr))");
+  expect(css).toContain("grid-template-columns:minmax(0,1fr)");
+  expect(css).toContain(".priced-catalog .priced-add-button{min-height:44px");
+ });
+ it("mantiene banners legibles e imágenes sin hover persistente en pantallas táctiles",()=>{
+  expect(css).toContain(".promo-card::before{background:linear-gradient");
+  expect(css).toContain(".promo-card>svg{right:17px;bottom:22px}");
+  expect(css).toContain("@media(hover:none)");
+  expect(css).toContain(".home-type-card:hover");
+ });
+ it("reduce el loader en horizontal y pantallas estrechas",()=>{
+  const loading=readFileSync("src/app/security-loading.css","utf8");
+  expect(loading).toContain("@media(max-height:540px) and (max-width:960px)");
+  expect(loading).toContain("@media(max-width:389px)");
+ });
  it("prioriza mobile estrecho y deja libre el carrito sin barra flotante",()=>{
   const layout=readFileSync("src/app/layout.tsx","utf8");
   expect(layout.indexOf('import "./mobile-visual-polish.css";')).toBeGreaterThan(layout.indexOf('import "./button-hover-theme.css";'));

@@ -3,7 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import {Menu,ShoppingBag,X} from "lucide-react";
-import {useEffect,useState} from "react";
+import {useEffect,useRef,useState} from "react";
 import {useCart} from "./cart";
 import type {Settings} from "@/lib/types";
 
@@ -16,14 +16,22 @@ const links=[
 
 export function SiteHeader({settings}:{settings:Settings}){
  const [open,setOpen]=useState(false);
+ const headerRef=useRef<HTMLElement>(null);
  const {count}=useCart();
  useEffect(()=>{
   if(!open)return;
   const close=(event:KeyboardEvent)=>{if(event.key==="Escape")setOpen(false);};
+  const closeOutside=(event:PointerEvent)=>{
+   if(headerRef.current&&!headerRef.current.contains(event.target as Node))setOpen(false);
+  };
   window.addEventListener("keydown",close);
-  return ()=>window.removeEventListener("keydown",close);
+  document.addEventListener("pointerdown",closeOutside);
+  return ()=>{
+   window.removeEventListener("keydown",close);
+   document.removeEventListener("pointerdown",closeOutside);
+  };
  },[open]);
- return <header className="site-header">
+ return <header ref={headerRef} className="site-header">
   <div className="shell header-row">
    <Link className="site-brand" href="/" aria-label={`${settings.name}, inicio`} onClick={()=>setOpen(false)}>
     <Image src={settings.logo_url||"/viagelato-logo.png"} alt="" width={42} height={42} unoptimized={Boolean(settings.logo_url)}/>

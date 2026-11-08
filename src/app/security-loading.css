@@ -62,3 +62,25 @@
 .viagelato-turnstile>div{max-width:100%}
 .viagelato-turnstile p{font-size:12px;line-height:1.5;color:#65716a}
 .viagelato-turnstile [role="alert"]{color:#a33333}
+
+
+/* Loader adaptable también para teléfonos bajos y orientación horizontal. */
+@media(max-width:389px){
+ .viagelato-loading{padding-inline:16px}
+ .viagelato-loading-scene{width:158px}
+ .viagelato-loading-mark{width:88px;height:88px;font-size:42px;border-radius:21px}
+ .viagelato-loading-flake,.viagelato-loading-route{width:40px;height:40px}
+ .viagelato-loading h1{font-size:clamp(25px,8vw,31px)}
+ .viagelato-loading-eyebrow{max-width:275px;line-height:1.5}
+}
+@media(max-height:540px) and (max-width:960px){
+ .viagelato-loading{min-height:100svh;gap:10px;padding:18px 14px}
+ .viagelato-loading-scene{width:118px;margin:0}
+ .viagelato-loading-mark{width:74px;height:74px;font-size:36px;border-radius:18px}
+ .viagelato-loading-flake,.viagelato-loading-route{width:31px;height:31px}
+ .viagelato-loading-copy{gap:6px}
+ .viagelato-loading h1{font-size:24px}
+ .viagelato-loading-caption{font-size:12px}
+ .viagelato-loading-track{margin:0}
+ .viagelato-loading-footnote{display:none}
+}
