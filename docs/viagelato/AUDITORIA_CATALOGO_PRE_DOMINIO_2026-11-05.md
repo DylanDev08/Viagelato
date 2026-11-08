@@ -1,4 +1,6 @@
 # Viagelato · Control de catálogo y corte previo al dominio
+
+> **Actualización comercial del 05/11/2026:** los $60.000 son el mínimo para envío gratis en localidades elegibles, NO un costo fijo fuera de cobertura. Esa tarifa histórica deja de aplicar: destinos externos se cotizan por WhatsApp. Documento vigente: [Corrección de envíos y pedidos](./CORRECCION_ENVIOS_PEDIDOS_2026-11-05.md).
 **Fecha de revisión:** 2026-11-05
 
 ## Fuentes de verdad

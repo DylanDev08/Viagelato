@@ -39,25 +39,41 @@ describe("carrito con total y envío visible",()=>{
   expect(summary.querySelector(".cart-price-total strong")).toHaveTextContent("26.900");
   expect(within(summary).getByText(/5.000/)).toBeInTheDocument();
  });
- it("Capital Federal suma la tarifa fija fuera de zona incluso sobre el mínimo",async()=>{
+ it("Capital Federal muestra tarifa pendiente incluso sobre el mínimo",async()=>{
   const user=userEvent.setup(),summary=setup();
   for(let i=0;i<3;i++)await user.click(screen.getByRole("button",{name:"Agregar presentación de prueba"}));
   await user.selectOptions(screen.getByLabelText("Zona de entrega"),"Capital Federal");
-  expect(within(summary).getByText("Total del pedido")).toBeInTheDocument();
-  expect(summary.querySelector(".cart-price-total strong")).toHaveTextContent("125.700");
+  expect(within(summary).getByText("Total de productos")).toBeInTheDocument();
+  expect(summary.querySelector(".cart-price-total strong")).toHaveTextContent("65.700");
   expect(within(summary).queryByText("Gratis")).not.toBeInTheDocument();
-  expect(summary.querySelectorAll(".cart-price-row strong")[1]).toHaveTextContent("60.000");
-  expect(screen.getByText(/Capital Federal: envío fuera de zona/)).toBeInTheDocument();
+  expect(summary.querySelectorAll(".cart-price-row strong")[1]).toHaveTextContent("A confirmar");
+  expect(screen.getByText(/Capital Federal: consultamos cobertura/)).toBeInTheDocument();
  });
- it("al elegir localidad fuera de zonas suma 60.000 al subtotal",async()=>{
+ it("al elegir localidad fuera de zonas deja el envío sin cotizar",async()=>{
   const user=userEvent.setup(),summary=setup();
   await user.click(screen.getByRole("button",{name:"Agregar presentación de prueba"}));
   await user.selectOptions(screen.getByLabelText("Zona de entrega"),"other");
   await user.type(screen.getByRole("textbox",{name:"Escribí tu localidad"}),"Quilmes Oeste");
-  expect(within(summary).getByText("Total del pedido")).toBeInTheDocument();
-  expect(summary.querySelectorAll(".cart-price-row strong")[1]).toHaveTextContent("60.000");
-  expect(summary.querySelector(".cart-price-total strong")).toHaveTextContent("81.900");
+  expect(within(summary).getByText("Total de productos")).toBeInTheDocument();
+  expect(summary.querySelectorAll(".cart-price-row strong")[1]).toHaveTextContent("A confirmar");
+  expect(summary.querySelector(".cart-price-total strong")).toHaveTextContent("21.900");
   await user.type(screen.getByLabelText("Nombre y apellido"),"Ana Gomez");
   expect(screen.getByRole("button",{name:"Pagar por WhatsApp"})).toBeEnabled();
+ });
+ it("muestra cuánto falta para obtener envío gratis solo en las zonas elegibles",async()=>{
+  const user=userEvent.setup();setup();
+  await user.click(screen.getByRole("button",{name:"Agregar presentación de prueba"}));
+  const benefit=screen.getByRole("region",{name:"Beneficio de envío gratis"});
+  expect(benefit).toHaveTextContent(/Elegí tu zona/);
+  await user.selectOptions(screen.getByLabelText("Zona de entrega"),"Lanús");
+  expect(benefit).toHaveTextContent("38.100");
+  expect(screen.getByRole("progressbar",{name:"Progreso para envío gratis"})).toHaveAttribute("aria-valuenow","37");
+  await user.click(screen.getByRole("button",{name:"Agregar presentación de prueba"}));
+  await user.click(screen.getByRole("button",{name:"Agregar presentación de prueba"}));
+  expect(benefit).toHaveTextContent(/Tu compra tiene envío gratis/);
+  expect(screen.queryByRole("progressbar",{name:"Progreso para envío gratis"})).not.toBeInTheDocument();
+  await user.selectOptions(screen.getByLabelText("Zona de entrega"),"Capital Federal");
+  expect(benefit).toHaveTextContent(/Envío gratuito no disponible/);
+  expect(benefit).not.toHaveTextContent("38.100");
  });
 });

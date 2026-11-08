@@ -17,12 +17,12 @@ describe("enrutamiento administrativo Vercel / Render",()=>{
   const sources=(rewrites.beforeFiles??[]).map(rule=>rule.source);
   expect(sources).not.toContain("/api/:path*");
   expect(sources.every(source=>!source.includes("/api/admin"))).toBe(true);
-  expect(sources).toEqual(["/api/checkout","/api/cron/:path*"]);
+  expect(sources).toEqual(["/api/cron/:path*"]);
+  expect(sources).not.toContain("/api/checkout");
  });
- it("mantiene solo checkout legado y cron en Render, con health local",async()=>{
+ it("deja checkout deshabilitable y health en Vercel, proxy solo para cron legado",async()=>{
   const rewrites=await rules("https://viagelato-api.onrender.com");
   expect(rewrites.beforeFiles).toEqual([
-   {source:"/api/checkout",destination:"https://viagelato-api.onrender.com/api/checkout"},
    {source:"/api/cron/:path*",destination:"https://viagelato-api.onrender.com/api/cron/:path*"},
   ]);
  });
