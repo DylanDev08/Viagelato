@@ -24,9 +24,14 @@ describe("mensaje preparado y selección vigente",()=>{
   await user.selectOptions(screen.getByLabelText("Zona de entrega"),"Lanús");
   await user.click(screen.getByRole("button",{name:/Pagar por WhatsApp/}));
   await waitFor(()=>expect(send).toHaveBeenCalledOnce());
+  const submitted=JSON.parse(String((send.mock.calls[0] as unknown as [string,RequestInit])[1].body));
+  expect(submitted).toMatchObject({
+   expected_subtotal:21900,expected_shipping_kind:"pending",
+   expected_shipping_cost:null,expected_total:null
+  });
   expect(screen.getByLabelText("Nombre y apellido")).toBeDisabled();
   expect(screen.getByRole("button",{name:/Vaciar carrito/})).toBeDisabled();
-  finish(Response.json({reference:"VIA-TEST",whatsapp_url:"https://wa.me/5491140962202?text=test",subtotal:21900},{status:201}));
+  finish(Response.json({reference:"VIA-TEST",whatsapp_url:"https://wa.me/5491140962202?text=test",subtotal:21900,shipping_kind:"pending",shipping_cost:null,total:null},{status:201}));
   expect(await screen.findByRole("link",{name:"Abrir WhatsApp para enviar el mensaje"})).toBeInTheDocument();
   await user.type(screen.getByLabelText("Nombre y apellido")," editado");
   expect(screen.queryByRole("link",{name:"Abrir WhatsApp para enviar el mensaje"})).not.toBeInTheDocument();

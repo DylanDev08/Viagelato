@@ -4,7 +4,8 @@ import {describe,expect,it} from "vitest";
 describe("producción: salud de Vercel y flujo de ficha de producto",()=>{
  it("la verificación de salud no depende del antiguo Render",()=>{
   const config=readFileSync("next.config.ts","utf8");
-  expect(config).toContain('const renderRoutes=["/api/checkout","/api/cron/:path*"]');
+  expect(config).toContain('const renderRoutes=["/api/cron/:path*"]');
+  expect(config).not.toContain('const renderRoutes=["/api/checkout"');
   expect(config).not.toMatch(/const renderRoutes=\[[^\]]*"\/api\/health"/);
   const route=readFileSync("src/app/api/health/route.ts","utf8");
   expect(route).toContain('status: "ok"');

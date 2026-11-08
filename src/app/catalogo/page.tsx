@@ -5,6 +5,7 @@ import {ProductCard} from "@/components/product-card";
 import {SiteShell} from "@/components/site-shell";
 import {getStore} from "@/lib/site";
 import {getPublicCatalog} from "@/lib/catalog-source";
+import {ars} from "@/lib/types";
 
 export const dynamic="force-dynamic";
 export const metadata:Metadata={title:"Catálogo y precios",description:"Explorá las presentaciones de helados y congelados de Viagelato con precios finales por presentación y consulta de disponibilidad.",alternates:{canonical:"/catalogo"}};
@@ -20,6 +21,7 @@ export default async function CatalogPage({searchParams}:{searchParams:Promise<{
    <h1>Elegí helados y congelados.</h1>
    <p>Encontrá tus productos, compará precios por caja o presentación y agregá todo a un solo carrito.</p>
    <p className="prelaunch-note">Confirmamos disponibilidad, entrega y pago por WhatsApp. No cobramos desde la web.</p>
+   <p className="catalog-free-shipping-note"><strong>Envío sin cargo desde {ars(Number(settings.free_shipping_threshold))}</strong> en las zonas habilitadas. En otras localidades se aplica la tarifa que figure en el carrito.</p>
   </section>
   <section className="shell catalog-page">
    <p className="priced-catalog-source">Buscá por nombre o sabor, filtrá por tipo de producto y agregá las presentaciones que necesitás.</p>

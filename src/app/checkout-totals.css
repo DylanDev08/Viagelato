@@ -57,3 +57,16 @@
 .checkout-refresh .cart-existing-order button:focus-visible{outline:3px solid #447b73;outline-offset:3px}
 .checkout-refresh .cart-existing-order button:disabled{opacity:.55;cursor:wait}
 @media(max-width:440px){.checkout-refresh .cart-existing-order button{width:100%}}
+
+/* Progreso de envío gratis: solo en localidades comerciales elegibles. */
+.checkout-refresh .cart-shipping-goal{padding:15px 16px;border:1px solid #dce6e2;background:#f8faf9;border-radius:13px;margin:0 0 16px}
+.checkout-refresh .cart-shipping-goal-content{display:flex;align-items:flex-start;gap:11px}
+.checkout-refresh .cart-shipping-goal-content>svg{flex-shrink:0;color:#43665b;margin-top:1px}
+.checkout-refresh .cart-shipping-goal-content strong{font-size:13px;line-height:1.4;color:#1a3229}
+.checkout-refresh .cart-shipping-goal-content p{font-size:12px;color:#52655b;line-height:1.55;margin:5px 0 0}
+.checkout-refresh .cart-shipping-goal-track{height:8px;border-radius:20px;background:#d7e4dc;margin-top:13px;overflow:hidden}
+.checkout-refresh .cart-shipping-goal-track>span{display:block;height:100%;border-radius:20px;background:#397153;transition:width .2s ease}
+.checkout-refresh .cart-shipping-goal-ineligible{background:#faf9f5;border-color:#e8e3d7}
+.checkout-refresh .cart-shipping-goal-ineligible .cart-shipping-goal-content>svg{color:#877146}
+@media(max-width:640px){.checkout-refresh .cart-shipping-goal{padding:13px 14px;margin-bottom:10px}}
+@media(prefers-reduced-motion:reduce){.checkout-refresh .cart-shipping-goal-track>span{transition:none}}

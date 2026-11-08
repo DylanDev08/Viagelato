@@ -1,3 +1,5 @@
+import "../admin-corte04.css";
+import "../admin-whatsapp-priority.css";
 import {redirect} from "next/navigation";
 import {assertAdmin} from "@/lib/supabase";
 export const dynamic="force-dynamic";

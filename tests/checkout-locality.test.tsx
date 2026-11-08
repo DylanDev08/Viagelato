@@ -10,9 +10,9 @@ describe("localidades fuera de la cobertura predefinida",()=>{
   const user=userEvent.setup();
   render(<CartProvider><Checkout products={[]} zones={[]} settings={DEFAULT_SETTINGS} demo={false} checkoutEnabled={false}/></CartProvider>);
   await user.selectOptions(screen.getByLabelText("Zona de entrega"),"Capital Federal");
-  expect(screen.getByText(/Capital Federal: entrega y costo siempre a consultar/)).toBeInTheDocument();
+  expect(screen.getByText(/Capital Federal: consultamos cobertura, costo y fecha de entrega/)).toBeInTheDocument();
   expect(screen.queryByRole("textbox",{name:"Escribí tu localidad"})).not.toBeInTheDocument();
-  await user.selectOptions(screen.getByLabelText("Forma de pago preferida"),"cash_on_delivery");
+  await user.click(screen.getByRole("radio",{name:/Efectivo al recibir/}));
   expect(screen.getByText("Efectivo al recibir, sujeto a confirmación")).toBeInTheDocument();
  });
  it("permite escribir localidad real sin enviar literalmente 'Otra localidad'",async()=>{
@@ -23,7 +23,7 @@ describe("localidades fuera de la cobertura predefinida",()=>{
   const locality=screen.getByRole("textbox",{name:"Escribí tu localidad"});
   await user.type(locality,"Quilmes Oeste");
   expect(locality).toHaveValue("Quilmes Oeste");
-  expect(screen.getByText(/cotización de envío y confirmación de cobertura/)).toBeInTheDocument();
+  expect(screen.getByText(/Fuera de las zonas habilitadas, consultamos cobertura, costo y fecha/)).toBeInTheDocument();
   await user.selectOptions(select,"Lanús");
   expect(screen.queryByRole("textbox",{name:"Escribí tu localidad"})).not.toBeInTheDocument();
  });

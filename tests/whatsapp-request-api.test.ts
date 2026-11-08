@@ -4,6 +4,7 @@ import {POST} from "@/app/api/whatsapp-request/route";
 import {connected,privilegedDb} from "@/lib/supabase";
 import {normalizeWhatsAppRequest,whatsappRequestSchema} from "@/lib/whatsapp-request-rules";
 
+vi.mock("server-only",()=>({}));
 vi.mock("@/lib/supabase",()=>({connected:vi.fn(()=>true),privilegedDb:vi.fn()}));
 const id="11111111-2222-4333-8444-555555555555",key="22222222-3333-4444-8555-666666666666";
 const payload={customer_name:"Ana Gomez",locality:"Lanús",address:"Av. Mitre 123",notes:"",
@@ -21,10 +22,11 @@ describe("registrar referencia WhatsApp",()=>{
  const catalogRead=vi.fn(async()=>({data:[{slug:"excel-fila-2",name:"Palitos de agua",sku:"VIA-CAT-2",presentation:"Caja x24",price:21900}],error:null}));
  const productRead=vi.fn();
  const shippingRead=vi.fn(async():Promise<{data:Record<string,unknown>[]|null;error:{message:string}|null}>=>({data:[],error:null}));
+ let pickupEnabled=false;
  beforeEach(()=>{
-  vi.clearAllMocks();vi.mocked(connected).mockReturnValue(true);
+  vi.clearAllMocks();pickupEnabled=false;vi.mocked(connected).mockReturnValue(true);
   process.env.SUPABASE_SERVICE_ROLE_KEY="abcdefghijklmnopqrstuvwxyz0123456789SERVICE";
-  process.env.CHECKOUT_RATE_LIMIT_SALT="test-only-salt";
+  process.env.CHECKOUT_RATE_LIMIT_SALT="test-only-salt-dedicated-to-rate-limit-2026";
   rpc.mockResolvedValue({data:true,error:null});
   productRead.mockResolvedValue({data:[{id,name:"Helado",sku:"VIA-PUBLIC",presentation:"Caja",price:1200,stock:2}],error:null});
   priorRead.mockResolvedValue({data:null,error:null});
@@ -37,13 +39,59 @@ describe("registrar referencia WhatsApp",()=>{
   vi.mocked(privilegedDb).mockReturnValue({
    rpc,
    from:vi.fn((table:string)=>{
-    if(table==="site_settings")return {select:()=>({eq:()=>({single:async()=>({data:{whatsapp:"+5491140962202",free_shipping_threshold:60000,pickup_enabled:false},error:null})})})};
+    if(table==="site_settings")return {select:()=>({eq:()=>({single:async()=>({data:{whatsapp:"+5491140962202",free_shipping_threshold:60000,pickup_enabled:pickupEnabled,address:"Eva Perón 3050, Lanús Este"},error:null})})})};
     if(table==="shipping_zones")return {select:()=>({eq:()=>({eq:()=>({not:shippingRead})})})};
     if(table==="whatsapp_order_requests")return {select:()=>({eq:()=>({maybeSingle:priorRead})}),upsert:insert};
     if(table==="products")return {select:()=>({eq:()=>({in:catalogRead}),in:()=>({eq:()=>({eq:()=>({gt:productRead})})})})};
     throw Error("Tabla inesperada: "+table);
    })
   } as unknown as ReturnType<typeof privilegedDb>);
+ });
+ it("no guarda borrador si el cliente vio envío pendiente pero la tarifa cambió",async()=>{
+  shippingRead.mockResolvedValue({data:[{
+   name:"Lanús",cost:4800,active:true,ready:true,free_shipping_eligible:true
+  }],error:null});
+  const res=await POST(make({...payload,expected_shipping_kind:"pending",
+   expected_shipping_cost:null,expected_total:null}));
+  expect(res.status).toBe(409);
+  expect(await res.json()).toMatchObject({code:"SHIPPING_QUOTE_CHANGED"});
+  expect(insert).not.toHaveBeenCalled();
+ });
+ it("fuera de cobertura: bloquea tarifa alterada antes de registrar",async()=>{
+  const res=await POST(make({...payload,locality:"Rosario",
+   expected_shipping_kind:"priced",expected_shipping_cost:0,expected_total:43800}));
+  expect(res.status).toBe(409);
+  expect(await res.json()).toMatchObject({code:"SHIPPING_QUOTE_CHANGED"});
+  expect(insert).not.toHaveBeenCalled();
+ });
+ it("fuera de zona: presupuesto pendiente coincide y registra una sola solicitud",async()=>{
+  const res=await POST(make({...payload,locality:"Rosario",
+   expected_shipping_kind:"pending",expected_shipping_cost:null,expected_total:null}));
+  expect(res.status).toBe(201);
+  expect(await res.json()).toMatchObject({shipping_kind:"pending",shipping_cost:null,total:null});
+  expect(insert).toHaveBeenCalledTimes(1);
+ });
+ it("fuera de las siete zonas no regala envío aunque una tarifa tenga el indicador habilitado",async()=>{
+  shippingRead.mockResolvedValue({data:[{
+   name:"Quilmes Oeste",cost:7000,active:true,ready:true,free_shipping_eligible:true
+  }],error:null});
+  const res=await POST(make({...payload,locality:"Quilmes Oeste",items:[{id:"catalog-price-2",quantity:3}],
+   expected_shipping_kind:"priced",expected_shipping_cost:7000,expected_total:72700}));
+  expect(res.status).toBe(201);
+  expect(await res.json()).toMatchObject({shipping_kind:"priced",shipping_cost:7000,total:72700});
+  expect(insert).toHaveBeenCalledTimes(1);
+ });
+ it("respeta el envío gratis y confirma la cotización de cliente",async()=>{
+  const res=await POST(make({...payload,items:[{id:"catalog-price-2",quantity:3}],
+   expected_shipping_kind:"free",expected_shipping_cost:0,expected_total:65700}));
+  expect(res.status).toBe(201);
+  expect(await res.json()).toMatchObject({shipping_kind:"free",shipping_cost:0,total:65700});
+ });
+ it("rechaza cotizaciones incompletas en lugar de guardar solicitudes",async()=>{
+  const res=await POST(make({...payload,expected_shipping_kind:"priced"}));
+  expect(res.status).toBe(400);
+  expect(insert).not.toHaveBeenCalled();
+  expect(rpc).not.toHaveBeenCalled();
  });
  it("guarda solicitud con importe fijado en el servidor y sin cobrar",async()=>{
   const res=await POST(make());
@@ -80,13 +128,38 @@ describe("registrar referencia WhatsApp",()=>{
   expect(decodeURIComponent(data.whatsapp_url)).toContain("48.600");
   expect(insert).toHaveBeenCalledWith(expect.objectContaining({subtotal:43800}),expect.anything());
  });
- it("para una localidad fuera de cobertura no inventa una tarifa",async()=>{
+ it("fuera de zona: solicita cotización sin cargo automático de 60.000",async()=>{
   const response=await POST(make({...payload,locality:"Quilmes Oeste"}));
   const data=await response.json();
   expect(response.status).toBe(201);
+  expect(data.subtotal).toBe(43800);
   expect(data.shipping_cost).toBeNull();
   expect(data.total).toBeNull();
+  expect(data.shipping_kind).toBe("pending");
   expect(decodeURIComponent(data.whatsapp_url)).toContain("Total final con envío: a confirmar");
+ });
+ it("impide solicitar retiro en el local cuando esté deshabilitado",async()=>{
+  const response=await POST(make({...payload,shipping_method:"pickup"}));
+  expect(response.status).toBe(409);
+  expect(insert).not.toHaveBeenCalled();
+ });
+ it("retiro habilitado: subtotal exacto, envío cero y punto de retiro en WhatsApp",async()=>{
+  pickupEnabled=true;
+  const response=await POST(make({...payload,shipping_method:"pickup",locality:"Rosario",address:"Dirección ajena"}));
+  expect(response.status).toBe(201);
+  const data=await response.json();
+  expect(data.shipping_kind).toBe("pickup");
+  expect(data.shipping_cost).toBe(0);
+  expect(data.subtotal).toBe(43800);
+  expect(data.total).toBe(43800);
+  expect(insert).toHaveBeenCalledWith(expect.objectContaining({
+   locality:"Lanús Este",address:"",shipping_method:"pickup",subtotal:43800
+  }),expect.anything());
+  const message=decodeURIComponent(data.whatsapp_url);
+  expect(message).toContain("Retiro en el local (horario a confirmar)");
+  expect(message).toContain("Punto de retiro: Eva Perón 3050");
+  expect(message).toContain("Envío: retiro sin cargo");
+  expect(message).not.toContain("Dirección ajena");
  });
  it("no confirma importes de envío cuando no puede verificar las tarifas",async()=>{
   shippingRead.mockResolvedValue({data:null,error:{message:"temporarily unavailable"}});
@@ -175,6 +248,20 @@ describe("registrar referencia WhatsApp",()=>{
   expect((await POST(make({...payload,items:[payload.items[0],payload.items[0]]}))).status).toBe(400);
   expect((await POST(make({...payload,items:[{id:"catalog-price-47",quantity:1}]}))).status).toBe(400);
   expect(insert).not.toHaveBeenCalled();
+ });
+ it("no utiliza service_role como secreto del rate limiter si falta la clave dedicada",async()=>{
+  delete process.env.CHECKOUT_RATE_LIMIT_SALT;
+  const response=await POST(make());
+  expect(response.status).toBe(503);
+  expect(await response.text()).not.toContain("SERVICE");
+  expect(privilegedDb).not.toHaveBeenCalled();
+  expect(rpc).not.toHaveBeenCalled();
+  expect(insert).not.toHaveBeenCalled();
+ });
+ it("rechaza una clave demasiado corta antes de leer la base",async()=>{
+  process.env.CHECKOUT_RATE_LIMIT_SALT="test";
+  expect((await POST(make())).status).toBe(503);
+  expect(privilegedDb).not.toHaveBeenCalled();
  });
  it("no registra si la base está sin conectar",async()=>{
   vi.mocked(connected).mockReturnValue(false);

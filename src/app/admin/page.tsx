@@ -1,6 +1,7 @@
 import {assertAdmin,privilegedDb} from "@/lib/supabase";
 import {redirect} from "next/navigation";
 import {AdminDashboard} from "@/components/admin-dashboard";
+import {reportServerFailure} from "@/lib/server-diagnostics";
 import {DEFAULT_SETTINGS,type Product,type Category,type Order,type ShippingZone,type Settings,type Banner,type WhatsAppRequest} from "@/lib/types";
 
 export default async function AdminPage(){
@@ -22,11 +23,7 @@ export default async function AdminPage(){
   ["payment_settings",payment.error],["banners",banners.error],["whatsapp_order_requests",requests.error],
  ].filter((entry)=>entry[1]!==null);
  if(failures.length){
-  // Diagnóstico solo en el servidor; nunca mostrar consultas o datos privados al cliente.
-  console.error("Viagelato admin data load failed",failures.map(([table,error])=>({
-   table,code:typeof error==="object"&&error&&"code" in error?error.code:undefined,
-   message:typeof error==="object"&&error&&"message" in error?error.message:undefined,
-  })));
+  reportServerFailure("admin_data_load_failed",failures.map(([source,error])=>({source:String(source),error})));
   throw new Error("No se pudieron cargar los datos del administrador.");
  }
  const settings={...DEFAULT_SETTINGS,...site.data,...payment.data} as Settings;

@@ -26,9 +26,9 @@ describe("entrada de administración desde celular",()=>{
   await user.click(within(overlay).getByRole("link",{name:"Ver mi carrito"}));
   expect(overlay).toHaveAttribute("aria-hidden","true");
  });
- it("deja un acceso alternativo en el pie sin saltarse la autenticación",()=>{
+ it("no publica accesos administrativos en el pie",()=>{
   render(<SiteFooter settings={DEFAULT_SETTINGS}/>);
-  expect(screen.getByRole("link",{name:"Acceso administración"})).toHaveAttribute("href","/admin");
+  expect(screen.queryByRole("link",{name:"Acceso administración"})).not.toBeInTheDocument();
  });
  it("el login muestra la contraseña solo tras pedirlo",async()=>{
   const user=userEvent.setup();
@@ -76,6 +76,7 @@ describe("menú rápido administrativo",()=>{
   const confirm=vi.spyOn(window,"confirm").mockReturnValue(false);
   render(<AdminDashboard {...props}/>);
   await user.click(screen.getByRole("button",{name:"Acceso rápido: Productos"}));
+  await user.click(screen.getByRole("button",{name:"+ Nuevo producto"}));
   await user.type(screen.getByLabelText("Nombre del producto"),"Copa helada");
   await user.click(screen.getByRole("button",{name:"Acceso rápido: Pedidos online"}));
   expect(confirm).toHaveBeenCalledOnce();

@@ -21,15 +21,15 @@ Se abre WhatsApp con el mensaje para revisar y enviar. Abrir el enlace no confir
 
 ## Base de datos y migraciones
 
-El proyecto identificado para Viagelato es `mxopaakzlmjbnrwolpgh`. No reutilizar bases de otros negocios.
+**Proyecto de producción:** `Viagelato-ECommerce` (`mxopaakzlmjbnrwolpgh`), independiente de otros negocios.
 
-Para una base **nueva y descartable**, aplicar `supabase/schema.sql`, los archivos de `supabase/patches` ordenados por nombre y luego `supabase/migrations` ordenadas por nombre. El esquema base por sí solo no contiene los cambios históricos del flujo WhatsApp.
+**Estado auditado el 02/11/2026:** 10 migraciones registradas en Supabase, 14/14 tablas `public` con RLS, lectura pública limitada por 5 políticas y 9 tablas internas privadas sin políticas de cliente. Los 10 RPC de `public` deniegan ejecución pública. Última migración: `20261102115243_viagelato_rls_default_grants_lockdown`, **ya aplicada en la base real** y versionada en Git (PR #42). No volver a aplicarla por rutina.
 
-Para una base existente, inventariar primero las columnas, funciones y parches ya aplicados. No ejecutar otra vez todo el esquema ni todos los parches: algunos contienen actualizaciones de visibilidad. Revisar cada migración pendiente, probarla en staging y coordinar su aplicación. Este corte no aplica SQL a producción.
+Para **PostgreSQL de pruebas descartable**, `npm run test:db` aplica `supabase/schema.sql`, luego `supabase/patches/*.sql` y luego los archivos de `supabase/migrations/` ordenados por nombre. Nunca ejecutar este procedimiento completo sobre producción. El historial remoto contiene versiones que no están en archivos individuales de `supabase/migrations/`: cotejar siempre el historial y el estado de esquema antes de cada cambio.
 
-La migración `20261030000158_checkout_attempt_limits.sql` agrega conteo de reintentos, serializa el limitador por cliente y agrega dos índices de claves foráneas. No modifica pedidos, precios ni stock. Requiere los parches de WhatsApp previos. El nombre fue generado por Supabase CLI en UTC (30/10; fecha local del corte: 29/10).
+Los objetos administrativos y los pedidos usan `service_role` exclusivamente del lado del servidor, tras comprobación de sesión, rol y datos de entrada. No exponer esa clave en componentes cliente. El acceso público a los datos comerciales requiere permisos SQL **y** políticas RLS; las tablas privadas sin políticas quedan cerradas intencionalmente.
 
-Crear el usuario administrador con Supabase Auth y conceder su UUID en `admin_users` mediante un procedimiento operativo autorizado. Las tablas privadas no tienen políticas públicas; esto es deliberado. La service role se utiliza sólo en servidor, después de verificar la sesión y el permiso administrativo para las operaciones del panel.
+Documentos vigentes: [estado de Supabase y RLS](docs/viagelato/ESTADO_SUPABASE_RLS_20261102.md), [procedimiento de migración y despliegue](docs/viagelato/RUNBOOK_MIGRACIONES_RLS.md), [configuración de Supabase](docs/viagelato/CONFIGURACION_SUPABASE.md) y [alta del administrador](docs/viagelato/admin-setup.md). Los informes de octubre son históricos y no sustituyen estos procedimientos.
 
 ## Configuración
 
@@ -44,15 +44,16 @@ El formulario público requiere Origin propio o el origen canónico configurado.
 
 ## Verificación
 
-```text
-npm run typecheck
-npm run lint
+```bash
+npm ci
 npm test
-npm run test:db
+npm run lint
+npm run typecheck
+npm run test:db      # Docker requerido; usa PostgreSQL descartable
+npm audit --omit=dev --audit-level=moderate
 npm run build
-npm audit --audit-level=moderate
 ```
 
-`test:db` requiere Docker y crea/elimina una base PostgreSQL 17 descartable sin usar secretos de producción. Comprueba transacciones, RLS/permisos y concurrencia. No sustituye pruebas reales de Supabase Auth, correo o Storage. La CI ejecuta estas comprobaciones.
+En CI, la auditoría completa de dependencias de desarrollo se ejecuta adicionalmente como advertencia no bloqueante y está documentada en la [Issue #40](https://github.com/DylanDev08/Viagelato/issues/40). Las pruebas PostgreSQL no sustituyen Supabase Auth, Storage, navegador ni pedidos completos con datos de staging.
 
-Ver [el informe del corte](docs/viagelato/INFORME_ESTABILIZACION_20261029.md) para hallazgos por gravedad, resultados reales, archivos y pendientes. No hay merge, aplicación de migraciones ni despliegue de producción automático en este trabajo.
+**Corte de referencia:** PR #39 (seguridad/admin), PR #41 (CSRF y cabeceras), PR #42 (migración y RLS), todas fusionadas. CI de `main` sobre `c8cef206aae96555edd7de9d2e56e36ac9de4e75`: [ejecución 41441120020](https://github.com/DylanDev08/Viagelato/actions/runs/41441120020), segundo intento aprobado. Vercel Production confirmó `READY` para ese commit y que `viagelato.vercel.app` apuntaba a él en la auditoría. Nuevos cambios deben volver a comprobar tanto CI como el alias del dominio.

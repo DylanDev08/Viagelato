@@ -6,3 +6,6 @@ node_modules
 .DS_Store
 *.log
 .tsbuildinfo
+
+# Copias manuales de la base; contienen datos de clientes y pagos.
+private-backups/

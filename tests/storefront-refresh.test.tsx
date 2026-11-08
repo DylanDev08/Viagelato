@@ -27,7 +27,8 @@ describe("actualización visual y datos comerciales",()=>{
   render(<CartProvider><Storefront settings={DEFAULT_SETTINGS} products={[]} categories={[]} banners={[]} demo={false}/></CartProvider>);
   const section=screen.getByRole("region",{name:"Explorar productos por tipo"});
   expect(within(section).getByRole("heading",{name:"Encontrá tu próxima compra."})).toBeInTheDocument();
-  expect(within(section).getAllByRole("button",{name:/Agregar .* al carrito/})).toHaveLength(6);
+  expect(within(section).getAllByRole("button",{name:/Agregar .* al carrito/})).toHaveLength(4);
+  expect(section.querySelectorAll(".home-type-card")).toHaveLength(6);
   expect(within(section).queryByPlaceholderText("Buscar productos o sabores")).not.toBeInTheDocument();
  });
  it("prioriza productos y el recorrido de compra antes que el mensaje institucional",()=>{

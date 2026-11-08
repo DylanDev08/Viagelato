@@ -1,4 +1,4 @@
-import {render,screen} from "@testing-library/react";
+import {render,screen,within} from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import {describe,expect,it,vi} from "vitest";
 import {AdminDashboard} from "@/components/admin-dashboard";
@@ -25,6 +25,7 @@ describe("panel administrativo",()=>{
   const user=userEvent.setup();
   render(<AdminDashboard initialProducts={[]} initialCategories={[]} initialOrders={[]} initialZones={[]} initialSettings={DEFAULT_SETTINGS} initialBanners={[]}/>);
   await user.click(screen.getByRole("button",{name:"Productos"}));
+  await user.click(screen.getByRole("button",{name:"+ Nuevo producto"}));
   await user.click(screen.getByText("Usar otra fotografía del catálogo"));
   await user.click(screen.getByRole("button",{name:"Elegir foto"}));
   expect(screen.getByRole("region",{name:"Imágenes candidatas"})).toBeInTheDocument();
@@ -44,6 +45,7 @@ describe("panel administrativo",()=>{
   const confirm=vi.spyOn(window,"confirm").mockReturnValue(false);
   render(<AdminDashboard initialProducts={[]} initialCategories={[]} initialOrders={[]} initialZones={[]} initialSettings={DEFAULT_SETTINGS} initialBanners={[]}/>);
   await user.click(screen.getByRole("button",{name:"Productos"}));
+  await user.click(screen.getByRole("button",{name:"+ Nuevo producto"}));
   await user.type(screen.getByLabelText("Nombre del producto"),"Chocolate");
   expect(screen.getByText(/Tenés cambios sin guardar/)).toBeInTheDocument();
   await user.click(screen.getByRole("button",{name:"Categorías"}));
@@ -53,7 +55,8 @@ describe("panel administrativo",()=>{
   await user.click(screen.getByRole("button",{name:"Categorías"}));
   expect(screen.getByRole("heading",{name:"Categorías",level:1})).toBeInTheDocument();
   await user.click(screen.getByRole("button",{name:"Productos"}));
-  expect(screen.getByLabelText("Nombre del producto")).toHaveValue("");
+  expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+  expect(screen.getByRole("button",{name:"+ Nuevo producto"})).toBeInTheDocument();
  });
  it("avisa antes de perder cambios en la configuración",async()=>{
   const user=userEvent.setup();
@@ -75,6 +78,7 @@ describe("panel administrativo",()=>{
   try{
    render(<AdminDashboard initialProducts={[]} initialCategories={[]} initialOrders={[]} initialZones={[]} initialSettings={DEFAULT_SETTINGS} initialBanners={[]}/>);
    await user.click(screen.getByRole("button",{name:"Productos"}));
+   await user.click(screen.getByRole("button",{name:"+ Nuevo producto"}));
    await user.type(screen.getByLabelText("Nombre del producto"),"Helado nuevo");
    expect(screen.getByText(/Podés guardar ahora y completar los datos antes de publicar/)).toBeInTheDocument();
    await user.click(screen.getByRole("button",{name:"Guardar borrador"}));
@@ -157,27 +161,25 @@ describe("panel administrativo",()=>{
    expect(screen.getByText(/Tenés cambios sin guardar/)).toBeInTheDocument();
   }finally{vi.unstubAllGlobals();}
  });
- it("al ocultar la ficha que se está editando también actualiza el estado del editor",async()=>{
+ it("oculta un producto publicado desde una ventana de confirmación",async()=>{
   const user=userEvent.setup();
   const id="00000000-0000-4000-8000-000000000032";
   const product={id,name:"Helado frutilla",slug:"helado-frutilla",description:"Producto con stock confirmado para distribuir.",
    price:1000,stock:3,image_url:"/catalogo/helado.webp",category_id:null,sku:"FRU-01",presentation:"Caja",
    active:true,featured:false,commercially_verified:true,catalog_visible:false};
-  const mockedFetch=vi.fn().mockResolvedValue({ok:true,json:async()=>({ok:true})});
+  const mockedFetch=vi.fn().mockResolvedValue({ok:true,status:200,json:async()=>({ok:true})});
   vi.stubGlobal("fetch",mockedFetch);
-  const confirm=vi.spyOn(window,"confirm").mockReturnValue(true);
   try{
    render(<AdminDashboard initialProducts={[product]} initialCategories={[]} initialOrders={[]} initialZones={[]} initialSettings={DEFAULT_SETTINGS} initialBanners={[]}/>);
    await user.click(screen.getByRole("button",{name:"Productos"}));
-   await user.click(screen.getByRole("button",{name:"Editar"}));
    await user.click(screen.getByRole("button",{name:"Ocultar"}));
-   expect(confirm).toHaveBeenCalled();
+   expect(screen.getByRole("alertdialog",{name:"Ocultar producto"})).toBeInTheDocument();
+   expect(mockedFetch).not.toHaveBeenCalled();
+   await user.click(screen.getByRole("button",{name:"Ocultar de la tienda"}));
    await screen.findByText("Producto oculto correctamente");
-   expect(screen.getByText("Estado actual: Borrador oculto")).toBeInTheDocument();
-   expect(screen.queryByText("Tenés cambios sin guardar en esta ficha.")).not.toBeInTheDocument();
    expect(JSON.parse(mockedFetch.mock.calls[0][1].body)).toEqual({id});
    expect(mockedFetch.mock.calls[0][1].method).toBe("DELETE");
-  }finally{confirm.mockRestore();vi.unstubAllGlobals();}
+  }finally{vi.unstubAllGlobals();}
  });
  it("mantiene el enlace de una categoría al corregir su nombre",async()=>{
   const user=userEvent.setup();
@@ -219,8 +221,61 @@ describe("panel administrativo",()=>{
   expect(screen.getByText("¿Qué necesitás hacer hoy?")).toBeInTheDocument();
   expect(screen.getAllByText("0").length).toBeGreaterThanOrEqual(4);
   await user.click(screen.getByRole("button",{name:"Productos"}));
-  expect(screen.getByText("Agregá tu primer producto.")).toBeInTheDocument();
+  expect(screen.getByText(/Agregá tu primer producto con el botón/)).toBeInTheDocument();
   await user.click(screen.getByRole("button",{name:"Pedidos online"}));
   expect(screen.getByText(/No hay pedidos todavía/)).toBeInTheDocument();
+ });
+});
+
+describe("panel: usabilidad y prioridades",()=>{
+ const common={initialCategories:[],initialOrders:[],initialZones:[],initialSettings:DEFAULT_SETTINGS,initialBanners:[]};
+ it("separa publicados de presentaciones visibles para consulta",async()=>{
+  const user=userEvent.setup();
+  const base={description:"",price:1500,stock:0,image_url:null,category_id:null,sku:"SKU",featured:false,commercially_verified:true};
+  const products=[
+   {...base,id:"1",name:"Producto publicado",slug:"publicado",active:true,catalog_visible:false},
+   {...base,id:"2",name:"Presentación a consultar",slug:"excel-fila-1",active:false,catalog_visible:true},
+  ];
+  render(<AdminDashboard {...common} initialProducts={products} />);
+  await user.click(screen.getByRole("button",{name:"Productos"}));
+  const filter=screen.getByRole("combobox",{name:"Filtrar productos por estado"});
+  await user.selectOptions(filter,"published");
+  const listing=screen.getByText("Productos cargados").closest(".panel")!;
+  expect(within(listing as HTMLElement).getByText("Producto publicado")).toBeInTheDocument();
+  expect(within(listing as HTMLElement).queryByText("Presentación a consultar")).not.toBeInTheDocument();
+  await user.selectOptions(filter,"inquiry");
+  expect(within(listing as HTMLElement).getByText("Presentación a consultar")).toBeInTheDocument();
+  expect(within(listing as HTMLElement).queryByText("Producto publicado")).not.toBeInTheDocument();
+ });
+ it("explica que los indicadores WhatsApp muestran solo solicitudes recientes",()=>{
+  render(<AdminDashboard {...common} initialProducts={[]} initialWhatsAppRequests={[]} />);
+  expect(screen.getByText("WhatsApp por atender")).toBeInTheDocument();
+  expect(screen.getByText(/máximo 100/)).toBeInTheDocument();
+  expect(screen.getByRole("button",{name:"Actualizar datos"})).toBeEnabled();
+ });
+ it("pide confirmar antes de actualizar con un producto sin guardar",async()=>{
+  const user=userEvent.setup();
+  const confirm=vi.spyOn(window,"confirm").mockReturnValue(false);
+  render(<AdminDashboard {...common} initialProducts={[]} />);
+  await user.click(screen.getByRole("button",{name:"Productos"}));
+  await user.click(screen.getByRole("button",{name:"+ Nuevo producto"}));
+  await user.type(screen.getByLabelText("Nombre del producto"),"Chocolate nuevo");
+  expect(screen.getByText("Cambios sin guardar")).toBeInTheDocument();
+  await user.click(screen.getByRole("button",{name:"Actualizar datos"}));
+  expect(confirm).toHaveBeenCalledOnce();
+  expect(screen.getByRole("heading",{name:"Productos",level:1})).toBeInTheDocument();
+  confirm.mockRestore();
+ });
+ it("ayuda a recuperar una sesión expirada cuando falla el servidor",async()=>{
+  const user=userEvent.setup();
+  vi.stubGlobal("fetch",vi.fn().mockResolvedValue({status:401,ok:false,json:async()=>({error:"No autorizado"})}));
+  try{
+   render(<AdminDashboard {...common} initialProducts={[]} />);
+   await user.click(screen.getByRole("button",{name:"Categorías"}));
+   await user.type(screen.getByLabelText("Nombre"),"Postres");
+   await user.click(screen.getByRole("button",{name:"Crear categoría"}));
+   expect(await screen.findByText(/Tu sesión venció/)).toBeInTheDocument();
+   expect(screen.getByRole("link",{name:"Volver a ingresar"})).toHaveAttribute("href","/login");
+  }finally{vi.unstubAllGlobals();}
  });
 });
