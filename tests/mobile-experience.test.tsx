@@ -31,6 +31,14 @@ describe("navegación mobile de Viagelato",()=>{
   await user.click(within(overlay).getByRole("link",{name:"Envíos"}));
   expect(overlay).toHaveAttribute("aria-hidden","true");
  });
+ it("cierra el menú si se toca contenido fuera del encabezado",async()=>{
+  const user=userEvent.setup();
+  render(<CartProvider><SiteHeader settings={DEFAULT_SETTINGS}/><button type="button">Contenido de la página</button></CartProvider>);
+  await user.click(screen.getByRole("button",{name:"Abrir menú"}));
+  expect(screen.getByRole("button",{name:"Cerrar menú"})).toHaveAttribute("aria-expanded","true");
+  await user.click(screen.getByRole("button",{name:"Contenido de la página"}));
+  expect(screen.getByRole("button",{name:"Abrir menú"})).toHaveAttribute("aria-expanded","false");
+ });
  it("incluye WhatsApp y acceso a carrito en la barra inferior",()=>{
   render(<CartProvider><FloatingActions whatsapp="+5491140962202"/></CartProvider>);
   const nav=screen.getByRole("navigation",{name:"Accesos rápidos de compra"});
