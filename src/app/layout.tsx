@@ -18,6 +18,7 @@ import "./checkout-totals.css";
 import "./cart-experience.css";
 import "./security-loading.css";
 import "./button-hover-theme.css";
+import "./mobile-visual-polish.css";
 
 const siteUrl=publicSiteUrl();
 const indexingEnabled=process.env.ENABLE_INDEXING==="true"&&siteUrl!==null;
