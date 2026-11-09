@@ -181,3 +181,8 @@
  .home-type-card:hover,.priced-catalog .priced-card:hover,
  .home-catalog .compact-catalog .provisional-card:hover{transform:none!important}
 }
+
+/* Tap target del carrito en 320–420px: el mínimo anterior de 39px era pequeño. */
+@media(max-width:420px){
+ .site-header .header-cart{min-width:44px;min-height:44px;padding:5px}
+}

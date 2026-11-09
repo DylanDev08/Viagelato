@@ -73,6 +73,9 @@ def run():
             try:
                 page.goto(BASE_URL + "/", wait_until="domcontentloaded", timeout=35000)
                 inspect(page, "home", width, screenshot=width in (320, 390, 430))
+                cart_icon = page.locator(".header-cart").bounding_box()
+                check(bool(cart_icon and cart_icon["width"] >= 43 and cart_icon["height"] >= 43),
+                      f"{width}px: header cart tap target >=44px")
                 menu = page.get_by_role("button", name="Abrir menú")
                 check(menu.is_visible(), f"{width}px: mobile menu visible")
                 menu.click()
