@@ -45,8 +45,11 @@ def metrics(page):
 
 
 def inspect(page, label, width, screenshot=False):
+    # Suspense can briefly render the loader; wait for the actual storefront shell.
+    page.locator(".site-header").wait_for(state="visible", timeout=24000)
     page.locator("main").first.wait_for(state="visible", timeout=20000)
     page.evaluate("() => document.fonts.ready")
+    page.wait_for_timeout(450)  # allow React event handlers to hydrate
     result = metrics(page)
     report.append({"device": width, "route": label, **result})
     print(f"METRICS {width}px {label}: {json.dumps(result, ensure_ascii=False)}", flush=True)
