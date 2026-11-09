@@ -97,6 +97,10 @@ def run():
                 first_card.scroll_into_view_if_needed()
                 card_box = first_card.bounding_box()
                 report[-1]["firstCard"] = card_box
+                image_box = grid.locator(".priced-image").first.bounding_box()
+                report[-1]["firstImageFrame"] = image_box
+                check(bool(image_box and card_box and image_box["width"] <= card_box["width"] + 2),
+                      f"{width}px: product image frame never exceeds its card")
                 check(bool(card_box and card_box["x"] >= -2 and
                            card_box["x"] + card_box["width"] <= width + 2),
                       f"{width}px: first catalog card fits visible viewport")

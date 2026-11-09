@@ -59,6 +59,11 @@ describe("hover y adaptación visual",()=>{
   expect(loading).toContain("@media(max-height:540px) and (max-width:960px)");
   expect(loading).toContain("@media(max-width:389px)");
  });
+ it("limita las fotografías al ancho de las tarjetas en 320–640px",()=>{
+  expect(css).toContain(".priced-catalog .priced-card>.provisional-card-link{width:100%;max-width:100%;min-width:0}");
+  expect(css).toContain("width:100%;max-width:100%;min-width:0;height:auto;min-height:0;aspect-ratio:1.12");
+  expect(css).toContain("object-fit:contain;object-position:center");
+ });
  it("extiende tamaños táctiles de tablet y tipografía anti zoom",()=>{
   expect(css).toContain("@media(min-width:641px) and (max-width:960px)");
   expect(css).toContain(".site-header .header-cart{min-width:44px;min-height:44px}");
