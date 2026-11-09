@@ -186,3 +186,11 @@
 @media(max-width:420px){
  .site-header .header-cart{min-width:44px;min-height:44px;padding:5px}
 }
+
+/* iOS Safari: el navegador amplía formularios con tipografía inferior a 16px.
+   Estos selectores superan la especificidad de checkout-totals.css. */
+@media(max-width:640px){
+ .checkout-refresh .cart-form-panel>label>input,
+ .checkout-refresh .cart-form-panel>label>select,
+ .checkout-refresh .cart-form-panel>label>textarea{font-size:16px}
+}

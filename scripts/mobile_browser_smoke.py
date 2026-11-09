@@ -7,7 +7,7 @@ from pathlib import Path
 from playwright.sync_api import sync_playwright, expect
 
 BASE_URL = os.environ.get("BASE_URL", "https://viagelato.vercel.app").rstrip("/")
-OUT = Path(".mobile-smoke")
+OUT = Path("mobile-smoke")
 OUT.mkdir(exist_ok=True)
 DEVICES = [(320, 740), (390, 844), (430, 932), (768, 1024)]
 failures, report = [], []
@@ -46,7 +46,7 @@ def metrics(page):
 
 def inspect(page, label, width, screenshot=False):
     # Suspense can briefly render the loader; wait for the actual storefront shell.
-    page.locator(".site-header").wait_for(state="visible", timeout=24000)
+    page.locator(".site-header:visible").first.wait_for(state="visible", timeout=24000)
     page.locator("main").first.wait_for(state="visible", timeout=20000)
     page.evaluate("() => document.fonts.ready")
     page.wait_for_timeout(450)  # allow React event handlers to hydrate
