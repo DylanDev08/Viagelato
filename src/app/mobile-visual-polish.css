@@ -204,3 +204,15 @@
  .checkout-refresh .cart-form-panel>label>select,
  .checkout-refresh .cart-form-panel>label>textarea{font-size:16px}
 }
+
+/* Resultado de Chromium 430px: un media frame podía medir ~433px dentro
+   de una card de ~193px. No depender del ancho mínimo intrínseco del link. */
+@media(max-width:640px){
+ .priced-catalog .priced-card>.provisional-card-link{width:100%;max-width:100%;min-width:0}
+ .priced-catalog .priced-card .provisional-image{
+  width:100%;max-width:100%;min-width:0;height:auto;min-height:0;aspect-ratio:1.12
+ }
+ .priced-catalog .priced-card .provisional-image img{
+  object-fit:contain;object-position:center
+ }
+}
