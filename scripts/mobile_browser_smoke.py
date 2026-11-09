@@ -72,7 +72,7 @@ def run():
             page.set_default_timeout(14000)
             try:
                 page.goto(BASE_URL + "/", wait_until="domcontentloaded", timeout=35000)
-                inspect(page, "home", width, screenshot=width in (320, 390, 430))
+                inspect(page, "home", width, screenshot=width in (320, 390, 430, 768))
                 cart_icon = page.locator(".header-cart").bounding_box()
                 check(bool(cart_icon and cart_icon["width"] >= 43 and cart_icon["height"] >= 43),
                       f"{width}px: header cart tap target >=44px")
@@ -89,9 +89,19 @@ def run():
                       f"{width}px: outside tap closes menu")
 
                 page.goto(BASE_URL + "/catalogo", wait_until="domcontentloaded", timeout=35000)
-                inspect(page, "catalogo", width, screenshot=width in (390, 430))
+                inspect(page, "catalogo", width, screenshot=width in (390, 430, 768))
                 grid = page.locator(".priced-grid").first
                 grid.wait_for(state="visible", timeout=17000)
+                first_card = grid.locator(".priced-card").first
+                first_card.wait_for(state="visible", timeout=14000)
+                first_card.scroll_into_view_if_needed()
+                card_box = first_card.bounding_box()
+                report[-1]["firstCard"] = card_box
+                check(bool(card_box and card_box["x"] >= -2 and
+                           card_box["x"] + card_box["width"] <= width + 2),
+                      f"{width}px: first catalog card fits visible viewport")
+                page.screenshot(path=str(OUT / f"{width}-catalog-products.png"),
+                                full_page=False, animations="disabled")
                 columns = grid.evaluate(
                     "(el) => getComputedStyle(el).gridTemplateColumns.split(' ').length")
                 expected = 1 if width < 390 else 2
@@ -106,7 +116,7 @@ def run():
                 expect(page.locator(".floating-actions.has-cart-items")).to_be_visible()
                 page.goto(BASE_URL + "/carrito", wait_until="domcontentloaded", timeout=35000)
                 page.locator(".cart-line").first.wait_for(state="visible", timeout=17000)
-                inspect(page, "carrito", width, screenshot=width in (320, 390, 430))
+                inspect(page, "carrito", width, screenshot=width in (320, 390, 430, 768))
                 check(page.locator(".floating-actions").count() == 0,
                       f"{width}px: no floating bar overlay on cart")
                 fields = page.locator(".cart-form-panel input:not([type=radio])")

@@ -194,3 +194,13 @@
  .checkout-refresh .cart-form-panel>label>select,
  .checkout-refresh .cart-form-panel>label>textarea{font-size:16px}
 }
+
+/* Tablet táctil 641–960px: extender las garantías de accesibilidad del teléfono.
+   Las reglas previas solo alcanzaban <=640px aunque el menú mobile llega a 960px. */
+@media(min-width:641px) and (max-width:960px){
+ .site-header .header-cart{min-width:44px;min-height:44px}
+ .checkout-refresh .cart-line .qty button{min-width:44px;min-height:44px;width:44px;height:44px}
+ .checkout-refresh .cart-form-panel>label>input,
+ .checkout-refresh .cart-form-panel>label>select,
+ .checkout-refresh .cart-form-panel>label>textarea{font-size:16px}
+}

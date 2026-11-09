@@ -59,6 +59,12 @@ describe("hover y adaptación visual",()=>{
   expect(loading).toContain("@media(max-height:540px) and (max-width:960px)");
   expect(loading).toContain("@media(max-width:389px)");
  });
+ it("extiende tamaños táctiles de tablet y tipografía anti zoom",()=>{
+  expect(css).toContain("@media(min-width:641px) and (max-width:960px)");
+  expect(css).toContain(".site-header .header-cart{min-width:44px;min-height:44px}");
+  expect(css).toContain(".checkout-refresh .cart-line .qty button{min-width:44px;min-height:44px");
+  expect(css).toContain(".checkout-refresh .cart-form-panel>label>textarea{font-size:16px}");
+ });
  it("prioriza mobile estrecho y deja libre el carrito sin barra flotante",()=>{
   const layout=readFileSync("src/app/layout.tsx","utf8");
   expect(layout.indexOf('import "./mobile-visual-polish.css";')).toBeGreaterThan(layout.indexOf('import "./button-hover-theme.css";'));
