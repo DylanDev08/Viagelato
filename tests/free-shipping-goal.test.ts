@@ -13,8 +13,8 @@ describe("guía del mínimo de envío gratis",()=>{
   expect(freeShippingGoal({...base,locality:""}).kind).toBe("choose_zone");
   expect(freeShippingGoal({...base,method:"pickup",locality:""}).kind).toBe("pickup");
  });
- it("no promete envío gratis fuera de cobertura, en CABA ni donde se desactivó",()=>{
-  expect(freeShippingGoal({...base,subtotal:80000,locality:"Capital Federal",zones:[zone("Capital Federal",true)]}).kind).toBe("ineligible");
+ it("promete el beneficio para Capital Federal, pero no fuera de zona ni donde se desactivó",()=>{
+  expect(freeShippingGoal({...base,subtotal:80000,locality:"Capital Federal",zones:[zone("Capital Federal",true)]}).kind).toBe("reached");
   expect(freeShippingGoal({...base,subtotal:80000,locality:"Quilmes Oeste",zones:[zone("Quilmes Oeste",true)]}).kind).toBe("ineligible");
   expect(freeShippingGoal({...base,subtotal:80000,locality:"Lanús",zones:[zone("Lanús",false)]}).kind).toBe("ineligible");
  });
