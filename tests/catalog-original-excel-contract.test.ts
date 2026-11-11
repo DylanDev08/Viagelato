@@ -7,6 +7,7 @@ import {CATALOG_PRICE_ITEMS} from "@/lib/catalog-prices";
  * Fuente de referencia: PRODUCTOS Y PRECIOS(1).xlsx, Hoja1!A2:C46
  * Recibido por el cliente el 03/11/2026. No modificar importes ni tamaños
  * sin una nueva lista de precios o confirmación del comercio.
+ * Excepción confirmada el 11/11/2026: fila 32 mini torta Cookies = caja x8 en Postres.
  */
 const excelPrices=[
  21900,17900,17900,21900,21900,23900,19900,22900,22900,
@@ -19,7 +20,7 @@ const excelPacks=[
  "36u","24u","24u","24u","24u","24u","24u","24u","20u",
  "24u","24u","24u","16u","16u","14u","14u","12u","8u",
  "8u","150g","150g","20u","20u","20u","24u","8u","8u",
- "8u","6u","8u","mini","8u","8u","800g","800g","800g",
+ "8u","6u","8u","8u","8u","8u","800g","800g","800g",
  "800g","750cc","750cc","750cc","360cc","360cc","3L","5L","10L"
 ];
 const row=(n:number)=>CATALOG_PRICE_ITEMS.find(x=>x.sourceRow===n)!;
@@ -47,6 +48,9 @@ describe("contrato de la lista comercial original — 45 filas",()=>{
   );
  });
  it("conserva los sabores de la lista sin afirmar que vienen mezclados",()=>{
+  expect(row(32).category).toBe("Postres y especiales");
+  expect(row(32).presentation).toBe("Caja de 8 unidades");
+  expect(row(32).description).not.toMatch(/peso no especificado/i);
   expect(row(2).variants).toMatch(/limón, frutilla y uva/i);
   expect(row(8).variants).toMatch(/frutilla, americana y chocolate/i);
   expect(row(10).variants).toMatch(/frutilla-americana y chocolate-vainilla/i);

@@ -1,6 +1,6 @@
 import {describe,expect,it} from "vitest";
 import {quoteShipping} from "@/lib/shipping-quote";
-import type {ShippingZone} from "@/lib/types";
+import {DELIVERY_AREAS,type ShippingZone} from "@/lib/types";
 
 const activeZone=(name:string,cost:number,freeShippingEligible=true):ShippingZone=>({
  id:"00000000-0000-4000-8000-000000000023",name,postal_codes:[],cost,
@@ -32,11 +32,18 @@ describe("cotización de entrega en carrito y WhatsApp",()=>{
   expect(quoteShipping({...base,locality:"Quilmes Oeste",zones:[outside]})).toEqual({kind:"priced",covered:true,shippingCost:6700,total:28600});
   expect(quoteShipping({...base,method:"pickup",locality:""})).toEqual({kind:"pickup",covered:true,shippingCost:0,total:21900});
  });
- it("sin zona configurada, CABA no suma una tarifa general",()=>{
+ it("Capital Federal tiene el mismo beneficio confirmado que las demás zonas",()=>{
   const caba=activeZone("Capital Federal",4500,true);
-  expect(quoteShipping({...base,locality:"Capital Federal",subtotal:90000,zones:[caba]})).toEqual({kind:"pending",covered:false,shippingCost:null,total:null});
-  expect(quoteShipping({...base,locality:"CABA",subtotal:90000,zones:[]})).toEqual({kind:"pending",covered:false,shippingCost:null,total:null});
+  expect(quoteShipping({...base,locality:"Capital Federal",subtotal:90000,zones:[caba]})).toEqual({kind:"free",covered:true,shippingCost:0,total:90000});
+  expect(quoteShipping({...base,locality:"CABA",subtotal:90000,zones:[]})).toEqual({kind:"free",covered:true,shippingCost:0,total:90000});
   expect(quoteShipping({...base,locality:"Quilmes Oeste",subtotal:90000,zones:[activeZone("Quilmes Oeste",6700,true)]})).toEqual({kind:"priced",covered:true,shippingCost:6700,total:96700});
+ });
+ it("aplica el mínimo a las 15 zonas comunicadas por el cliente",()=>{
+  expect(DELIVERY_AREAS).toHaveLength(15);
+  for(const locality of DELIVERY_AREAS){
+   expect(quoteShipping({...base,subtotal:60000,locality}).kind).toBe("free");
+   expect(quoteShipping({...base,subtotal:59999.99,locality}).kind).toBe("pending");
+  }
  });
  it("Rosario: 68.700 en productos requiere cotización de envío",()=>{
   expect(quoteShipping({...base,subtotal:68700,locality:"Rosario"})).toEqual({kind:"pending",covered:false,shippingCost:null,total:null});

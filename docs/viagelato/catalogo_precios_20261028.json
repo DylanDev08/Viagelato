@@ -430,10 +430,10 @@
       "id": 25,
       "price": 13900,
       "name": "Mini torta Cookies",
-      "category": "Tortas heladas",
-      "presentation": "Mini torta (peso no especificado)",
+      "category": "Postres y especiales",
+      "presentation": "Caja de 8 unidades",
       "variants": "Cookies",
-      "description": "Mini torta helada Cookies. La planilla comercial no especifica peso ni cantidad de porciones; confirmamos esos detalles antes de cerrar el pedido.",
+      "description": "Mini torta helada Cookies. Presentación comercial: caja de 8 unidades. Confirmamos disponibilidad antes de cerrar el pedido.",
       "image": "/catalogo/mini-torta-helada-cookies.webp",
       "imageStatus": "coincidencia_exacta",
       "sourceDriveId": "1hvVqV0YncLcQi9939laT7wcCwFEMMoS2",
@@ -636,6 +636,6 @@
       "sku": "VIA-HEL-046-10L"
     }
   ],
-  "lastReviewed": "2026-11-05",
-  "reviewNote": "Cotejado con PRODUCTOS Y PRECIOS(1).xlsx (45 filas), carpeta Drive Seitu (44 referencias + 50 archivos) y Supabase; los sabores enumerados no garantizan cajas mixtas. La imagen de lata 10 L es referencial aportada fuera de Excel."
+  "lastReviewed": "2026-11-11",
+  "reviewNote": "Corrección comercial confirmada por Viagelato: fila 32 Mini torta Cookies corresponde a Postres y especiales, caja de 8 unidades. Sin cambios en precio ni SKU."
 }

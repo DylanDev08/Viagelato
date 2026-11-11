@@ -210,14 +210,23 @@ export const DEFAULT_SETTINGS: Settings = {
   reservation_minutes: 30,
 };
 
+/** Localidades confirmadas por Viagelato el 11/11/2026. */
 export const DELIVERY_AREAS = [
+  "Temperley",
   "Lomas de Zamora",
-  "Lanús",
   "Banfield",
-  "Avellaneda",
+  "Remedios de Escalada",
+  "Lanús Este",
+  "Lanús Oeste",
   "Valentín Alsina",
-  "Don Bosco",
+  "Gerli",
+  "Piñeyro",
+  "Dock Sud",
+  "Villa Domínico",
+  "Sarandí",
   "Wilde",
+  "Bernal",
+  "Capital Federal",
 ] as const;
 
 export const ars = (value: number) =>

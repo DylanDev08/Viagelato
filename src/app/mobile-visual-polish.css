@@ -216,3 +216,10 @@
   object-fit:contain;object-position:center
  }
 }
+
+/* La pieza promocional vertical se muestra completa: no tapar logo ni productos. */
+.hero-v2 .hero-visual.custom-hero{background:#119de9}
+.hero-v2 .hero-visual.custom-hero>img{object-fit:contain;object-position:center}
+.hero-v2 .hero-visual.custom-hero:before,
+.hero-v2 .hero-visual.custom-hero:after{display:none}
+.hero-v2 .hero-facts strong{font-size:clamp(17px,1.8vw,25px)}

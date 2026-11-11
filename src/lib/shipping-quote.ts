@@ -27,16 +27,17 @@ export function quoteShipping(input:{
  if(method==="pickup")return {kind:"pickup",covered:true,shippingCost:0,total:currencyAmount(subtotal)};
  if(!locality.trim())return {kind:"unselected",covered:false,shippingCost:null,total:null};
  const target=normalized(locality);
- // Capital Federal se cotiza siempre por WhatsApp: no inferir gratuidad ni tarifa.
- if(target==="capital federal"||target==="caba")return {kind:"pending",covered:false,shippingCost:null,total:null};
+ // Compatibilidad para pedidos anteriores: "Lanús" sigue siendo una localidad válida
+ // aunque el nuevo selector distingue Lanús Este y Lanús Oeste.
+ const canonicalTarget=target==="caba"?"capital federal":target;
  const configured=zones.find(zone=>
   zone.active===true&&zone.ready===true&&zone.cost!==null&&
   Number.isFinite(Number(zone.cost))&&Number(zone.cost)>=0&&
-  normalized(zone.name)===target
+  normalized(zone.name)===canonicalTarget
  );
- const includedArea=DELIVERY_AREAS.some(area=>normalized(area)===target);
+ const includedArea=DELIVERY_AREAS.some(area=>normalized(area)===canonicalTarget)||target==="lanus";
  const covered=includedArea||Boolean(configured);
- // Solo las siete localidades comerciales pueden obtener envío gratuito.
+ // Solo las localidades comerciales vigentes (y la referencia histórica "Lanús") pueden obtener envío gratuito.
  // Configurar una tarifa en otra localidad no la convierte en beneficiaria.
  const freeEligible=includedArea&&(!configured||configured.free_shipping_eligible===true);
  const threshold=Number(freeShippingThreshold);

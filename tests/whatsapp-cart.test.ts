@@ -27,11 +27,14 @@ describe("finalización por WhatsApp sin pasarela",()=>{
  it("mantiene envío a cotizar bajo mínimo y fuera de cobertura",()=>{
   const lines=[{name:"Torta",price:12900,quantity:1}];
   expect(whatsappCartMessage(lines,base)).toContain("pendiente de cotizar y confirmar cobertura");
-  const outside=whatsappCartMessage([{...lines[0],quantity:5}],{...base,locality:"CABA"});
+  const outside=whatsappCartMessage([{...lines[0],quantity:5}],{...base,locality:"Rosario"});
   expect(outside).toContain("Envío: pendiente de cotizar y confirmar cobertura");
   expect(outside).toContain("Total de productos: $ 64.500");
   expect(outside).toContain("Total final con envío: a confirmar");
   expect(outside).not.toContain("124.500");
+  const caba=whatsappCartMessage([{...lines[0],quantity:5}],{...base,locality:"CABA"});
+  expect(caba).toContain("Envío: gratis");
+  expect(caba).toContain("Total estimado de productos y envío: $ 64.500");
  });
  it("explica preferencia de efectivo sin declararlo abonado",()=>{
   const message=whatsappCartMessage([{name:"Torta",price:12900,quantity:1}],{...base,paymentPreference:"cash_on_delivery"});

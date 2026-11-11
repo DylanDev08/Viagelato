@@ -21,7 +21,7 @@ describe("mensaje preparado y selección vigente",()=>{
   const user=userEvent.setup();
   render(<CartProvider><Checkout products={[]} zones={[]} settings={DEFAULT_SETTINGS} demo={false} checkoutEnabled={false}/></CartProvider>);
   await user.type(screen.getByLabelText("Nombre y apellido"),"Ana Gomez");
-  await user.selectOptions(screen.getByLabelText("Zona de entrega"),"Lanús");
+  await user.selectOptions(screen.getByLabelText("Zona de entrega"),"Lanús Este");
   await user.click(screen.getByRole("button",{name:/Pagar por WhatsApp/}));
   await waitFor(()=>expect(send).toHaveBeenCalledOnce());
   const submitted=JSON.parse(String((send.mock.calls[0] as unknown as [string,RequestInit])[1].body));
@@ -48,7 +48,7 @@ describe("mensaje preparado y selección vigente",()=>{
   try{
    render(<CartProvider><Checkout products={[]} zones={[]} settings={DEFAULT_SETTINGS} demo={false} checkoutEnabled={false}/></CartProvider>);
    await user.type(screen.getByLabelText("Nombre y apellido"),"Ana Gomez");
-   await user.selectOptions(screen.getByLabelText("Zona de entrega"),"Lanús");
+   await user.selectOptions(screen.getByLabelText("Zona de entrega"),"Lanús Este");
    await user.click(screen.getByRole("button",{name:"Pagar por WhatsApp"}));
    expect(await screen.findByText("Solicitud VIA-111111112222 ya gestionada.")).toBeInTheDocument();
    const key=checkoutKeyStorage.getItem(CHECKOUT_KEY_STORAGE);
