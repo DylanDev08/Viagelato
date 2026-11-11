@@ -6,7 +6,8 @@ import {CATALOG_PRICE_ITEMS} from "@/lib/catalog-prices";
 /**
  * Fuente de referencia: PRODUCTOS Y PRECIOS(1).xlsx, Hoja1!A2:C46
  * Recibido por el cliente el 03/11/2026. No modificar importes ni tamaños
- * sin una nueva lista de precios o confirmación del comercio.\n * Excepción confirmada el 11/11/2026: fila 32 mini torta Cookies = caja x8 en Postres.
+ * sin una nueva lista de precios o confirmación del comercio.
+ * Excepción confirmada el 11/11/2026: fila 32 mini torta Cookies = caja x8 en Postres.
  */
 const excelPrices=[
  21900,17900,17900,21900,21900,23900,19900,22900,22900,
