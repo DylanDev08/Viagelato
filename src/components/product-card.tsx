@@ -17,7 +17,7 @@ export function ProductCard({product}:{product:Product}){
  function addProduct(){if(remaining<=0)return;add(product.id,1,limit);setAdded(true);window.setTimeout(()=>setAdded(false),1600);}
  return <article className="catalog-card">
   <Link className="catalog-art" href={`/productos/${product.slug}`} aria-label={`Ver ${product.name}`}>
-   {product.image_url?<Image src={product.image_url} alt={product.name} fill sizes="(max-width: 640px) 100vw, (max-width: 1000px) 50vw, 33vw" unoptimized/>:<div className="product-placeholder"><Box/><span>Imagen a cargar</span></div>}
+   {product.image_url?<Image src={product.image_url} alt={product.name} fill sizes="(max-width: 640px) 100vw, (max-width: 1000px) 50vw, 33vw" unoptimized/>:<div className="product-placeholder"><Box/><span>Sin imagen</span></div>}
    {product.featured&&<span className="featured-label">DESTACADO</span>}
    <ArrowUpRight className="card-arrow"/>
   </Link>
