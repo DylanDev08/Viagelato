@@ -11,7 +11,7 @@ describe("experiencia del carrito rediseñado",()=>{
   render(<CartProvider><Checkout products={[]} zones={[]} settings={DEFAULT_SETTINGS} demo={false} checkoutEnabled={false}/></CartProvider>);
   expect(screen.getByRole("list",{name:"Cómo hacer el pedido"})).toBeInTheDocument();
   expect(screen.queryByText("Sin pago online")).not.toBeInTheDocument();
-  expect(screen.getByRole("button",{name:"Pagar por WhatsApp"})).toBeDisabled();
+  expect(screen.getByRole("button",{name:"Enviar pedido por WhatsApp"})).toBeDisabled();
   expect(screen.getByRole("radio",{name:/Transferencia bancaria/})).toBeChecked();
  });
  it("la elección de efectivo cambia el mensaje sin activar pagos automáticos",async()=>{
