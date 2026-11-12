@@ -26,7 +26,7 @@ describe("retiro en el local de Viagelato",()=>{
   expect(within(summary).getByText("Sin envío")).toBeInTheDocument();
   expect(summary.querySelector(".cart-price-total strong")).toHaveTextContent("21.900");
   await user.type(screen.getByLabelText("Nombre y apellido"),"Ana Gómez");
-  expect(screen.getByRole("button",{name:"Pagar por WhatsApp"})).toBeEnabled();
+  expect(screen.getByRole("button",{name:"Enviar pedido por WhatsApp"})).toBeEnabled();
  });
  it("al volver a envío exige elegir una localidad y recalcula el costo",async()=>{
   const user=userEvent.setup();
@@ -35,12 +35,12 @@ describe("retiro en el local de Viagelato",()=>{
   await user.click(screen.getByRole("button",{name:"Agregar caja"}));
   await user.type(screen.getByLabelText("Nombre y apellido"),"Ana Gómez");
   await user.selectOptions(screen.getByLabelText("Tipo de entrega"),"pickup");
-  expect(screen.getByRole("button",{name:"Pagar por WhatsApp"})).toBeEnabled();
+  expect(screen.getByRole("button",{name:"Enviar pedido por WhatsApp"})).toBeEnabled();
   await user.selectOptions(screen.getByLabelText("Tipo de entrega"),"shipping");
   expect(screen.getByLabelText("Zona de entrega")).toBeRequired();
-  expect(screen.getByRole("button",{name:"Pagar por WhatsApp"})).toBeDisabled();
+  expect(screen.getByRole("button",{name:"Enviar pedido por WhatsApp"})).toBeDisabled();
   await user.selectOptions(screen.getByLabelText("Zona de entrega"),"Capital Federal");
-  expect(screen.getByRole("button",{name:"Pagar por WhatsApp"})).toBeEnabled();
+  expect(screen.getByRole("button",{name:"Enviar pedido por WhatsApp"})).toBeEnabled();
   expect(screen.getByRole("region",{name:"Resumen y total del pedido"}).querySelector(".cart-price-total strong")).toHaveTextContent("21.900");
  });
 });
