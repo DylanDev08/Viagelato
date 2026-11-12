@@ -3,7 +3,7 @@
 import Image from "next/image";
 import {ArrowLeft,ArrowRight,ClipboardList,MessageCircle,Minus,Plus,ShoppingBag,Trash2,Truck} from "lucide-react";
 import Link from "next/link";
-import {useMemo,useState} from "react";
+import {useMemo,useRef,useState} from "react";
 import {useCart} from "./cart";
 import {SiteShell} from "./site-shell";
 import {ars,DELIVERY_AREAS,type Product,type Settings,type ShippingZone} from "@/lib/types";
@@ -28,6 +28,7 @@ export function Checkout({products,zones,settings,catalogItems=CATALOG_PRICE_ITE
  const locality=delivery==="pickup"?PICKUP_LOCALITY:selectedLocality==="other"?otherLocality.trim():selectedLocality;
  const [error,setError]=useState("");
  const [busy,setBusy]=useState(false);
+ const submitInFlight=useRef(false);
  const [prepared,setPrepared]=useState<{reference:string;url:string;selection:string}|null>(null);
  const [handled,setHandled]=useState<{reference:string;selection:string}|null>(null);
  const selection=JSON.stringify({items,fullName,locality,address,notes,delivery,paymentPreference});
@@ -40,11 +41,12 @@ export function Checkout({products,zones,settings,catalogItems=CATALOG_PRICE_ITE
 
  async function sendRequest(event:React.FormEvent<HTMLFormElement>){
   event.preventDefault();
-  if(busy)return;
+  if(submitInFlight.current||busy)return;
   if(handled?.selection===selection)return;
   setError("");
   setPrepared(null);
   if(!canRequest)return setError("Completá nombre y localidad, con un máximo de 30 productos diferentes.");
+  submitInFlight.current=true;
   setBusy(true);
   try{
    const payload={
@@ -90,7 +92,7 @@ export function Checkout({products,zones,settings,catalogItems=CATALOG_PRICE_ITE
    window.location.assign(data.whatsapp_url);
   }catch(reason){
    setError(reason instanceof Error?reason.message:"No se pudo registrar la solicitud.");
-  }finally{setBusy(false);if(siteKey){setTurnstileToken("");setChallengeVersion(v=>v+1);}}
+  }finally{submitInFlight.current=false;setBusy(false);if(siteKey){setTurnstileToken("");setChallengeVersion(v=>v+1);}}
  }
 
  return <SiteShell settings={settings} hideFloatingActions><main className="shell checkout-page checkout-refresh">
