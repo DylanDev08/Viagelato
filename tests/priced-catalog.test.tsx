@@ -38,7 +38,7 @@ describe("precios del catálogo Viagelato de Excel",()=>{
   const user=userEvent.setup();
   const sample=CATALOG_PRICE_ITEMS.slice(0,3);
   render(<CartProvider><PricedCatalog items={sample}/></CartProvider>);
-  expect(screen.getByText("3 productos con precio por presentación")).toBeInTheDocument();
+  expect(screen.getByText("3 productos")).toBeInTheDocument();
   expect(screen.getAllByText("PRECIO POR PRESENTACIÓN")).toHaveLength(3);
   await user.click(screen.getByRole("button",{name:`Agregar ${sample[0].name} al carrito`}));
   expect(screen.getByRole("link",{name:/En carrito: 1/})).toHaveAttribute("href","/carrito");
