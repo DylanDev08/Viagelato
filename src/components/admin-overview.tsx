@@ -7,7 +7,7 @@ type OverviewCounts={attention:number;payment:number};
 export function AdminOverview({counts,products,zones=[],requestsLoaded,busy,onNavigate}:{
  counts:OverviewCounts;
  products:Product[];
- zones:ShippingZone[];
+ zones?:ShippingZone[];
  requestsLoaded:number;
  busy:boolean;
  onNavigate:(tab:OverviewTab)=>void;
