@@ -1,0 +1,220 @@
+/* Carrito comercial: espacio para comprar, no para leer cinco veces el checkout. */
+.checkout-refresh .cart-experience-heading{
+  max-width:860px;
+  margin-bottom:clamp(18px,3vw,30px);
+}
+.checkout-refresh .cart-experience-heading h1{margin-bottom:10px}
+.checkout-refresh .cart-experience-heading>p:last-of-type{max-width:620px;color:#535b59}
+.checkout-refresh .cart-progress{
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:clamp(8px,1.5vw,16px);
+  padding:12px 0 0;
+  margin-top:18px;
+}
+.checkout-refresh .cart-progress li{font-size:12px;gap:10px}
+.checkout-refresh .cart-experience-grid{
+  grid-template-columns:minmax(0,1.1fr) minmax(340px,.9fr);
+  gap:clamp(16px,2.4vw,30px);
+}
+.checkout-refresh .cart-products-panel{
+  border-radius:16px;
+  padding:clamp(18px,2.3vw,28px);
+}
+.checkout-refresh .cart-line{
+  grid-template-columns:88px minmax(0,1fr);
+  gap:0 18px;
+  align-items:start;
+  padding:18px 0;
+}
+.checkout-refresh .cart-line:first-of-type{padding-top:14px}
+.checkout-refresh .cart-line-art{
+  grid-column:1;
+  grid-row:1 / span 2;
+  width:88px;
+  height:88px;
+  overflow:hidden;
+  border-radius:12px;
+}
+.checkout-refresh .cart-line-art img{object-fit:contain}
+.checkout-refresh .cart-line .cart-meta{
+  grid-column:2;
+  grid-row:1;
+  min-width:0;
+  display:grid;
+  gap:5px;
+  align-content:start;
+}
+.checkout-refresh .cart-meta>strong:first-child{
+  font-size:15px;
+  line-height:1.38;
+  overflow-wrap:anywhere;
+}
+.checkout-refresh .cart-meta .cart-unit-price{font-size:13px;font-weight:800;color:#494f4b}
+.checkout-refresh .cart-meta .cart-stock-notice{
+  justify-self:start;
+  color:#815222;
+  border-color:#f0dec3;
+  background:#fff9ed;
+}
+.checkout-refresh .cart-line-invalid{
+  border-left:3px solid #b34b38;
+  padding-left:12px;
+  background:#fffafa;
+}
+.checkout-refresh .cart-line-controls{
+  grid-column:2;
+  grid-row:2;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  flex-wrap:wrap;
+  min-width:0;
+  gap:10px;
+  margin-top:14px;
+}
+.checkout-refresh .cart-line-controls .qty{
+  grid-column:auto;
+  grid-row:auto;
+  justify-self:auto;
+  margin:0;
+  border:1px solid #d5d9d5;
+  border-radius:10px;
+  min-height:44px;
+  background:#fdfdfc;
+  overflow:hidden;
+}
+.checkout-refresh .cart-line-controls .qty button{
+  height:43px;
+  width:44px;
+  min-width:44px;
+  touch-action:manipulation;
+}
+.checkout-refresh .cart-line-controls .qty button:focus-visible,
+.checkout-refresh .cart-line-actions button:focus-visible,
+.checkout-refresh .cart-continue-link:focus-visible{
+  outline:3px solid #376b60;
+  outline-offset:2px;
+}
+.checkout-refresh .cart-line-actions{
+  display:flex;
+  flex-wrap:nowrap;
+  align-items:center;
+  justify-content:flex-end;
+  grid-column:auto;
+  grid-row:auto;
+  gap:12px;
+  min-width:0;
+  margin:0;
+}
+.checkout-refresh .cart-line-actions>strong{
+  font-size:clamp(16px,1.7vw,19px);
+  font-variant-numeric:tabular-nums;
+  white-space:nowrap;
+}
+.checkout-refresh .cart-line-actions .remove-cart{
+  display:inline-flex;
+  align-items:center;
+  gap:4px;
+  min-height:44px;
+  min-width:44px;
+  padding:6px 8px;
+  color:#646b68;
+  white-space:nowrap;
+  border-radius:8px;
+}
+.checkout-refresh .cart-line-actions .remove-cart:hover{color:#a53b31;background:#fdf0ee}
+.checkout-refresh .cart-checkout-tools{margin-top:14px}
+.checkout-refresh .cart-shipping-goal{
+  margin:14px 0 0;
+  border-radius:13px;
+  background:#f6faf8;
+}
+.checkout-refresh .cart-shipping-goal-track{height:7px}
+.checkout-refresh .cart-order-form{
+  border-radius:16px;
+  padding:clamp(18px,2.3vw,28px);
+  background:#fff;
+}
+.checkout-refresh .cart-form-heading{margin-bottom:22px}
+.checkout-refresh .cart-form-heading h2{font-size:22px!important}
+.checkout-refresh .cart-form-panel :is(input,select,textarea){
+  min-height:48px;
+  background:#fff;
+  border-color:#d9ddda;
+}
+.checkout-refresh .cart-form-panel :is(input,select,textarea):focus-visible{
+  outline:2px solid #376b60;
+  outline-offset:1px;
+}
+.checkout-refresh .cart-price-breakdown{
+  background:#f7f9f8;
+  margin:22px 0 18px;
+}
+.checkout-refresh .cart-submit{
+  background:#171717;
+  border-color:#171717;
+  border-radius:11px;
+  min-height:56px;
+}
+.checkout-refresh .cart-continue-link{display:none}
+#datos-pedido{scroll-margin-top:100px}
+@media(max-width:1080px){
+  .checkout-refresh .cart-experience-grid{grid-template-columns:minmax(0,1fr)}
+  .checkout-refresh .cart-continue-link{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:12px;
+    width:100%;
+    margin-top:14px;
+    padding:14px 18px;
+    min-height:50px;
+    border-radius:10px;
+    background:#171717;
+    color:#fff;
+    font-size:14px;
+    font-weight:800;
+    text-align:center;
+  }
+}
+@media(max-width:640px){
+  .checkout-refresh .cart-experience-heading{margin-bottom:18px}
+  .checkout-refresh .cart-progress{gap:6px;margin-top:13px;padding-top:12px}
+  .checkout-refresh .cart-progress li{font-size:10px;gap:5px}
+  .checkout-refresh .cart-progress li span{height:27px;width:27px;font-size:10px}
+  .checkout-refresh .cart-products-panel{padding:16px}
+  .checkout-refresh .cart-line{
+    grid-template-columns:74px minmax(0,1fr);
+    gap:0 12px;
+    padding:14px 0;
+  }
+  .checkout-refresh .cart-line-art{
+    width:74px;
+    height:74px;
+    grid-row:1;
+  }
+  .checkout-refresh .cart-meta>strong:first-child{font-size:14px}
+  .checkout-refresh .cart-line-controls{
+    grid-column:1/-1;
+    grid-row:2;
+    margin-top:12px;
+  }
+  .checkout-refresh .cart-line-actions{margin-left:auto;gap:6px}
+  .checkout-refresh .cart-line-actions>strong{font-size:16px}
+  .checkout-refresh .cart-line-actions .remove-cart{font-size:11px;padding-inline:5px}
+  .checkout-refresh .cart-order-form{padding:18px}
+  .checkout-refresh .cart-payment-options{grid-template-columns:1fr}
+  .checkout-refresh .cart-payment-option{min-height:60px}
+  #datos-pedido{scroll-margin-top:76px}
+}
+@media(max-width:350px){
+  .checkout-refresh .cart-line-controls{gap:6px}
+  .checkout-refresh .cart-line-actions{gap:4px}
+  .checkout-refresh .cart-line-actions>strong{font-size:14px}
+  .checkout-refresh .cart-line-actions .remove-cart{padding-inline:2px}
+  .checkout-refresh .cart-line-controls .qty button{width:44px;min-width:44px}
+}
+@media(prefers-reduced-motion:reduce){
+  .checkout-refresh .cart-continue-link,
+  .checkout-refresh .cart-line-controls button{transition:none!important}
+}

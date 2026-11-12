@@ -60,10 +60,12 @@ describe("actualización visual y datos comerciales",()=>{
   const layout=readFileSync("src/app/layout.tsx","utf8");
   const css=readFileSync("src/app/hero-campaign.css","utf8");
   expect(layout.indexOf('import "./hero-campaign.css";')).toBeGreaterThan(layout.indexOf('import "./mobile-visual-polish.css";'));
-  expect(css).toContain("aspect-ratio:900/1230");
-  expect(css).toContain("@media(min-width:720px) and (max-width:960px)");
+  expect(css).toContain("object-fit:contain");
+  expect(css).toContain("height:clamp(430px,38vw,500px)");
+  expect(css).toContain("@media(max-width:960px)");
   expect(css).toContain("@media(max-width:719px)");
   expect(css).toContain("@media(max-width:380px)");
+  expect(layout.indexOf('import "./cart-ux-2026.css";')).toBeGreaterThan(layout.indexOf('import "./hero-campaign.css";'));
  });
 
 });

@@ -81,9 +81,12 @@ def run():
                     check(bool(box and box["x"] >= -2 and
                                box["x"] + box["width"] <= width + 2),
                           f"{width}px: campaign photo stays inside viewport")
-                    ratio = box["width"] / box["height"] if box and box["height"] else 0
-                    check(abs(ratio - (900 / 1230)) < 0.025,
-                          f"{width}px: campaign photo keeps original aspect ratio")
+                    check(bool(box and 280 <= box["height"] <= 415),
+                          f"{width}px: campaign uses the former hero's bounded responsive height")
+                    fit = hero.locator("img").evaluate(
+                        "(img) => getComputedStyle(img).objectFit")
+                    check(fit == "contain",
+                          f"{width}px: full campaign photo is preserved without clipping")
                 check("TIENDA EN PREPARACIÓN" not in page.locator("main").inner_text(),
                       f"{width}px: no demo text on public home")
                 cart_icon = page.locator(".header-cart").bounding_box()
@@ -134,6 +137,13 @@ def run():
                 page.goto(BASE_URL + "/carrito", wait_until="domcontentloaded", timeout=35000)
                 page.locator(".cart-line").first.wait_for(state="visible", timeout=17000)
                 inspect(page, "carrito", width, screenshot=width in (320, 390, 430, 768))
+                controls = page.locator(".cart-line-controls").first
+                check(controls.count() > 0, f"{width}px: quantity and total share one responsive row")
+                if controls.count():
+                    control_rect = controls.bounding_box()
+                    check(bool(control_rect and control_rect["x"] >= -2 and
+                               control_rect["x"] + control_rect["width"] <= width + 2),
+                          f"{width}px: cart item controls stay inside viewport")
                 check(page.locator(".floating-actions").count() == 0,
                       f"{width}px: no floating bar overlay on cart")
                 fields = page.locator(".cart-form-panel input:not([type=radio])")

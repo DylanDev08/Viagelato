@@ -1,4 +1,4 @@
-import {render,screen,waitFor} from "@testing-library/react";
+import {fireEvent,render,screen,waitFor} from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import {afterEach,describe,expect,it,vi} from "vitest";
 import {CartProvider} from "@/components/cart";
@@ -24,6 +24,8 @@ describe("mensaje preparado y selección vigente",()=>{
   await user.selectOptions(screen.getByLabelText("Zona de entrega"),"Lanús Este");
   await user.click(screen.getByRole("button",{name:/Pagar por WhatsApp/}));
   await waitFor(()=>expect(send).toHaveBeenCalledOnce());
+  fireEvent.submit(document.querySelector("form.cart-order-form")!);
+  expect(send).toHaveBeenCalledOnce();
   const submitted=JSON.parse(String((send.mock.calls[0] as unknown as [string,RequestInit])[1].body));
   expect(submitted).toMatchObject({
    expected_subtotal:21900,expected_shipping_kind:"pending",

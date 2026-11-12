@@ -1,123 +1,97 @@
-/* Hero comercial 2026: la imagen vertical convive con el diseño blanco de Viagelato.
-   Una sola tarjeta con proporción real evita franjas, recortes y alturas fijas heredadas. */
+/* La campaña conserva el mismo bloque responsive del hero original.
+   La foto vertical se contiene en un marco apaisado de altura controlada. */
 .hero-v2 .hero-grid{
+  display:grid;
   grid-template-columns:minmax(0,1.08fr) minmax(0,.92fr);
-  gap:clamp(24px,3.8vw,64px);
+  gap:clamp(22px,3.5vw,52px);
   align-items:center;
-  min-height:0;
+  min-height:520px;
 }
 .hero-v2 .hero-copy{
   min-width:0;
-  padding:clamp(44px,5.5vw,78px) 0;
+  padding:clamp(48px,5vw,70px) 0;
 }
 .hero-v2 .hero-visual.custom-hero{
+  position:relative;
   display:grid;
   place-items:center;
-  min-width:0;
-  min-height:0;
-  width:100%;
-  margin:0;
-  padding:clamp(16px,2.2vw,32px);
-  background:linear-gradient(155deg,#edf6f5 0%,#f9fbfa 64%,#eaf2f1 100%);
-  border-radius:24px;
-  overflow:visible;
   isolation:isolate;
+  overflow:hidden;
+  width:100%;
+  height:clamp(430px,38vw,500px);
+  min-height:0;
+  padding:0;
+  margin:0;
+  border:0;
+  border-radius:0;
+  background:linear-gradient(145deg,#0797e7 0%,#1ba9f2 52%,#087fdd 100%);
 }
-.hero-v2 .hero-visual.custom-hero:before,
-.hero-v2 .hero-visual.custom-hero:after{display:none}
+.hero-v2 .hero-visual.custom-hero::before,
+.hero-v2 .hero-visual.custom-hero::after{display:none}
 .hero-v2 .hero-visual.custom-hero .hero-campaign-art{
   position:relative;
-  width:min(100%,410px);
-  aspect-ratio:900/1230;
-  min-height:0;
-  overflow:hidden;
-  border-radius:16px;
-  background:#139ee9;
-  box-shadow:0 20px 50px rgb(15 44 52 / 12%);
-}
-.hero-v2 .hero-visual.custom-hero .hero-campaign-art img{
   width:100%;
   height:100%;
-  object-fit:cover;
+  min-height:0;
+  max-width:none;
+  overflow:hidden;
+  border:0;
+  border-radius:0;
+  background:transparent;
+  box-shadow:none;
+}
+.hero-v2 .hero-visual.custom-hero .hero-campaign-art img{
+  display:block;
+  width:100%;
+  height:100%;
+  object-fit:contain;
   object-position:center;
-  transform:scale(1);
+  transform:none;
 }
 .hero-v2 .hero-facts strong{
-  font-size:clamp(17px,1.7vw,24px);
+  font-size:clamp(17px,1.7vw,23px);
   line-height:1.2;
 }
 .hero-v2 .hero-facts div{min-width:0}
 .hero-v2 .hero-facts span{max-width:170px}
-@media(hover:hover) and (pointer:fine) and (prefers-reduced-motion:no-preference){
-  .hero-v2 .hero-campaign-art img{
-    transition:transform .5s cubic-bezier(.22,.68,0,1.02);
-  }
-  .hero-v2 .hero-visual.custom-hero:hover .hero-campaign-art img{
-    transform:scale(1.025);
-  }
-}
-@media(min-width:720px) and (max-width:960px){
+@media(max-width:960px){
   .hero-v2 .hero-grid{
-    grid-template-columns:minmax(0,1.14fr) minmax(0,.86fr);
-    gap:clamp(16px,2.5vw,28px);
-  }
-  .hero-v2 .hero-copy{padding:50px 0}
-  .hero-v2 .hero-copy h1{
-    font-size:clamp(36px,4.8vw,51px);
-    overflow-wrap:normal;
-  }
-  .hero-v2 .hero-visual.custom-hero{
-    padding:16px;
-    min-height:0;
-  }
-  .hero-v2 .hero-visual.custom-hero .hero-campaign-art{
-    width:100%;
-    border-radius:14px;
-  }
-  .hero-v2 .hero-cta{gap:8px}
-  .hero-v2 .hero-cta a{min-height:48px;padding-inline:14px}
-}
-@media(max-width:719px){
-  .hero-v2 .hero-grid{
-    display:grid;
     grid-template-columns:minmax(0,1fr);
     gap:0;
     min-height:0;
   }
-  .hero-v2 .hero-copy{
-    padding:clamp(30px,7vw,48px) 0 20px;
+  .hero-v2 .hero-copy{padding:48px 0 30px}
+  .hero-v2 .hero-visual.custom-hero{
+    height:clamp(340px,52vw,410px);
+    min-height:0;
+    max-width:none;
   }
+}
+@media(max-width:719px){
+  .hero-v2 .hero-copy{padding:clamp(30px,7vw,48px) 0 22px}
   .hero-v2 .hero-copy h1{
     font-size:clamp(35px,8vw,52px);
     line-height:1.03;
-    overflow-wrap:normal;
   }
   .hero-v2 .hero-visual.custom-hero{
-    width:100%;
-    max-width:100%;
-    min-height:0;
-    margin:0 auto 30px;
-    padding:0;
-    background:transparent;
+    width:calc(100% + 32px);
+    margin-inline:-16px;
+    margin-bottom:12px;
+    height:clamp(285px,80vw,365px);
     border-radius:0;
-  }
-  .hero-v2 .hero-visual.custom-hero .hero-campaign-art{
-    width:min(100%,390px);
-    border-radius:16px;
-    box-shadow:0 12px 32px rgb(15 44 52 / 12%);
+    background:linear-gradient(145deg,#0797e7 0%,#1ba9f2 52%,#087fdd 100%);
   }
   .hero-v2 .hero-facts div{padding-block:14px}
 }
-@media(max-width:380px){
-  .hero-v2 .hero-copy h1{
-    font-size:clamp(32px,8.6vw,39px);
-    overflow-wrap:anywhere;
+@media(max-width:420px){
+  .hero-v2 .hero-visual.custom-hero{
+    width:calc(100% + 28px);
+    margin-inline:-14px;
   }
-  .hero-v2 .hero-visual.custom-hero .hero-campaign-art{border-radius:12px}
+}
+@media(max-width:380px){
+  .hero-v2 .hero-copy h1{font-size:clamp(32px,8.6vw,39px);overflow-wrap:anywhere}
 }
 @media(prefers-reduced-motion:reduce),(hover:none){
-  .hero-v2 .hero-campaign-art img{
-    transition:none!important;
-    transform:none!important;
-  }
+  .hero-v2 .hero-campaign-art img{transition:none!important;transform:none!important}
 }
