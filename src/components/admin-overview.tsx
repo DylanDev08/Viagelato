@@ -4,7 +4,7 @@ import {commercialReadiness} from "@/lib/commercial-readiness";
 
 type OverviewTab="requests"|"products"|"zones";
 type OverviewCounts={attention:number;payment:number};
-export function AdminOverview({counts,products,zones,requestsLoaded,busy,onNavigate}:{
+export function AdminOverview({counts,products,zones=[],requestsLoaded,busy,onNavigate}:{
  counts:OverviewCounts;
  products:Product[];
  zones:ShippingZone[];
