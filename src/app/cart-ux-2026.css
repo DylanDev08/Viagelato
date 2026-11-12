@@ -212,7 +212,7 @@
   .checkout-refresh .cart-line-actions{gap:4px}
   .checkout-refresh .cart-line-actions>strong{font-size:14px}
   .checkout-refresh .cart-line-actions .remove-cart{padding-inline:2px}
-  .checkout-refresh .cart-line-controls .qty button{width:40px;min-width:40px}
+  .checkout-refresh .cart-line-controls .qty button{width:44px;min-width:44px}
 }
 @media(prefers-reduced-motion:reduce){
   .checkout-refresh .cart-continue-link,
