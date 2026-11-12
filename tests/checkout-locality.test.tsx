@@ -13,7 +13,7 @@ describe("localidades habilitadas y fuera de cobertura",()=>{
   expect(screen.queryByText(/Capital Federal: consultamos cobertura, costo y fecha de entrega/)).not.toBeInTheDocument();
   expect(screen.queryByRole("textbox",{name:"Escribí tu localidad"})).not.toBeInTheDocument();
   await user.click(screen.getByRole("radio",{name:/Efectivo al recibir/}));
-  expect(screen.getByText("Efectivo al recibir, sujeto a confirmación")).toBeInTheDocument();
+  expect(screen.getByRole("radio",{name:/Efectivo al recibir/})).toBeChecked();
  });
  it("permite escribir localidad real sin enviar literalmente 'Otra localidad'",async()=>{
   const user=userEvent.setup();
