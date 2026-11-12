@@ -1,3 +1,4 @@
+import {readFileSync} from "node:fs";
 import {render,screen,within} from "@testing-library/react";
 import {describe,expect,it} from "vitest";
 import {SiteFooter} from "@/components/site-footer";
@@ -45,6 +46,24 @@ describe("actualización visual y datos comerciales",()=>{
   render(<CartProvider><Storefront settings={{...DEFAULT_SETTINGS,hero_title:"Productos seleccionados para tu comercio",hero_subtitle:"Una propuesta comercial personalizada."}} products={[]} categories={[]} banners={[]} demo={false}/></CartProvider>);
   expect(screen.getByRole("heading",{name:"Productos seleccionados para tu comercio"})).toBeInTheDocument();
   expect(screen.getByText("Una propuesta comercial personalizada.")).toBeInTheDocument();
+ });
+
+ it("integra una imagen promocional en una tarjeta responsive sin mostrar demo",()=>{
+  const {container}=render(<CartProvider><Storefront settings={{...DEFAULT_SETTINGS,hero_image_url:"/catalogo/hero-seitu-tentate.webp"}} products={[]} categories={[]} banners={[]} demo={true}/></CartProvider>);
+  const frame=container.querySelector(".hero-visual.custom-hero .hero-campaign-art");
+  expect(frame).toBeInTheDocument();
+  expect(frame?.querySelector("img")).toHaveAttribute("src","/catalogo/hero-seitu-tentate.webp");
+  expect(container.querySelector(".temperature-card")).not.toBeInTheDocument();
+  expect(screen.queryByText(/TIENDA EN PREPARACIÓN|DEMO|PREVIEW/i)).not.toBeInTheDocument();
+ });
+ it("carga al final el diseño específico de la campaña para no romper el responsive previo",()=>{
+  const layout=readFileSync("src/app/layout.tsx","utf8");
+  const css=readFileSync("src/app/hero-campaign.css","utf8");
+  expect(layout.indexOf('import "./hero-campaign.css";')).toBeGreaterThan(layout.indexOf('import "./mobile-visual-polish.css";'));
+  expect(css).toContain("aspect-ratio:900/1230");
+  expect(css).toContain("@media(min-width:720px) and (max-width:960px)");
+  expect(css).toContain("@media(max-width:719px)");
+  expect(css).toContain("@media(max-width:380px)");
  });
 
 });
