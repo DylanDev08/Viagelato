@@ -20,6 +20,7 @@ import "./security-loading.css";
 import "./button-hover-theme.css";
 import "./mobile-visual-polish.css";
 import "./hero-campaign.css";
+import "./cart-ux-2026.css";
 
 const siteUrl=publicSiteUrl();
 const indexingEnabled=process.env.ENABLE_INDEXING==="true"&&siteUrl!==null;
