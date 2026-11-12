@@ -1,0 +1,25 @@
+/* Estado comercial: pendientes reales, sin mezclar consultas con publicaciones. */
+.admin-commerce-readiness{
+  padding:clamp(18px,2.5vw,28px);
+  margin:18px 0 22px;
+  border:1px solid #e3e7e5;
+  border-radius:16px;
+  background:#fff;
+}
+.admin-commerce-intro h2{font-size:clamp(19px,2.2vw,24px);line-height:1.2;margin:0 0 6px}
+.admin-commerce-intro p{font-size:13px;color:#59635e;line-height:1.5;margin:0 0 18px}
+.admin-commerce-metrics{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.admin-commerce-metrics>div{min-width:0;padding:16px;border-radius:12px;background:#f6f8f7;display:grid;gap:5px}
+.admin-commerce-metrics small{font-weight:750;font-size:12px;color:#4b5953;line-height:1.35}
+.admin-commerce-metrics strong{font-size:clamp(24px,3vw,32px);font-weight:850;line-height:1.2;font-variant-numeric:tabular-nums}
+.admin-commerce-metrics span{font-size:11px;color:#626f68;line-height:1.45}
+.admin-commerce-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:16px}
+.admin-commerce-actions button{min-height:44px}
+.admin-commerce-note{margin:13px 0 0;font-size:11px;color:#65716c;line-height:1.5}
+@media(max-width:700px){
+ .admin-commerce-metrics{grid-template-columns:minmax(0,1fr)}
+ .admin-commerce-metrics>div{grid-template-columns:minmax(0,1fr) auto;gap:3px 10px;padding:14px}
+ .admin-commerce-metrics strong{grid-column:2;grid-row:1 / span 2;align-self:center}
+ .admin-commerce-metrics span{grid-column:1}
+ .admin-commerce-actions button{flex:1;min-width:min(100%,150px)}
+}
