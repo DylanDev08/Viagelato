@@ -51,6 +51,7 @@ describe("precios del catálogo Viagelato de Excel",()=>{
   render(<CartProvider><PricedCatalog items={[item]}/></CartProvider>);
   expect(screen.getByRole("link",{name:`Ver ficha y precio de ${item.name}`})).toBeInTheDocument();
   expect(screen.getByText("Ver detalles del producto")).toBeInTheDocument();
+  expect(screen.queryByText(/Elegí ahora|Confirmá stock al finalizar|Recién al finalizar/i)).not.toBeInTheDocument();
   expect(screen.getByRole("button",{name:`Agregar ${item.name} al carrito`})).toBeInTheDocument();
   expect(screen.queryByText(item.description)).not.toBeInTheDocument();
   expect(screen.getByText(/Variedades:/)).toBeInTheDocument();
