@@ -19,7 +19,7 @@ describe("experiencia del carrito rediseñado",()=>{
   render(<CartProvider><Checkout products={[]} zones={[]} settings={DEFAULT_SETTINGS} demo={false} checkoutEnabled={false}/></CartProvider>);
   await user.click(screen.getByRole("radio",{name:/Efectivo al recibir/}));
   expect(screen.getByRole("radio",{name:/Efectivo al recibir/})).toBeChecked();
-  expect(screen.getByText("Efectivo al recibir, sujeto a confirmación")).toBeInTheDocument();
+  expect(screen.getByText("Efectivo al recibir")).toBeInTheDocument();
  });
  it("pedir vaciar carrito necesita una confirmación",async()=>{
   localStorage.setItem("viagelato-cart:v1",JSON.stringify([{id:"catalog-price-2",quantity:1}]));
@@ -32,6 +32,8 @@ describe("experiencia del carrito rediseñado",()=>{
    expect(confirm).toHaveBeenCalledOnce();
    expect(screen.getByText("Productos seleccionados")).toBeInTheDocument();
    expect(screen.getByRole("button",{name:"Vaciar carrito"})).toBeInTheDocument();
+   expect(screen.getByRole("link",{name:/Continuar con el pedido/})).toHaveAttribute("href","#datos-pedido");
+   expect(screen.queryByRole("region",{name:"Importe de productos"})).not.toBeInTheDocument();
    confirm.mockReturnValue(true);
    await user.click(clear);
    await waitFor(()=>expect(screen.queryByRole("button",{name:"Vaciar carrito"})).not.toBeInTheDocument());
