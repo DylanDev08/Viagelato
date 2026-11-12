@@ -73,6 +73,19 @@ def run():
             try:
                 page.goto(BASE_URL + "/", wait_until="domcontentloaded", timeout=35000)
                 inspect(page, "home", width, screenshot=width in (320, 390, 430, 768))
+                hero = page.locator(".hero-visual.custom-hero .hero-campaign-art")
+                check(hero.count() == 1,
+                      f"{width}px: promotional photo is inside dedicated responsive frame")
+                if hero.count():
+                    box = hero.bounding_box()
+                    check(bool(box and box["x"] >= -2 and
+                               box["x"] + box["width"] <= width + 2),
+                          f"{width}px: campaign photo stays inside viewport")
+                    ratio = box["width"] / box["height"] if box and box["height"] else 0
+                    check(abs(ratio - (900 / 1230)) < 0.025,
+                          f"{width}px: campaign photo keeps original aspect ratio")
+                check("TIENDA EN PREPARACIÓN" not in page.locator("main").inner_text(),
+                      f"{width}px: no demo text on public home")
                 cart_icon = page.locator(".header-cart").bounding_box()
                 check(bool(cart_icon and cart_icon["width"] >= 43 and cart_icon["height"] >= 43),
                       f"{width}px: header cart tap target >=44px")
