@@ -29,7 +29,7 @@ describe("carrito con total y envío visible",()=>{
   expect(within(summary).getByText("Gratis")).toBeInTheDocument();
   expect(within(summary).getByText("Total del pedido")).toBeInTheDocument();
   expect(summary.querySelector(".cart-price-total strong")).toHaveTextContent("65.700");
-  expect(screen.getByRole("button",{name:"Pagar por WhatsApp"})).toBeDisabled();
+  expect(screen.getByRole("button",{name:"Enviar pedido por WhatsApp"})).toBeDisabled();
  });
  it("muestra tarifa configurada y no la confunde con subtotal",async()=>{
   const user=userEvent.setup(),summary=setup([zone]);
@@ -57,7 +57,7 @@ describe("carrito con total y envío visible",()=>{
   expect(summary.querySelectorAll(".cart-price-row strong")[1]).toHaveTextContent("A confirmar");
   expect(summary.querySelector(".cart-price-total strong")).toHaveTextContent("21.900");
   await user.type(screen.getByLabelText("Nombre y apellido"),"Ana Gomez");
-  expect(screen.getByRole("button",{name:"Pagar por WhatsApp"})).toBeEnabled();
+  expect(screen.getByRole("button",{name:"Enviar pedido por WhatsApp"})).toBeEnabled();
  });
  it("muestra cuánto falta para obtener envío gratis solo en las zonas elegibles",async()=>{
   const user=userEvent.setup();setup();

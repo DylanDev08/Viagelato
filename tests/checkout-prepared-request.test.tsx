@@ -22,7 +22,7 @@ describe("mensaje preparado y selección vigente",()=>{
   render(<CartProvider><Checkout products={[]} zones={[]} settings={DEFAULT_SETTINGS} demo={false} checkoutEnabled={false}/></CartProvider>);
   await user.type(screen.getByLabelText("Nombre y apellido"),"Ana Gomez");
   await user.selectOptions(screen.getByLabelText("Zona de entrega"),"Lanús Este");
-  await user.click(screen.getByRole("button",{name:/Pagar por WhatsApp/}));
+  await user.click(screen.getByRole("button",{name:/Enviar pedido por WhatsApp/}));
   await waitFor(()=>expect(send).toHaveBeenCalledOnce());
   fireEvent.submit(document.querySelector("form.cart-order-form")!);
   expect(send).toHaveBeenCalledOnce();
@@ -51,17 +51,17 @@ describe("mensaje preparado y selección vigente",()=>{
    render(<CartProvider><Checkout products={[]} zones={[]} settings={DEFAULT_SETTINGS} demo={false} checkoutEnabled={false}/></CartProvider>);
    await user.type(screen.getByLabelText("Nombre y apellido"),"Ana Gomez");
    await user.selectOptions(screen.getByLabelText("Zona de entrega"),"Lanús Este");
-   await user.click(screen.getByRole("button",{name:"Pagar por WhatsApp"}));
+   await user.click(screen.getByRole("button",{name:"Enviar pedido por WhatsApp"}));
    expect(await screen.findByText("Solicitud VIA-111111112222 ya gestionada.")).toBeInTheDocument();
    const key=checkoutKeyStorage.getItem(CHECKOUT_KEY_STORAGE);
    expect(key).toBeTruthy();
-   expect(screen.getByRole("button",{name:"Pagar por WhatsApp"})).toBeDisabled();
+   expect(screen.getByRole("button",{name:"Enviar pedido por WhatsApp"})).toBeDisabled();
    expect(send).toHaveBeenCalledOnce();
    expect(screen.getByText(/No lo creamos otra vez/)).toBeInTheDocument();
    await user.click(screen.getByRole("button",{name:"Iniciar un pedido nuevo"}));
    expect(confirmation).toHaveBeenCalledOnce();
    expect(checkoutKeyStorage.getItem(CHECKOUT_KEY_STORAGE)).toBeNull();
-   expect(screen.getByRole("button",{name:"Pagar por WhatsApp"})).toBeEnabled();
+   expect(screen.getByRole("button",{name:"Enviar pedido por WhatsApp"})).toBeEnabled();
   }finally{confirmation.mockRestore();}
  });
 
