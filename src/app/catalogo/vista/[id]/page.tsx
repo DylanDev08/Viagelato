@@ -40,7 +40,7 @@ export default async function ProductPage({params}:Props){
   <div className="provisional-detail-grid">
    <div className="priced-detail-media">
     <div className="provisional-detail-image">
-     {item.image?<Image src={item.image} alt={item.name} fill priority sizes="(max-width: 900px) 100vw,50vw" unoptimized/>:<div className="priced-detail-no-image"><ImageOff size={42} aria-hidden="true"/><p>Foto del producto pendiente</p></div>}
+     {item.image?<Image src={item.image} alt={item.name} fill priority sizes="(max-width: 900px) 100vw,50vw" unoptimized/>:<div className="priced-detail-no-image"><ImageOff size={42} aria-hidden="true"/><p>Sin imagen</p></div>}
     </div>
     {item.imageStatus==="referencial"?<p className="hint">Imagen ilustrativa.</p>:null}
     {secondaryPhotos.length>0?<div className="priced-detail-gallery" aria-label="Otras variedades del mismo producto">{secondaryPhotos.map(photo=><figure key={photo.src}><div><Image src={photo.src} alt={photo.alt} fill sizes="(max-width:900px) 40vw, 180px" unoptimized/></div><figcaption>{photo.alt}</figcaption></figure>)}</div>:null}
