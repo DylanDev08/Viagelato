@@ -28,7 +28,7 @@ export function PricedAddToCart({item,detail=false}:{item:CatalogPriceItem;detai
    aria-label={full?`Límite de 99 presentaciones de ${item.name}`:`Agregar ${item.name} al carrito`}>
    {full?"Límite alcanzado":added?"Agregar otro":"Agregar al carrito"}
   </button>
-  {quantity>0?<Link href="/carrito" className="priced-cart-link">En carrito: {quantity} · Revisar pedido</Link>:<small>Elegí ahora · Confirmá stock al finalizar</small>}
+  {quantity>0?<Link href="/carrito" className="priced-cart-link">En carrito: {quantity} · Revisar pedido</Link>:null}
  </div>;
  return <section className="detail-cart-purchase" aria-label="Agregar este producto al pedido">
   <p className="detail-cart-kicker"><ShoppingBag size={16} aria-hidden="true"/> ARMÁ TU PEDIDO</p>
@@ -42,6 +42,6 @@ export function PricedAddToCart({item,detail=false}:{item:CatalogPriceItem;detai
     {full?"Límite alcanzado":added?<><Check size={18}/> Agregado al carrito</>:<><ShoppingBag size={18}/> Agregar al carrito</>}
    </button>
   </div>
-  {quantity>0?<Link href="/carrito" className="detail-cart-next"><strong>{quantity} {quantity===1?"presentación":"presentaciones"} en tu carrito</strong><span>Ver carrito y finalizar pedido <ArrowRight size={17}/></span></Link>:<p className="detail-cart-note">Agregá las presentaciones que quieras. Recién al finalizar el carrito se prepara el mensaje por WhatsApp.</p>}
+  {quantity>0?<Link href="/carrito" className="detail-cart-next"><strong>{quantity} {quantity===1?"presentación":"presentaciones"} en tu carrito</strong><span>Ver carrito y finalizar pedido <ArrowRight size={17}/></span></Link>:null}
  </section>;
 }
