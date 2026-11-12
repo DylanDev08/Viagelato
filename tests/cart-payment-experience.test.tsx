@@ -7,10 +7,10 @@ import {DEFAULT_SETTINGS} from "@/lib/types";
 
 beforeEach(()=>{localStorage.clear();sessionStorage.clear();});
 describe("experiencia del carrito rediseñado",()=>{
- it("muestra pasos comerciales y aclara que no hay cobro en la web",()=>{
+ it("muestra pasos comerciales sin carteles de preproducción",()=>{
   render(<CartProvider><Checkout products={[]} zones={[]} settings={DEFAULT_SETTINGS} demo={false} checkoutEnabled={false}/></CartProvider>);
   expect(screen.getByRole("list",{name:"Cómo hacer el pedido"})).toBeInTheDocument();
-  expect(screen.getByText("Sin pago online")).toBeInTheDocument();
+  expect(screen.queryByText("Sin pago online")).not.toBeInTheDocument();
   expect(screen.getByRole("button",{name:"Pagar por WhatsApp"})).toBeDisabled();
   expect(screen.getByRole("radio",{name:/Transferencia bancaria/})).toBeChecked();
  });
