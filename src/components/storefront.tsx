@@ -18,7 +18,7 @@ const HERO_PRODUCTS=[
  {src:"/catalogo/cono-tu-dl.webp",alt:"Cono helado de dulce de leche"},
 ] as const;
 
-export function Storefront({settings,products,banners,demo,catalogItems=CATALOG_PRICE_ITEMS}:{settings:Settings;products:Product[];categories:Category[];banners:Banner[];demo:boolean;catalogItems?:CatalogPriceItem[]}){
+export function Storefront({settings,products,banners,catalogItems=CATALOG_PRICE_ITEMS}:{settings:Settings;products:Product[];categories:Category[];banners:Banner[];demo:boolean;catalogItems?:CatalogPriceItem[]}){
  const featured=products.filter(product=>product.featured).slice(0,4);
  const visible=featured.length?featured:products.slice(0,4);
  const featuredCatalogItems=storefrontSamples(catalogItems,4);
