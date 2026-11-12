@@ -21,6 +21,7 @@ import "./button-hover-theme.css";
 import "./mobile-visual-polish.css";
 import "./hero-campaign.css";
 import "./cart-ux-2026.css";
+import "./admin-commerce-readiness.css";
 
 const siteUrl=publicSiteUrl();
 const indexingEnabled=process.env.ENABLE_INDEXING==="true"&&siteUrl!==null;
