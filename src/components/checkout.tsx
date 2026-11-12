@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import {ArrowLeft,ArrowRight,Check,ClipboardList,MessageCircle,Minus,Plus,ShoppingBag,Trash2,Truck} from "lucide-react";
+import {ArrowLeft,ArrowRight,ClipboardList,MessageCircle,Minus,Plus,ShoppingBag,Trash2,Truck} from "lucide-react";
 import Link from "next/link";
 import {useMemo,useState} from "react";
 import {useCart} from "./cart";
@@ -95,10 +95,10 @@ export function Checkout({products,zones,settings,catalogItems=CATALOG_PRICE_ITE
 
  return <SiteShell settings={settings} hideFloatingActions><main className="shell checkout-page checkout-refresh">
   <div className="cart-page-heading cart-experience-heading">
-   <div className="cart-heading-top"><Link className="cart-back-link" href="/catalogo"><ArrowLeft size={17}/> Volver al catálogo</Link><span className="cart-no-charge"><Check size={15} aria-hidden="true"/> Sin pago online</span></div>
+   <div className="cart-heading-top"><Link className="cart-back-link" href="/catalogo"><ArrowLeft size={17}/> Volver al catálogo</Link></div>
    <p className="kicker">TU PEDIDO · VIAGELATO</p>
    <h1>Tu carrito<span className="cart-count-heading">{count}</span></h1>
-   <p>Revisá tus productos, elegí dónde recibirlos y prepará el pedido. <strong>El stock, la entrega y el pago se confirman por WhatsApp.</strong></p>
+   <p>Revisá tus productos, elegí la entrega y enviá el pedido por WhatsApp.</p>
    <ol className="cart-progress" aria-label="Cómo hacer el pedido">
     <li><span>01</span><strong>Productos</strong></li><li><span>02</span><strong>Entrega y pago</strong></li><li><span>03</span><strong>Confirmación por WhatsApp</strong></li>
    </ol>
@@ -108,7 +108,7 @@ export function Checkout({products,zones,settings,catalogItems=CATALOG_PRICE_ITE
     <section className="panel cart-products-panel" aria-label="Productos seleccionados">
      <div className="cart-panel-heading"><div><p className="kicker">01 / REVISÁ TU ELECCIÓN</p><h2>Productos seleccionados</h2></div><span>{count} {count===1?"unidad":"unidades"}</span></div>
      {missing>0?<div className="cart-missing-alert" role="alert"><strong>Hay {missing} {missing===1?"producto que ya no está":"productos que ya no están"} disponible{missing===1?"":"s"}.</strong><p>Revisá tu selección antes de preparar el pedido. No quitamos artículos sin avisarte.</p><button type="button" disabled={busy} onClick={()=>items.filter(item=>!productsById.has(item.id)).forEach(item=>setQuantity(item.id,0))}>Quitar artículos no disponibles</button></div>:null}
-     {!lines.length?<div className="cart-empty"><ShoppingBag size={32} aria-hidden="true"/><h3>Tu carrito está esperando productos.</h3><p>Elegí helados y congelados del catálogo para preparar tu consulta.</p><Link className="primary-action" href="/catalogo">Explorar catálogo <ArrowRight size={18}/></Link></div>:lines.map(({product,quantity})=><article className="cart-item cart-line" key={product.id}>
+     {!lines.length?<div className="cart-empty"><ShoppingBag size={32} aria-hidden="true"/><h3>Tu carrito está vacío.</h3><p>Encontrá tus helados favoritos en el catálogo.</p><Link className="primary-action" href="/catalogo">Explorar catálogo <ArrowRight size={18}/></Link></div>:lines.map(({product,quantity})=><article className="cart-item cart-line" key={product.id}>
       <div className="mini-art cart-line-art">{product.image_url?<Image src={product.image_url} alt={product.name} fill sizes="(max-width:640px) 74px, 96px" unoptimized/>:<ShoppingBag size={24} aria-hidden="true"/>}</div>
       <div className="cart-meta">
        <strong>{product.name}</strong>
@@ -139,7 +139,7 @@ export function Checkout({products,zones,settings,catalogItems=CATALOG_PRICE_ITE
    </div>
    <form className="panel cart-form-panel cart-order-form" onSubmit={sendRequest}>
     <div className="cart-form-heading"><p className="kicker">02 / PREPARÁ TU PEDIDO</p><ClipboardList size={22} aria-hidden="true"/><h2>Entrega y pago</h2></div>
-    <p className="hint cart-form-intro">Completá tus datos. En las 15 zonas indicadas, el envío es gratis desde {ars(Number(settings.free_shipping_threshold))}. Por debajo del mínimo o fuera de las zonas indicadas, el costo se cotiza y confirma por WhatsApp cuando no hay una tarifa configurada.</p>
+    <p className="hint cart-form-intro">Envío gratis desde {ars(Number(settings.free_shipping_threshold))} en zonas habilitadas. Fuera de esas condiciones, cotizamos el envío antes de confirmar tu pedido.</p>
     <label>Nombre y apellido<input disabled={busy} required minLength={2} maxLength={120} autoComplete="name" value={fullName} onChange={e=>setFullName(e.target.value)}/></label>
     {settings.pickup_enabled?<label>Tipo de entrega<select disabled={busy} value={delivery} onChange={e=>setDelivery(e.target.value as "shipping"|"pickup")}><option value="shipping">Envío a domicilio</option><option value="pickup">Retiro en el local — gratis</option></select></label>:null}
     {delivery==="shipping"?<>
@@ -156,7 +156,7 @@ export function Checkout({products,zones,settings,catalogItems=CATALOG_PRICE_ITE
      <div className="cart-price-row"><span>{delivery==="pickup"?"Retiro en local":`Envío${locality?` · ${locality}`:""}`}</span>
       <strong>{shipping.kind==="free"?"Gratis":shipping.kind==="pickup"?"Sin envío":shipping.kind==="priced"?ars(shipping.shippingCost??0):"A confirmar"}</strong></div>
      <div className="cart-price-total"><span>{shipping.total!==null?"Total del pedido":"Total de productos"}</span><strong>{ars(shipping.total??subtotal)}</strong></div>
-     {shipping.total===null?<p className="cart-total-pending" role="status">{shipping.kind==="unselected"?"Seleccioná tu zona para calcular el envío.":shipping.covered?"Todavía no hay una tarifa de envío cargada para esta zona. El costo se confirma por WhatsApp.":"Esta localidad está fuera de las zonas indicadas. Consultaremos cobertura y envío por WhatsApp."} El total final será el subtotal más el envío confirmado.</p>:<p className="cart-total-ready">{shipping.kind==="free"?"Tu compra tiene envío gratuito en esta zona.":shipping.kind==="pickup"?"Retiro sin costo de envío.":shipping.covered?"Total calculado con la tarifa de entrega configurada.":"Total con envío fuera de zona incluido."} Confirmamos la disponibilidad antes del pago.</p>}
+     {shipping.total===null?<p className="cart-total-pending" role="status">{shipping.kind==="unselected"?"Seleccioná tu zona para calcular el envío.":shipping.covered?"El costo del envío se confirma por WhatsApp.":"Entrega y costo a confirmar por WhatsApp."} El total final será el subtotal más el envío confirmado.</p>:<p className="cart-total-ready">{shipping.kind==="free"?"Tu compra tiene envío gratuito en esta zona.":shipping.kind==="pickup"?"Retiro sin costo de envío.":shipping.covered?"Total calculado con la tarifa de entrega configurada.":"Envío incluido en el total."} Confirmamos la disponibilidad antes del pago.</p>}
     </section>
     <fieldset className="cart-payment-methods">
      <legend>Forma de pago preferida</legend>
@@ -170,7 +170,7 @@ export function Checkout({products,zones,settings,catalogItems=CATALOG_PRICE_ITE
        <span><strong>{delivery==="pickup"?"Efectivo al retirar":"Efectivo al recibir"}</strong><small>Sujeto a confirmación de Viagelato.</small></span>
       </label>
      </div>
-     <p>Elegí una preferencia: no se cobra desde la web.</p>
+     
     </fieldset>
     {delivery==="shipping"?<label>Dirección de entrega (opcional)<input disabled={busy} maxLength={250} autoComplete="street-address" value={address} onChange={e=>setAddress(e.target.value)} placeholder="Calle, altura y piso"/></label>:null}
     <label>Observaciones (opcional)<textarea disabled={busy} maxLength={350} rows={3} aria-describedby="viagelato-flavor-guidance" value={notes} onChange={e=>setNotes(e.target.value)} placeholder="Ej.: Giovi de frutilla, Carita chocolate-vainilla, horario de entrega…"/><small id="viagelato-flavor-guidance">Si elegiste productos con diferentes variedades, indicá el sabor preferido. Confirmamos disponibilidad por WhatsApp.</small></label>
@@ -186,7 +186,7 @@ export function Checkout({products,zones,settings,catalogItems=CATALOG_PRICE_ITE
     <button type="submit" className="btn primary full cart-submit" disabled={!canRequest||busy||handled?.selection===selection}>{busy?"Preparando pedido…":<><MessageCircle size={20} aria-hidden="true"/> Pagar por WhatsApp <ArrowRight size={18} aria-hidden="true"/></>}</button>
     {handled?.selection===selection?<div className="cart-existing-order" role="status"><strong>Solicitud {handled.reference} ya gestionada.</strong><p>Tu pedido anterior sigue registrado. No vuelvas a enviarlo por error. Si querés hacer otro pedido con estos productos, iniciá una solicitud nueva.</p><button type="button" disabled={busy} onClick={()=>{if(!window.confirm("¿Crear otro pedido distinto con estos mismos productos? Si no necesitás otra compra, cancelá."))return;clearCheckoutKey(checkoutKeyStorage);setHandled(null);setPrepared(null);setError("");}}>Iniciar un pedido nuevo</button></div>:null}
     {prepared?.selection===selection?<p role="status">Pedido {prepared.reference} preparado. <a href={prepared.url} rel="noopener noreferrer">Abrir WhatsApp para enviar el mensaje</a>. Si no lo enviás, seguirá pendiente de contacto.</p>:null}
-    <p className="cart-form-footnote"><Truck size={16} aria-hidden="true"/> No hay cobros automáticos: por WhatsApp confirmamos stock, entrega y forma de pago. {shipping.total===null?"El total con envío aún debe cotizarse.":""}</p><p className="hint">WhatsApp se abrirá con el mensaje listo para revisar y enviar. El carrito permanece guardado hasta que vos decidas vaciarlo.</p>
+    <p className="cart-form-footnote"><Truck size={16} aria-hidden="true"/> Antes del pago confirmamos stock y entrega por WhatsApp.</p>
    </form>
   </div>
  </main></SiteShell>;
