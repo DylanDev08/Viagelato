@@ -5,8 +5,8 @@ import {quoteShipping} from "@/lib/shipping-quote";
 describe("condiciones comerciales en la página de envíos",()=>{
  it("informa mínimo de 60.000 para gratuidad y no inventa tarifa externa",()=>{
   const page=readFileSync("src/app/envios/page.tsx","utf8");
-  expect(page).toContain("Envío sin cargo desde");
-  expect(page).toContain("No se suma una tarifa fija");
+  expect(page).toContain("Envío gratis desde");
+  expect(page).not.toContain("las tarifas todavía no están publicadas");
   expect(page).not.toContain("OUT_OF_ZONE_DELIVERY_COST");
   expect(page).toContain("Retiro gratuito en el local");
   expect(page).toContain("settings.pickup_enabled");

@@ -37,13 +37,13 @@ describe("precios del catálogo Viagelato de Excel",()=>{
  it("muestra precios y permite agregar al carrito aunque el stock no esté confirmado",async()=>{
   const user=userEvent.setup();
   const sample=CATALOG_PRICE_ITEMS.slice(0,3);
-  render(<CartProvider><PricedCatalog items={sample}/></CartProvider>);
-  expect(screen.getByText("3 productos con precio por presentación")).toBeInTheDocument();
+  const {container}=render(<CartProvider><PricedCatalog items={sample}/></CartProvider>);
+  expect(container.querySelector(".provisional-count")).toHaveTextContent("3 productos");
   expect(screen.getAllByText("PRECIO POR PRESENTACIÓN")).toHaveLength(3);
   await user.click(screen.getByRole("button",{name:`Agregar ${sample[0].name} al carrito`}));
   expect(screen.getByRole("link",{name:/En carrito: 1/})).toHaveAttribute("href","/carrito");
   await user.type(screen.getByPlaceholderText("Buscar productos o sabores"),"limon");
-  expect(screen.getByText("1 producto con precio por presentación")).toBeInTheDocument();
+  expect(container.querySelector(".provisional-count")).toHaveTextContent("1 producto");
   expect(screen.getByRole("link",{name:/Ver ficha y precio de Palitos de agua/})).toHaveAttribute("href","/catalogo/vista/44");
  });
  it("muestra tarjetas comerciales breves conservando el acceso a los detalles",()=>{

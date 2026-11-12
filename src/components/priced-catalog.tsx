@@ -23,8 +23,6 @@ function CatalogProductCard({item}:{item:CatalogPriceItem}){
     {item.variants?.trim()&&normalizeCatalogText(item.variants)!==normalizeCatalogText(item.name)?<span className="priced-flavors"><strong>Variedades:</strong> {item.variants}</span>:null}
     <div className="priced-card-bottom"><div><small>PRECIO POR PRESENTACIÓN</small><strong>{ars(item.price)}</strong></div><ArrowUpRight aria-hidden="true"/></div>
     <span className="priced-view-detail">Ver detalles del producto <ArrowUpRight size={13} aria-hidden="true"/></span>
-    {item.imageStatus==="referencial"&&<span className="priced-image-note">Fotografía general de referencia</span>}
-    {item.imageStatus==="sin_foto"&&<span className="priced-image-note">Imagen no disponible</span>}
    </div>
   </Link>
   <PricedAddToCart item={item}/>
@@ -55,7 +53,7 @@ export function PricedCatalog({items,initialCategory,compact=false}:{items:Catal
     {categories.map(item=><button type="button" aria-pressed={category===item} className={category===item?"active":""} onClick={()=>setCategory(item)} key={item}>{item}</button>)}
    </div>
   </div>:null}
-  {!compact?<p className="provisional-count" aria-live="polite">{filtered.length} {filtered.length===1?"producto":"productos"} con precio por presentación</p>:null}
+  {!compact?<p className="provisional-count" aria-live="polite">{filtered.length} {filtered.length===1?"producto":"productos"}</p>:null}
   {compact?<div className="provisional-grid priced-grid" aria-label="Productos destacados">{filtered.map(item=><CatalogProductCard item={item} key={item.sourceRow}/>)}</div>:
    groups.map(group=><section className="catalog-type-section" key={group.name} aria-label={`Productos: ${group.name}`}>
     <div className="catalog-type-heading"><h2>{group.name}</h2><span>{group.count} {group.count===1?"producto":"productos"}</span></div>

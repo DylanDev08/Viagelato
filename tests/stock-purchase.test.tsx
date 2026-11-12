@@ -25,7 +25,7 @@ describe("stock administrado y cantidades del carrito",()=>{
  });
  it("no ofrece agregar un producto sin stock",()=>{
   render(<CartProvider><ProductCard product={{...product,stock:0}}/></CartProvider>);
-  expect(screen.getByText("Sin stock disponible")).toBeInTheDocument();
+  expect(screen.getByText("Sin stock")).toBeInTheDocument();
   expect(screen.getByRole("button",{name:/Se alcanzó/})).toBeDisabled();
  });
 });
