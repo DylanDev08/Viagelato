@@ -23,7 +23,7 @@ describe("carrito con total y envío visible",()=>{
   expect(within(summary).getByText("Total de productos")).toBeInTheDocument();
   expect(within(summary).getByText("A confirmar")).toBeInTheDocument();
   await user.selectOptions(screen.getByLabelText("Zona de entrega"),"Lanús Este");
-  expect(within(summary).getByText(/Todavía no hay una tarifa/)).toBeInTheDocument();
+  expect(within(summary).getByText(/El costo del envío se confirma por WhatsApp/)).toBeInTheDocument();
   await user.click(screen.getByRole("button",{name:"Agregar presentación de prueba"}));
   await user.click(screen.getByRole("button",{name:"Agregar presentación de prueba"}));
   expect(within(summary).getByText("Gratis")).toBeInTheDocument();
