@@ -22,13 +22,13 @@ export function AdminOverview({counts,products,zones=[],requestsLoaded,busy,onNa
   <div className="admin-commerce-metrics">
    <div><small>Visibles para consulta</small><strong>{readiness.visibleForInquiry}</strong><span>{readiness.awaitingVerification} sin verificación comercial</span></div>
    <div><small>Sin stock confirmado</small><strong>{readiness.withoutConfirmedStock}</strong><span>Revisar cantidades disponibles</span></div>
-   <div><small>Zonas con tarifa validada</small><strong>{readiness.areasWithConfirmedTariff} / {readiness.commercialAreas}</strong><span>Para pedidos por debajo del mínimo</span></div>
+   <div><small>Envío bajo el mínimo</small><strong>WhatsApp</strong><span>Se cotiza manualmente antes de confirmar</span></div>
   </div>
   <div className="admin-commerce-actions">
    <button className="btn ghost" type="button" disabled={busy} onClick={()=>onNavigate("products")}>Revisar productos</button>
-   <button className="btn ghost" type="button" disabled={busy} onClick={()=>onNavigate("zones")}>Configurar tarifas</button>
+   <button className="btn ghost" type="button" disabled={busy} onClick={()=>onNavigate("zones")}>Ver zonas de entrega</button>
   </div>
-  <p className="admin-commerce-note">Los artículos visibles para consulta no equivalen a stock confirmado. No se habilitan productos ni tarifas automáticamente.</p>
+  <p className="admin-commerce-note">Los artículos visibles para consulta no equivalen a stock confirmado. Las tarifas no se suman automáticamente al carrito.</p>
  </section>
  <section className="panel admin-overview-actions"><h2>¿Qué necesitás hacer hoy?</h2><p>Revisá primero los pedidos que necesitan contacto o confirmación. Después podés actualizar productos, precios, fotos y zonas sin publicar datos incompletos.</p><div className="admin-quick-actions"><button className="btn primary" disabled={busy} onClick={()=>onNavigate("requests")}>Gestionar WhatsApp {counts.attention>0?`(${counts.attention})`:""}</button><button className="btn ghost" disabled={busy} onClick={()=>onNavigate("products")}>Administrar productos</button><button className="btn ghost" disabled={busy} onClick={()=>onNavigate("zones")}>Configurar entregas</button></div></section>
  </>;
