@@ -2,7 +2,7 @@ import {readAdminJson} from "@/lib/admin-body";
 import {NextResponse} from "next/server";
 import {z} from "zod";
 import {assertAdmin,privilegedDb} from "@/lib/supabase";
-import {adminRequestError} from "@/lib/admin";
+import {adminRequestError,adminMutationRateLimit} from "@/lib/admin";
 
 const statusAction=z.object({
  id:z.uuid(),
@@ -31,6 +31,7 @@ export async function PATCH(request:Request){
  if(blocked)return blocked;
  let admin;
  try{admin=await assertAdmin();}catch{return NextResponse.json({error:"No autorizado"},{status:401});}
+ const limited=await adminMutationRateLimit(request,admin.id);if(limited)return limited;
  const json=await readAdminJson(request);if(!json.ok)return json.response;
  const parsed=schema.safeParse(json.data);
  if(!parsed.success)return NextResponse.json({error:"Acción, importe o referencia inválidos"},{status:400});
