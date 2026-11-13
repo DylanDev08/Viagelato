@@ -2,7 +2,7 @@ import {readAdminJson} from "@/lib/admin-body";
 import {NextResponse} from "next/server";
 import {z} from "zod";
 import {privilegedDb,assertAdmin} from "@/lib/supabase";
-import {adminRequestError} from "@/lib/admin";
+import {adminRequestError,adminMutationRateLimit} from "@/lib/admin";
 const schema=z.discriminatedUnion("action",[
  z.object({id:z.uuid(),action:z.literal("mark_paid")}),
  z.object({id:z.uuid(),action:z.literal("cancel")}),
@@ -11,6 +11,7 @@ const schema=z.discriminatedUnion("action",[
 export async function PATCH(req:Request){
  const originError=adminRequestError(req);if(originError)return originError;
  let user;try{user=await assertAdmin();}catch{return NextResponse.json({error:"No autorizado"},{status:401});}
+ const limited=await adminMutationRateLimit(req,user.id);if(limited)return limited;
  const json=await readAdminJson(req);if(!json.ok)return json.response;
  const p=schema.safeParse(json.data);if(!p.success)return NextResponse.json({error:"Acción inválida"},{status:400});
  const {data,error}=await privilegedDb().rpc("admin_update_order",{p_order_id:p.data.id,p_action:p.data.action,p_next_status:p.data.action==="set_status"?p.data.status:null,p_actor_user_id:user.id});

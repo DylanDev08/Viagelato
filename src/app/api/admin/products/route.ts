@@ -2,7 +2,7 @@ import {NextResponse} from "next/server";
 import {z} from "zod";
 import {adminOrError,productSchema} from "@/lib/admin";
 import {privilegedDb} from "@/lib/supabase";
-import {readJsonBody} from "@/lib/request-body";
+import {readAdminJson} from "@/lib/admin-body";
 import {normalizeProductWrite} from "@/lib/product-write";
 
 const uuid=z.uuid();
@@ -13,14 +13,16 @@ function failed(code?:string){
 const invalidId=()=>NextResponse.json({error:"El identificador del producto no es válido"},{status:400});
 export async function POST(req:Request){
  const auth=await adminOrError(req);if(auth)return auth;
- const parsed=productSchema.safeParse(await readJsonBody(req).catch(()=>null));
+ const json=await readAdminJson(req,16000);if(!json.ok)return json.response;
+ const parsed=productSchema.safeParse(json.data);
  if(!parsed.success)return NextResponse.json({error:"Datos inválidos",issues:parsed.error.issues},{status:400});
  const {data,error}=await privilegedDb().from("products").insert(normalizeProductWrite(parsed.data)).select().single();
  return error?failed(error.code):NextResponse.json(data);
 }
 export async function PATCH(req:Request){
  const auth=await adminOrError(req);if(auth)return auth;
- const body=await readJsonBody(req).catch(()=>null);
+ const json=await readAdminJson(req,16000);if(!json.ok)return json.response;
+ const body=json.data;
  if(!body||typeof body!=="object"||Array.isArray(body))return NextResponse.json({error:"Datos inválidos"},{status:400});
  const input=body as Record<string,unknown>;
  const parsedId=uuid.safeParse(input.id);
@@ -36,7 +38,8 @@ export async function PATCH(req:Request){
 }
 export async function DELETE(req:Request){
  const auth=await adminOrError(req);if(auth)return auth;
- const body=await readJsonBody(req).catch(()=>null);
+ const json=await readAdminJson(req,16000);if(!json.ok)return json.response;
+ const body=json.data;
  if(!body||typeof body!=="object"||Array.isArray(body))return NextResponse.json({error:"Datos inválidos"},{status:400});
  const input=body as Record<string,unknown>;
  const parsedId=uuid.safeParse(input.id);
