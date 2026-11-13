@@ -3,7 +3,7 @@ import { createClient } from "@supabase/supabase-js";
 import { createServerClient, type CookieOptions } from "@supabase/ssr";
 import { cookies } from "next/headers";
 import { cache } from "react";
-import {ADMIN_SERVER_COOKIE_OPTIONS,isServerAdminCookie} from "./admin-session-cookies";
+import {adminServerCookieOptions,isServerAdminCookie} from "./admin-session-cookies";
 
 const url=()=>process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const key=()=>process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!;
@@ -37,7 +37,7 @@ export async function userDb(){
 export async function adminServerDb(){
  const jar=await cookies();
  return createServerClient(url(),key(),{
-  cookieOptions:ADMIN_SERVER_COOKIE_OPTIONS,
+  cookieOptions:adminServerCookieOptions(),
   cookies:{
    getAll(){return jar.getAll().filter(item=>isServerAdminCookie(item.name));},
    setAll(items){
