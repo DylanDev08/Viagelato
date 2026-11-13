@@ -1,5 +1,5 @@
 "use client";
-import {type FormEvent,useEffect,useState} from "react";
+import {type FormEvent,useState,useSyncExternalStore} from "react";
 import Link from "next/link";
 import {Eye,EyeOff,LockKeyhole} from "lucide-react";
 import {useRouter} from "next/navigation";
@@ -15,9 +15,13 @@ export default function Login(){
  const[turnstileToken,setTurnstileToken]=useState("");
  const[challengeVersion,setChallengeVersion]=useState(0);
  const siteKey=process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY?.trim()??"";
- const [serverCanary,setServerCanary]=useState(false);
+ // useSyncExternalStore keeps SSR and hydration consistent while reading the URL.
  // Opt-in test URL: /login?servidor=1. Normal login remains untouched.
- useEffect(()=>{setServerCanary(new URLSearchParams(window.location.search).get("servidor")==="1");},[]);
+ const serverCanary=useSyncExternalStore(
+  ()=>()=>{},
+  ()=>new URLSearchParams(window.location.search).get("servidor")==="1",
+  ()=>false
+ );
  const useServerLogin=process.env.NEXT_PUBLIC_ADMIN_SERVER_LOGIN_ENABLED==="true"||serverCanary;
  const router=useRouter();
 
