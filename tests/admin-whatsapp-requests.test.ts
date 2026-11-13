@@ -3,7 +3,7 @@ import {PATCH} from "@/app/api/admin/whatsapp-requests/route";
 import {assertAdmin,privilegedDb} from "@/lib/supabase";
 import {adminRequestError} from "@/lib/admin";
 vi.mock("@/lib/supabase",()=>({assertAdmin:vi.fn(),privilegedDb:vi.fn()}));
-vi.mock("@/lib/admin",()=>({adminRequestError:vi.fn(()=>null)}));
+vi.mock("@/lib/admin",()=>({adminRequestError:vi.fn(()=>null),adminMutationRateLimit:vi.fn(async()=>null)}));
 const id="11111111-2222-4333-8444-555555555555";
 const key="22222222-3333-4444-8555-666666666666";
 const req=(data:unknown)=>new Request("https://viagelato.vercel.app/api/admin/whatsapp-requests",{
