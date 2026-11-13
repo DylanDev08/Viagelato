@@ -56,7 +56,7 @@ describe("login administrativo de transición",()=>{
  it("permite probar el login por servidor con ?servidor=1 sin activar el cambio global",async()=>{
   vi.stubEnv("NEXT_PUBLIC_ADMIN_SERVER_LOGIN_ENABLED","false");
   window.history.replaceState({},"","/login?servidor=1");
-  const fetcher=vi.fn(async()=>Response.json({authorized:true}));
+  const fetcher=vi.fn(async(url:string)=>Response.json(url.includes("admin-login")?{authorized:true}:{authorized:true}));
   vi.stubGlobal("fetch",fetcher);
   await fill();
   await waitFor(()=>expect(router.replace).toHaveBeenCalledWith("/admin"));
