@@ -20,9 +20,9 @@ export function adminLoginSession(request:NextRequest){
      request.cookies.set(name,value);
      pending.set(name,{name,value,options});
     }
-    if(headers)for(const name of ["cache-control","expires","pragma"]){
-     const value=headers[name as keyof typeof headers];
-     if(typeof value==="string")refreshHeaders.set(name,value);
+    if(headers)for(const [name,value] of Object.entries(headers)){
+     if(["cache-control","expires","pragma"].includes(name.toLowerCase())&&typeof value==="string")
+      refreshHeaders.set(name,value);
     }
    }
   }
