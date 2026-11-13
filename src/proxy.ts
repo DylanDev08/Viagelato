@@ -1,6 +1,6 @@
 import {createServerClient,type CookieOptions} from "@supabase/ssr";
 import {NextResponse,type NextRequest} from "next/server";
-import {ADMIN_SERVER_COOKIE_OPTIONS,isServerAdminCookie} from "./lib/admin-session-cookies";
+import {adminServerCookieOptions,isServerAdminCookie} from "./lib/admin-session-cookies";
 
 /** Early auth gate; app/API assertAdmin always confirms real role via admin_users.
  * Prefer the new HttpOnly server session but keep the legacy cookie temporarily
@@ -26,7 +26,7 @@ export async function proxy(request:NextRequest){
  if(!url||!key)return unauthorized();
  function client(server:boolean){
   return createServerClient(url!,key!,{
-   ...(server?{cookieOptions:ADMIN_SERVER_COOKIE_OPTIONS}:{}),
+   ...(server?{cookieOptions:adminServerCookieOptions()}:{}),
    cookies:{
     getAll(){return server?
      request.cookies.getAll().filter(c=>isServerAdminCookie(c.name)):
