@@ -43,9 +43,10 @@ describe("preparación comercial sin promesas de stock ni envío",()=>{
   const section=screen.getByRole("region",{name:"Preparación comercial"});
   expect(section).toHaveTextContent("Visibles para consulta");
   expect(section).toHaveTextContent("Sin stock confirmado");
-  expect(section).toHaveTextContent("0 / 15");
+  expect(section).toHaveTextContent("Envío bajo el mínimo");
+  expect(section).toHaveTextContent("Se cotiza manualmente");
   await user.click(screen.getByRole("button",{name:"Revisar productos"}));
-  await user.click(screen.getByRole("button",{name:"Configurar tarifas"}));
+  await user.click(screen.getByRole("button",{name:"Ver zonas de entrega"}));
   expect(onNavigate).toHaveBeenNthCalledWith(1,"products");
   expect(onNavigate).toHaveBeenNthCalledWith(2,"zones");
  });
