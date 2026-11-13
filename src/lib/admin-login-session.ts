@@ -14,7 +14,7 @@ export function adminLoginSession(request:NextRequest){
   cookieOptions:adminServerCookieOptions(),
   cookies:{
    getAll(){return request.cookies.getAll().filter(c=>isServerAdminCookie(c.name));},
-   setAll(changes,headers){
+   setAll(changes:{name:string;value:string;options:CookieOptions}[],headers?:Record<string,string>){
     for(const {name,value,options} of changes){
      if(!isServerAdminCookie(name))continue;
      request.cookies.set(name,value);
