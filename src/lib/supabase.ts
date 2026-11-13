@@ -40,7 +40,7 @@ export async function adminServerDb(){
   cookieOptions:adminServerCookieOptions(),
   cookies:{
    getAll(){return jar.getAll().filter(item=>isServerAdminCookie(item.name));},
-   setAll(items){
+   setAll(items:{name:string;value:string;options:CookieOptions}[]){
     try{
      items.forEach(({name,value,options})=>{
       if(isServerAdminCookie(name))jar.set(name,value,{
