@@ -194,7 +194,23 @@ export function AdminDashboard({initialProducts,initialCategories,initialOrders,
   setBusy(true);try{const body=new FormData();body.append("file",file);const r=await fetch("/api/admin/upload",{method:"POST",body});const d=await r.json().catch(()=>({error:"Respuesta inválida del servidor"}));if(!r.ok||typeof d.url!=="string")throw new Error(d.error||"No se pudo subir la imagen");if(field==="product")setDraft(v=>({...v,image_url:d.url}));else if(field==="banner")setBanner(v=>({...v,image_url:d.url}));else setSettings(v=>({...v,[field==="logo"?"logo_url":"hero_image_url"]:d.url}));setNotice("Imagen subida. Guardá el formulario para publicarla.");}catch(e){setNoticeError(true);setNotice(e instanceof Error?e.message:"Error al subir foto");}finally{setBusy(false);}
  }
  function uploader(field:"product"|"logo"|"hero"|"banner"){return <label className="upload-label"><UploadCloud size={16}/> Subir imagen<input type="file" accept="image/png,image/jpeg,image/webp" hidden disabled={busy} onChange={e=>{const f=e.target.files?.[0];e.target.value="";if(f)void upload(f,field);}}/></label>}
- async function logout(){if(!canLeaveEditor("overview"))return;await browserDb().auth.signOut();router.replace("/login");router.refresh();}
+ async function logout(){
+  if(!canLeaveEditor("overview"))return;
+  setBusy(true);setNotice("");
+  try{
+   // Revokes/clears the server HttpOnly session first (if present).
+   const result=await fetch("/api/auth/admin-logout",{
+    method:"POST",credentials:"same-origin",cache:"no-store"
+   });
+   if(!result.ok)throw new Error("No se pudo cerrar la sesión segura. Volvé a intentarlo.");
+   // During the canary, a user may also have an old browser session.
+   await browserDb().auth.signOut({scope:"local"}).catch(()=>{});
+   router.replace("/login");router.refresh();
+  }catch(err){
+   setNoticeError(true);
+   setNotice(err instanceof Error?err.message:"Error al cerrar sesión");
+  }finally{setBusy(false);}
+ }
  const publicationIssues=[
   ...(!draft.name.trim()||draft.name.trim().length<2?["nombre del producto"]:[]),
   ...(!/^[a-z0-9-]{2,160}$/.test(draft.slug)?["enlace de la ficha"]:[]),

@@ -36,8 +36,12 @@ export default function UpdatePassword(){
    const {error:failure}=await client.auth.updateUser({password});
    if(failure)throw failure;
    setPassword("");setConfirmation("");
+   // Also revoke any HttpOnly admin server cookie on this device.
+   await fetch("/api/auth/admin-logout",{
+    method:"POST",credentials:"same-origin",cache:"no-store"
+   }).catch(()=>{});
    setState("saved");
-   await client.auth.signOut();
+   await client.auth.signOut({scope:"local"});
   }catch{
    setError("No se pudo guardar la contraseña. Pedí otro enlace de recuperación e intentá nuevamente.");
   }finally{setBusy(false);}

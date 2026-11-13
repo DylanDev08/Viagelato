@@ -1,6 +1,6 @@
 import {render,screen,waitFor} from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import {beforeEach,describe,expect,it,vi} from "vitest";
+import {afterEach,beforeEach,describe,expect,it,vi} from "vitest";
 import ForgotPassword from "@/app/recuperar-acceso/page";
 import UpdatePassword from "@/app/actualizar-contrasena/page";
 
@@ -15,12 +15,14 @@ vi.mock("@/lib/browser",()=>({browserDb:()=>({auth:mock})}));
 describe("recuperación de contraseña administrativa",()=>{
  beforeEach(()=>{
   vi.clearAllMocks();
+  vi.stubGlobal("fetch",vi.fn(async()=>Response.json({signedOut:true})));
   mock.resetPasswordForEmail.mockResolvedValue({error:null});
   mock.updateUser.mockResolvedValue({error:null});
   mock.signOut.mockResolvedValue({error:null});
   mock.getSession.mockResolvedValue({data:{session:{user:{id:"admin"}}}});
   mock.onAuthStateChange.mockReturnValue({data:{subscription:{unsubscribe:vi.fn()}}});
  });
+ afterEach(()=>vi.unstubAllGlobals());
  it("manda recuperación con retorno al dominio real y mensaje genérico",async()=>{
   const user=userEvent.setup();
   render(<ForgotPassword/>);
@@ -48,7 +50,10 @@ describe("recuperación de contraseña administrativa",()=>{
   await user.click(screen.getByRole("button",{name:"Guardar contraseña"}));
   await waitFor(()=>expect(mock.updateUser).toHaveBeenCalledWith({password:"UnaClaveMuchoMasLarga!"}));
   expect(await screen.findByText("Contraseña actualizada.")).toBeInTheDocument();
-  expect(mock.signOut).toHaveBeenCalled();
+  expect(mock.signOut).toHaveBeenCalledWith({scope:"local"});
+  expect(fetch).toHaveBeenCalledWith("/api/auth/admin-logout",expect.objectContaining({
+   method:"POST",credentials:"same-origin"
+  }));
  });
  it("no muestra formulario si no hay sesión",async()=>{
   mock.getSession.mockResolvedValue({data:{session:null}});

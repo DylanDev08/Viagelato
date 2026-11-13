@@ -20,7 +20,7 @@ beforeEach(()=>{
  signInWithPassword.mockResolvedValue({error:null});
  signOut.mockResolvedValue({error:null});
 });
-afterEach(()=>{vi.unstubAllEnvs();vi.unstubAllGlobals()});
+afterEach(()=>{vi.unstubAllEnvs();vi.unstubAllGlobals();window.history.replaceState({},"","/login");});
 
 async function fill(){
  const user=userEvent.setup();
@@ -52,6 +52,17 @@ describe("login administrativo de transición",()=>{
   expect(signInWithPassword).not.toHaveBeenCalled();
   expect(fetcher).toHaveBeenCalledTimes(2);
   expect(fetcher.mock.calls[0][0]).toBe("/api/auth/admin-login");
+ });
+ it("permite probar el login por servidor con ?servidor=1 sin activar el cambio global",async()=>{
+  vi.stubEnv("NEXT_PUBLIC_ADMIN_SERVER_LOGIN_ENABLED","false");
+  window.history.replaceState({},"","/login?servidor=1");
+  const fetcher=vi.fn(async(url:string)=>Response.json(url.includes("admin-login")?{authorized:true}:{authorized:true}));
+  vi.stubGlobal("fetch",fetcher);
+  await fill();
+  await waitFor(()=>expect(router.replace).toHaveBeenCalledWith("/admin"));
+  expect(signInWithPassword).not.toHaveBeenCalled();
+  expect(fetcher.mock.calls[0][0]).toBe("/api/auth/admin-login");
+  expect(fetcher.mock.calls[1][0]).toBe("/api/admin/session");
  });
  it("si la cuenta no tiene permisos, cierra sesión al usar login anterior",async()=>{
   vi.stubEnv("NEXT_PUBLIC_ADMIN_SERVER_LOGIN_ENABLED","false");
