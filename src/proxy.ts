@@ -31,7 +31,7 @@ export async function proxy(request:NextRequest){
     getAll(){return server?
      request.cookies.getAll().filter(c=>isServerAdminCookie(c.name)):
      request.cookies.getAll().filter(c=>!isServerAdminCookie(c.name));},
-    setAll(changes,headers){
+    setAll(changes:{name:string;value:string;options:CookieOptions}[],headers?:Record<string,string>){
      for(const {name,value,options} of changes){
       if(server&&!isServerAdminCookie(name))continue;
       const safeOptions=server?{
