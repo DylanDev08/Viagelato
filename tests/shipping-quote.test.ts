@@ -1,55 +1,59 @@
 import {describe,expect,it} from "vitest";
-import {quoteShipping} from "@/lib/shipping-quote";
+import {quoteShipping,freeShippingGoal,matchesPreparedShippingQuote} from "@/lib/shipping-quote";
 import {DELIVERY_AREAS,type ShippingZone} from "@/lib/types";
 
-const activeZone=(name:string,cost:number,freeShippingEligible=true):ShippingZone=>({
+const zone=(name:string,cost:number,eligible=true):ShippingZone=>({
  id:"00000000-0000-4000-8000-000000000023",name,postal_codes:[],cost,
- active:true,ready:true,free_shipping_eligible:freeShippingEligible
+ active:true,ready:true,free_shipping_eligible:eligible
 });
-const base={subtotal:21900,locality:"Lanús",method:"shipping" as const,freeShippingThreshold:60000,zones:[] as ShippingZone[]};
-describe("cotización de entrega en carrito y WhatsApp",()=>{
- it("mantiene pendiente una zona sin tarifa, dentro o fuera de cobertura",()=>{
-  expect(quoteShipping(base)).toEqual({kind:"pending",covered:true,shippingCost:null,total:null});
-  expect(quoteShipping({...base,locality:"Quilmes Oeste"})).toEqual({kind:"pending",covered:false,shippingCost:null,total:null});
-  expect(quoteShipping({...base,locality:""}).kind).toBe("unselected");
+const base={subtotal:21900,locality:"Lanús Este",method:"shipping" as const,freeShippingThreshold:60000,zones:[] as ShippingZone[]};
+const pending={kind:"pending",covered:true,shippingCost:null,total:null};
+
+describe("envío cotizado por WhatsApp según política Viagelato",()=>{
+ it("consulta por WhatsApp todo envío bajo $60.000 incluso con tarifa de zona previamente cargada",()=>{
+  for(const subtotal of [21900,40000,59999.99]){
+   for(const zones of [[],[zone("Lanús Este",5000)],[zone("Lanús Este",0)],[zone("Lanús Este",1000,false)]]){
+    expect(quoteShipping({...base,subtotal,zones})).toEqual(pending);
+   }
+  }
  });
- it("aplica envío gratis solamente con localidad elegible y compra desde el mínimo",()=>{
-  expect(quoteShipping({...base,subtotal:65700})).toEqual({kind:"free",covered:true,shippingCost:0,total:65700});
-  expect(quoteShipping({...base,subtotal:65700,locality:"Quilmes Oeste"})).toEqual({kind:"pending",covered:false,shippingCost:null,total:null});
-  expect(quoteShipping({...base,subtotal:60000}).kind).toBe("free");
-  expect(quoteShipping({...base,subtotal:59999.99}).shippingCost).toBeNull();
-  expect(quoteShipping({...base,subtotal:65700,locality:"LANUS"}).kind).toBe("free");
- });
- it("suma tarifa activa al subtotal y descarta zonas no habilitadas",()=>{
-  const zone=activeZone("Lanús",4500);
-  expect(quoteShipping({...base,zones:[zone]})).toEqual({kind:"priced",covered:true,shippingCost:4500,total:26400});
-  expect(quoteShipping({...base,zones:[{...zone,active:false}]}).total).toBeNull();
-  expect(quoteShipping({...base,zones:[{...zone,ready:false}]}).total).toBeNull();
-  expect(quoteShipping({...base,zones:[{...zone,cost:null}]}).total).toBeNull();
- });
- it("respeta zonas activas fuera de la lista sólo cuando tienen tarifa; retiro cuesta cero",()=>{
-  const outside=activeZone("Quilmes Oeste",6700,false);
-  expect(quoteShipping({...base,locality:"Quilmes Oeste",zones:[outside]})).toEqual({kind:"priced",covered:true,shippingCost:6700,total:28600});
-  expect(quoteShipping({...base,method:"pickup",locality:""})).toEqual({kind:"pickup",covered:true,shippingCost:0,total:21900});
- });
- it("Capital Federal tiene el mismo beneficio confirmado que las demás zonas",()=>{
-  const caba=activeZone("Capital Federal",4500,true);
-  expect(quoteShipping({...base,locality:"Capital Federal",subtotal:90000,zones:[caba]})).toEqual({kind:"free",covered:true,shippingCost:0,total:90000});
-  expect(quoteShipping({...base,locality:"CABA",subtotal:90000,zones:[]})).toEqual({kind:"free",covered:true,shippingCost:0,total:90000});
-  expect(quoteShipping({...base,locality:"Quilmes Oeste",subtotal:90000,zones:[activeZone("Quilmes Oeste",6700,true)]})).toEqual({kind:"priced",covered:true,shippingCost:6700,total:96700});
- });
- it("aplica el mínimo a las 15 zonas comunicadas por el cliente",()=>{
+ it("a partir de $60.000 inclusive, todas las 15 localidades reciben envío gratis sin tarifa ni excepción histórica",()=>{
   expect(DELIVERY_AREAS).toHaveLength(15);
   for(const locality of DELIVERY_AREAS){
+   for(const zones of [[],[zone(locality,4500,false)],[zone(locality,4500)]]){
+    expect(quoteShipping({...base,subtotal:60000,locality,zones}))
+     .toEqual({kind:"free",covered:true,shippingCost:0,total:60000});
+    expect(quoteShipping({...base,subtotal:120000,locality,zones}).shippingCost).toBe(0);
+   }
+  }
+ });
+ it("localidades fuera de cobertura siempre deben consultar por WhatsApp",()=>{
+  for(const subtotal of [10000,60000,100000]){
+   expect(quoteShipping({...base,subtotal,locality:"Quilmes Oeste",zones:[zone("Quilmes Oeste",6500)]}))
+    .toEqual({kind:"pending",covered:false,shippingCost:null,total:null});
+  }
+  expect(quoteShipping({...base,subtotal:90000,locality:"Rosario"}).kind).toBe("pending");
+ });
+ it("las variantes Lanús/CABA heredadas conservan los mismos mínimos",()=>{
+  for(const locality of ["Lanús","LANUS","CABA","Capital Federal"]){
    expect(quoteShipping({...base,subtotal:60000,locality}).kind).toBe("free");
    expect(quoteShipping({...base,subtotal:59999.99,locality}).kind).toBe("pending");
   }
  });
- it("Rosario: 68.700 en productos requiere cotización de envío",()=>{
-  expect(quoteShipping({...base,subtotal:68700,locality:"Rosario"})).toEqual({kind:"pending",covered:false,shippingCost:null,total:null});
+ it("retiro no suma flete ni exige mínimo, y falta de zona no inventa cotización",()=>{
+  expect(quoteShipping({...base,method:"pickup",locality:""}))
+   .toEqual({kind:"pickup",covered:true,shippingCost:0,total:21900});
+  expect(quoteShipping({...base,locality:""}))
+   .toEqual({kind:"unselected",covered:false,shippingCost:null,total:null});
  });
- it("respeta que un admin desactive el envío gratuito para una zona tarifada",()=>{
-  const zone=activeZone("Lanús",4000,false);
-  expect(quoteShipping({...base,subtotal:65700,zones:[zone]})).toEqual({kind:"priced",covered:true,shippingCost:4000,total:69700});
+ it("el progreso hacia gratuidad no confunde un flete manual con un precio",()=>{
+  const goal=freeShippingGoal({...base,zones:[zone("Lanús Este",5000)]});
+  expect(goal.kind).toBe("remaining");
+  expect(goal.remaining).toBe(38100);
+  expect(freeShippingGoal({...base,locality:"Quilmes Oeste",subtotal:66000}).kind).toBe("ineligible");
+ });
+ it("la API debe devolver null en costo y total hasta confirmar vía WhatsApp",()=>{
+  expect(matchesPreparedShippingQuote({shipping_kind:"pending",shipping_cost:null,total:null},quoteShipping(base))).toBe(true);
+  expect(matchesPreparedShippingQuote({shipping_kind:"priced",shipping_cost:5000,total:26900},quoteShipping(base))).toBe(false);
  });
 });

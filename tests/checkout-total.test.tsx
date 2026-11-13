@@ -31,13 +31,14 @@ describe("carrito con total y envío visible",()=>{
   expect(summary.querySelector(".cart-price-total strong")).toHaveTextContent("65.700");
   expect(screen.getByRole("button",{name:"Enviar pedido por WhatsApp"})).toBeDisabled();
  });
- it("muestra tarifa configurada y no la confunde con subtotal",async()=>{
+ it("con tarifa antigua configurada, debajo de 60.000 cotiza siempre el envío por WhatsApp",async()=>{
   const user=userEvent.setup(),summary=setup([zone]);
   await user.click(screen.getByRole("button",{name:"Agregar presentación de prueba"}));
   await user.selectOptions(screen.getByLabelText("Zona de entrega"),"Lanús Este");
-  expect(within(summary).getByText("Total del pedido")).toBeInTheDocument();
-  expect(summary.querySelector(".cart-price-total strong")).toHaveTextContent("26.900");
-  expect(within(summary).getByText(/5.000/)).toBeInTheDocument();
+  expect(within(summary).getByText("Total de productos")).toBeInTheDocument();
+  expect(summary.querySelector(".cart-price-total strong")).toHaveTextContent("21.900");
+  expect(within(summary).getByText(/El costo del envío se confirma por WhatsApp/)).toBeInTheDocument();
+  expect(within(summary).queryByText(/5.000/)).not.toBeInTheDocument();
  });
  it("Capital Federal obtiene envío gratis cuando supera el mínimo",async()=>{
   const user=userEvent.setup(),summary=setup();

@@ -88,9 +88,9 @@ async function prepareRequest(request:Request){
  if(settingsError||!settings)return reply("No encontramos la configuración comercial",503);
  if(input.shipping_method==="pickup"&&!settings.pickup_enabled)return reply("El retiro no está habilitado",409);
  if(!whatsappHref(settings.whatsapp,"Prueba")?.includes("?text="))return reply("El WhatsApp comercial debe configurarse con un número válido",503);
- const {data:zones,error:zonesError}=await db.from("shipping_zones").select("name,cost,active,ready,free_shipping_eligible").eq("active",true).eq("ready",true).not("cost","is",null);
- if(zonesError)return reply("No pudimos verificar las tarifas de entrega. Intentá nuevamente.",503);
- const shippingZones=(zones??[]) as ShippingZone[];
+ // La tarifa se cotiza manualmente por WhatsApp si la compra no alcanza el mínimo.
+ // No depender de shipping_zones para aceptar solicitudes válidas.
+ const shippingZones:ShippingZone[]=[];
  // Buscar primero la idempotencia: si el catálogo cambió o se ocultó un producto,
  // la solicitud existente debe conservar sus precios y líneas originales.
  const {data:prior,error:priorError}=await db.from("whatsapp_order_requests").select(snapshotFields)
