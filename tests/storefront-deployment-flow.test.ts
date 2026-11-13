@@ -8,7 +8,8 @@ describe("producción: salud de Vercel y flujo de ficha de producto",()=>{
   expect(config).not.toContain('const renderRoutes=["/api/checkout"');
   expect(config).not.toMatch(/const renderRoutes=\[[^\]]*"\/api\/health"/);
   const route=readFileSync("src/app/api/health/route.ts","utf8");
-  expect(route).toContain('status: "ok"');
+  expect(route).toMatch(/status:\\s*["']ok["']/);
+  expect(route).not.toMatch(/databaseConfigured|checkoutEnabled|RENDER_SERVICE_ID/);
  });
  it("la ficha ofrece Agregar al carrito antes de la descripción",()=>{
   const page=readFileSync("src/app/catalogo/vista/[id]/page.tsx","utf8");
