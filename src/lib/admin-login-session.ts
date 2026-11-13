@@ -1,7 +1,7 @@
 import "server-only";
 import {createServerClient,type CookieOptions} from "@supabase/ssr";
 import {NextRequest,NextResponse} from "next/server";
-import {ADMIN_SERVER_COOKIE_OPTIONS,isServerAdminCookie} from "./admin-session-cookies";
+import {adminServerCookieOptions,isServerAdminCookie} from "./admin-session-cookies";
 
 type PendingCookie={name:string;value:string;options:CookieOptions};
 /** Isolated server-owned Supabase session. No token is returned in JSON. */
@@ -11,7 +11,7 @@ export function adminLoginSession(request:NextRequest){
  const url=process.env.NEXT_PUBLIC_SUPABASE_URL!;
  const key=process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!;
  const client=createServerClient(url,key,{
-  cookieOptions:ADMIN_SERVER_COOKIE_OPTIONS,
+  cookieOptions:adminServerCookieOptions(),
   cookies:{
    getAll(){return request.cookies.getAll().filter(c=>isServerAdminCookie(c.name));},
    setAll(changes,headers){
@@ -52,7 +52,7 @@ export function adminLoginSession(request:NextRequest){
  function clear(){
   for(const cookie of request.cookies.getAll().filter(c=>isServerAdminCookie(c.name))){
    pending.set(cookie.name,{
-    name:cookie.name,value:"",options:{...ADMIN_SERVER_COOKIE_OPTIONS,maxAge:0}
+    name:cookie.name,value:"",options:{...adminServerCookieOptions(),maxAge:0}
    });
   }
  }
