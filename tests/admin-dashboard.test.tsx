@@ -157,7 +157,25 @@ describe("panel administrativo",()=>{
    await user.clear(screen.getByRole("spinbutton",{name:"Precio de venta (ARS)"}));
    await user.type(screen.getByRole("spinbutton",{name:"Precio de venta (ARS)"}),"150");
    await user.click(screen.getByRole("button",{name:"Guardar cambios"}));
-   expect(await screen.findByRole("alert")).toHaveTextContent(/no confirmó precio, stock, foto y visibilidad/);
+   expect(await screen.findByRole("alert")).toHaveTextContent(/no confirmó todos los cambios del producto/);
+   expect(screen.getByText(/Tenés cambios sin guardar/)).toBeInTheDocument();
+  }finally{vi.unstubAllGlobals();}
+ });
+ it("no afirma que una edición se guardó cuando el servidor devuelve el nombre anterior",async()=>{
+  const user=userEvent.setup();
+  const product={id:"00000000-0000-4000-8000-000000000046",name:"Helado original",slug:"helado-original",description:"",price:1000,
+   stock:0,image_url:null,category_id:null,sku:null,presentation:null,active:false,featured:false,commercially_verified:false,catalog_visible:false};
+  const mockedFetch=vi.fn().mockResolvedValue({ok:true,json:async()=>({...product})});
+  vi.stubGlobal("fetch",mockedFetch);
+  try{
+   render(<AdminDashboard initialProducts={[product]} initialCategories={[]} initialOrders={[]} initialZones={[]} initialSettings={DEFAULT_SETTINGS} initialBanners={[]}/>);
+   await user.click(screen.getByRole("button",{name:"Productos"}));
+   await user.click(screen.getByRole("button",{name:"Editar"}));
+   await user.clear(screen.getByLabelText("Nombre del producto"));
+   await user.type(screen.getByLabelText("Nombre del producto"),"Helado actualizado");
+   await user.click(screen.getByRole("button",{name:"Guardar cambios"}));
+   expect(await screen.findByRole("alert")).toHaveTextContent(/no confirmó todos los cambios/);
+   expect(screen.getByLabelText("Nombre del producto")).toHaveValue("Helado actualizado");
    expect(screen.getByText(/Tenés cambios sin guardar/)).toBeInTheDocument();
   }finally{vi.unstubAllGlobals();}
  });

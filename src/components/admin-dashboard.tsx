@@ -12,6 +12,7 @@ import {whatsappRequestCounts} from "@/lib/admin-whatsapp-ui";
 import {normalizeCatalogText} from "@/lib/catalog-search";
 import {nextOrderStep,orderStatusLabel} from "@/lib/order-ui";
 import {publicationMissingFields} from "@/lib/product-publication";
+import {matchesSavedProduct} from "@/lib/product-write";
 import {PROVISIONAL_PRODUCT_ASSETS} from "@/lib/provisional-catalog";
 import {draftFromCatalogCandidate} from "@/lib/catalog-draft";
 import {CATALOG_PRICE_ITEMS} from "@/lib/catalog-prices";
@@ -142,11 +143,8 @@ export function AdminDashboard({initialProducts,initialCategories,initialOrders,
   await act(async()=>{
    const saved=await request("products",next.id?"PATCH":"POST",next);
    // La respuesta debe confirmar los campos comerciales. No indicar éxito si no persistieron.
-   if(!saved||typeof saved.id!=="string"||Number(saved.price)!==next.price||
-      Number(saved.stock)!==next.stock||Boolean(saved.active)!==next.active||
-      Boolean(saved.catalog_visible)!==next.catalog_visible||
-      (saved.image_url||null)!==(next.image_url?.trim()||null)){
-    throw new Error("El servidor no confirmó precio, stock, foto y visibilidad. Actualizá el panel antes de intentar nuevamente.");
+   if(!matchesSavedProduct(saved,next)){
+     throw new Error("El servidor no confirmó todos los cambios del producto (nombre, SKU, presentación, precio, stock o visibilidad). Actualizá el panel antes de intentar nuevamente.");
    }
    const persisted:Draft={...next,...saved,price:Number(saved.price),stock:Number(saved.stock)};
    setDraft(persisted);
