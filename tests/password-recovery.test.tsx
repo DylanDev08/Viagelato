@@ -1,6 +1,6 @@
 import {render,screen,waitFor} from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import {beforeEach,describe,expect,it,vi} from "vitest";
+import {afterEach,beforeEach,describe,expect,it,vi} from "vitest";
 import ForgotPassword from "@/app/recuperar-acceso/page";
 import UpdatePassword from "@/app/actualizar-contrasena/page";
 
