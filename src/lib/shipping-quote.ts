@@ -3,7 +3,7 @@ import {DELIVERY_AREAS,type ShippingZone} from "./types";
 /** Localidad fija del punto de retiro; no requiere ingresar zona de entrega. */
 export const PICKUP_LOCALITY="Lanús Este";
 
-/** Cotización orientativa de entrega. Nunca se interpreta como un pago ni una reserva. */
+/** Cotización de entrega: gratis desde el umbral o pendiente de WhatsApp. Nunca se interpreta como pago. */
 export type ShippingQuote={
  kind:"unselected"|"pickup"|"free"|"priced"|"pending";
  covered:boolean;
@@ -18,37 +18,26 @@ function currencyAmount(value:number){
  return Number.isFinite(value)?Math.round(value*100)/100:0;
 }
 
-/** Misma lógica en cliente y API. El servidor vuelve a consultar tarifas antes de generar WhatsApp. */
+/** Misma política en cliente y API; las antiguas tarifas en DB no se aplican automáticamente. */
 export function quoteShipping(input:{
  subtotal:number;locality:string;method:"shipping"|"pickup";
  freeShippingThreshold:number;zones:ShippingZone[];
 }):ShippingQuote{
- const {subtotal,locality,method,freeShippingThreshold,zones}=input;
+ const {subtotal,locality,method,freeShippingThreshold}=input;
  if(method==="pickup")return {kind:"pickup",covered:true,shippingCost:0,total:currencyAmount(subtotal)};
  if(!locality.trim())return {kind:"unselected",covered:false,shippingCost:null,total:null};
  const target=normalized(locality);
  // Compatibilidad para pedidos anteriores: "Lanús" sigue siendo una localidad válida
  // aunque el nuevo selector distingue Lanús Este y Lanús Oeste.
  const canonicalTarget=target==="caba"?"capital federal":target;
- const configured=zones.find(zone=>
-  zone.active===true&&zone.ready===true&&zone.cost!==null&&
-  Number.isFinite(Number(zone.cost))&&Number(zone.cost)>=0&&
-  normalized(zone.name)===canonicalTarget
- );
  const includedArea=DELIVERY_AREAS.some(area=>normalized(area)===canonicalTarget)||target==="lanus";
- const covered=includedArea||Boolean(configured);
- // Solo las localidades comerciales vigentes (y la referencia histórica "Lanús") pueden obtener envío gratuito.
- // Configurar una tarifa en otra localidad no la convierte en beneficiaria.
- const freeEligible=includedArea&&(!configured||configured.free_shipping_eligible===true);
  const threshold=Number(freeShippingThreshold);
- if(freeEligible&&Number.isFinite(threshold)&&threshold>=0&&subtotal>0&&subtotal>=threshold)
+ // Política confirmada: desde el mínimo, sin cargo en las localidades habilitadas.
+ // La tarifa bajo el mínimo y cualquier entrega fuera de cobertura siempre se
+ // consulta por WhatsApp, incluso si existen tarifas históricas en la base.
+ if(includedArea&&Number.isFinite(threshold)&&threshold>0&&subtotal>0&&subtotal>=threshold)
   return {kind:"free",covered:true,shippingCost:0,total:currencyAmount(subtotal)};
- if(configured){
-  const shippingCost=currencyAmount(Number(configured.cost));
-  return {kind:"priced",covered:true,shippingCost,total:currencyAmount(subtotal+shippingCost)};
- }
- // No hay tarifa comercial confirmada: nunca tratar el mínimo de compra como costo de envío.
- return {kind:"pending",covered,shippingCost:null,total:null};
+ return {kind:"pending",covered:includedArea,shippingCost:null,total:null};
 }
 
 /** Indicador comercial, calculado con la misma regla de cotización que usa la API. */
