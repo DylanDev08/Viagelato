@@ -20,7 +20,7 @@ describe("CRUD administrativo con ID seguro y estado real",()=>{
   const response=await patchProduct(new Request("https://viagelato-api.onrender.com/api/admin/products",{
    method:"PATCH",headers:{"Content-Type":"application/json"},body:JSON.stringify({id:validUuid,description:"x".repeat(17000)})
   }));
-  expect(response.status).toBe(400);
+  expect(response.status).toBe(413);
   expect(privilegedDb).not.toHaveBeenCalled();
  });
  it("rechaza IDs malformados ANTES de consultar la base",async()=>{
