@@ -1,5 +1,5 @@
 "use client";
-import {type FormEvent,useState} from "react";
+import {type FormEvent,useEffect,useState} from "react";
 import Link from "next/link";
 import {Eye,EyeOff,LockKeyhole} from "lucide-react";
 import {useRouter} from "next/navigation";
@@ -15,8 +15,10 @@ export default function Login(){
  const[turnstileToken,setTurnstileToken]=useState("");
  const[challengeVersion,setChallengeVersion]=useState(0);
  const siteKey=process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY?.trim()??"";
- // Cutover reversible: default to existing working login until real admin is tested.
- const useServerLogin=process.env.NEXT_PUBLIC_ADMIN_SERVER_LOGIN_ENABLED==="true";
+ const [serverCanary,setServerCanary]=useState(false);
+ // Opt-in test URL: /login?servidor=1. Normal login remains untouched.
+ useEffect(()=>{setServerCanary(new URLSearchParams(window.location.search).get("servidor")==="1");},[]);
+ const useServerLogin=process.env.NEXT_PUBLIC_ADMIN_SERVER_LOGIN_ENABLED==="true"||serverCanary;
  const router=useRouter();
 
  async function submit(e:FormEvent){
@@ -46,7 +48,9 @@ export default function Login(){
    // El endpoint protegido verifica sesión y pertenencia a admin_users en ambos modos.
    const verify=await fetch("/api/admin/session",{cache:"no-store",credentials:"same-origin"});
    if(!verify.ok){
-    if(!useServerLogin)await browserDb().auth.signOut();
+    if(useServerLogin){
+     await fetch("/api/auth/admin-logout",{method:"POST",credentials:"same-origin",cache:"no-store"}).catch(()=>{});
+    }else await browserDb().auth.signOut({scope:"local"});
     throw new Error("No se pudo confirmar la sesión o los permisos de administrador.");
    }
    router.replace("/admin");
