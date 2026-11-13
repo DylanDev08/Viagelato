@@ -47,15 +47,15 @@ describe("registrar referencia WhatsApp",()=>{
    })
   } as unknown as ReturnType<typeof privilegedDb>);
  });
- it("no guarda borrador si el cliente vio envío pendiente pero la tarifa cambió",async()=>{
+ it("no aplica una tarifa histórica bajo el mínimo y permite consultar por WhatsApp",async()=>{
   shippingRead.mockResolvedValue({data:[{
    name:"Lanús",cost:4800,active:true,ready:true,free_shipping_eligible:true
   }],error:null});
   const res=await POST(make({...payload,expected_shipping_kind:"pending",
    expected_shipping_cost:null,expected_total:null}));
-  expect(res.status).toBe(409);
-  expect(await res.json()).toMatchObject({code:"SHIPPING_QUOTE_CHANGED"});
-  expect(insert).not.toHaveBeenCalled();
+  expect(res.status).toBe(201);
+  expect(await res.json()).toMatchObject({shipping_kind:"pending",shipping_cost:null,total:null});
+  expect(insert).toHaveBeenCalledOnce();
  });
  it("fuera de cobertura: bloquea tarifa alterada antes de registrar",async()=>{
   const res=await POST(make({...payload,locality:"Rosario",
@@ -71,14 +71,14 @@ describe("registrar referencia WhatsApp",()=>{
   expect(await res.json()).toMatchObject({shipping_kind:"pending",shipping_cost:null,total:null});
   expect(insert).toHaveBeenCalledTimes(1);
  });
- it("fuera de las siete zonas no regala envío aunque una tarifa tenga el indicador habilitado",async()=>{
+ it("fuera de las 15 zonas cotiza por WhatsApp aunque haya tarifa antigua",async()=>{
   shippingRead.mockResolvedValue({data:[{
    name:"Quilmes Oeste",cost:7000,active:true,ready:true,free_shipping_eligible:true
   }],error:null});
   const res=await POST(make({...payload,locality:"Quilmes Oeste",items:[{id:"catalog-price-2",quantity:3}],
-   expected_shipping_kind:"priced",expected_shipping_cost:7000,expected_total:72700}));
+   expected_shipping_kind:"pending",expected_shipping_cost:null,expected_total:null}));
   expect(res.status).toBe(201);
-  expect(await res.json()).toMatchObject({shipping_kind:"priced",shipping_cost:7000,total:72700});
+  expect(await res.json()).toMatchObject({shipping_kind:"pending",shipping_cost:null,total:null});
   expect(insert).toHaveBeenCalledTimes(1);
  });
  it("respeta el envío gratis y confirma la cotización de cliente",async()=>{
@@ -118,14 +118,15 @@ describe("registrar referencia WhatsApp",()=>{
   expect(decodeURIComponent(quote.whatsapp_url)).toContain("Envío: gratis");
   expect(insert).toHaveBeenCalledWith(expect.objectContaining({subtotal:65000}),expect.anything());
  });
- it("calcula del lado servidor una tarifa vigente sin tomar la del cliente",async()=>{
+ it("ignora tarifas viejas del servidor y mantiene envío a cotizar",async()=>{
   shippingRead.mockResolvedValue({data:[{name:"Lanús",cost:4800,active:true,ready:true,free_shipping_eligible:true}],error:null});
   const response=await POST(make());
   expect(response.status).toBe(201);
   const data=await response.json();
-  expect(data.shipping_cost).toBe(4800);
-  expect(data.total).toBe(48600);
-  expect(decodeURIComponent(data.whatsapp_url)).toContain("48.600");
+  expect(data.shipping_kind).toBe("pending");
+  expect(data.shipping_cost).toBeNull();
+  expect(data.total).toBeNull();
+  expect(decodeURIComponent(data.whatsapp_url)).toContain("a confirmar");
   expect(insert).toHaveBeenCalledWith(expect.objectContaining({subtotal:43800}),expect.anything());
  });
  it("fuera de zona: solicita cotización sin cargo automático de 60.000",async()=>{
@@ -161,11 +162,13 @@ describe("registrar referencia WhatsApp",()=>{
   expect(message).toContain("Envío: retiro sin cargo");
   expect(message).not.toContain("Dirección ajena");
  });
- it("no confirma importes de envío cuando no puede verificar las tarifas",async()=>{
+ it("no necesita conectarse a tarifas automáticas para tomar solicitudes",async()=>{
   shippingRead.mockResolvedValue({data:null,error:{message:"temporarily unavailable"}});
   const response=await POST(make());
-  expect(response.status).toBe(503);
-  expect(insert).not.toHaveBeenCalled();
+  expect(response.status).toBe(201);
+  expect(await response.json()).toMatchObject({shipping_kind:"pending",shipping_cost:null,total:null});
+  expect(insert).toHaveBeenCalledOnce();
+  expect(shippingRead).not.toHaveBeenCalled();
  });
  it("guarda preferencia de efectivo y la comunica en WhatsApp",async()=>{
   const response=await POST(make({...payload,payment_preference:"cash_on_delivery",notes:"Entregar después de las 18"}));
