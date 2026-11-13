@@ -3,6 +3,7 @@ import { createClient } from "@supabase/supabase-js";
 import { createServerClient, type CookieOptions } from "@supabase/ssr";
 import { cookies } from "next/headers";
 import { cache } from "react";
+import {ADMIN_SERVER_COOKIE_OPTIONS,isServerAdminCookie} from "./admin-session-cookies";
 
 const url=()=>process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const key=()=>process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!;
@@ -30,6 +31,28 @@ export async function userDb(){
  const jar=await cookies();
  return createServerClient(url(),key(),{cookies:{getAll(){return jar.getAll();},setAll(cs:{name:string;value:string;options:CookieOptions}[]){try{cs.forEach(({name,value,options})=>jar.set(name,value,options));}catch{ /* server component: proxy actualiza cookies */ }}}});
 }
+/** Server-owned, HttpOnly Supabase session for the new admin login.
+ * Legacy userDb() stays available for the reversible rollout and recovery.
+ */
+export async function adminServerDb(){
+ const jar=await cookies();
+ return createServerClient(url(),key(),{
+  cookieOptions:ADMIN_SERVER_COOKIE_OPTIONS,
+  cookies:{
+   getAll(){return jar.getAll().filter(item=>isServerAdminCookie(item.name));},
+   setAll(items){
+    try{
+     items.forEach(({name,value,options})=>{
+      if(isServerAdminCookie(name))jar.set(name,value,{
+       ...options,httpOnly:true,sameSite:"lax",secure:process.env.NODE_ENV==="production",path:"/"
+      });
+     });
+    }catch{/* Server Component: proxy refreshes cookies on the response. */}
+   }
+  }
+ });
+}
+
 /**
  * Memoización exclusivamente por request en React Server Components.
  * El layout y la página admin pueden verificar el mismo usuario sin
@@ -38,9 +61,20 @@ export async function userDb(){
  */
 export const assertAdmin=cache(async function assertAdmin(){
  if(!connected()) throw new Error("Configurar Supabase primero");
- const client=await userDb();
- const {data:{user},error}=await client.auth.getUser();
- if(error || !user) throw new Error("No autorizado");
+ // Prefer the HttpOnly server session. During the canary, keep the old
+ // browser session valid so existing admins are not locked out.
+ let user=null;
+ try{
+  const server=await adminServerDb();
+  const result=await server.auth.getUser();
+  if(!result.error)user=result.data.user;
+ }catch{/* No server session: try legacy migration path. */}
+ if(!user){
+  const legacy=await userDb();
+  const {data,error}=await legacy.auth.getUser();
+  if(error||!data.user)throw new Error("No autorizado");
+  user=data.user;
+ }
  const {data:admin,error:roleError}=await privilegedDb().from("admin_users").select("user_id").eq("user_id",user.id).maybeSingle();
  if(roleError || !admin) throw new Error("No tenés permiso de administrador");
  return user;
