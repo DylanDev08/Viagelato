@@ -13,7 +13,6 @@ export function SiteLoading({admin=false}:{admin?:boolean}){
    <span className="viagelato-loading-mark">V<span>.</span></span>
    <span className="viagelato-loading-route"><Truck size={18} strokeWidth={1.6}/></span>
   </div>
-  <span className="sr-only">{admin?"Cargando panel":"Cargando contenido"}</span>
   <div className="viagelato-loading-track" aria-hidden="true"><span/></div>
  </main>;
 }
