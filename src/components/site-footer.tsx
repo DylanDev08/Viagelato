@@ -20,7 +20,8 @@ function googleMapsHref(value:string){
 
 export function SiteFooter({settings}:{settings:Settings}){
  const whatsapp=whatsappHref(settings.whatsapp);
- const address=confirmedAddress(settings.address);
+ const configuredAddress=confirmedAddress(settings.address);
+ const address=configuredAddress&&/Eva\s+Per[oó]n\s+3050/i.test(configuredAddress)?"Eva Perón 3050, Lanús Este":configuredAddress;
  const map=address?googleMapsHref(settings.maps_url):null;
  return <footer className="site-footer storefront-footer">
   <div className="shell footer-main">
