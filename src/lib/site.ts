@@ -1,6 +1,6 @@
 import {connected,publicConnected,publicDb} from "./supabase";
 import {cache} from "react";
-import {DEFAULT_SETTINGS,type Settings,type Product,type Category,type ShippingZone,type Banner} from "./types";
+import {DEFAULT_SETTINGS,publicCommercialAddress,type Settings,type Product,type Category,type ShippingZone,type Banner} from "./types";
 import {readPublicCategories} from "./public-categories";
 export const getStore=cache(async()=>{
  if(!publicConnected()){
@@ -18,7 +18,12 @@ export const getStore=cache(async()=>{
  ]);
  if([s,p,c,z,b].some(result=>result.error)||!s.data)
   throw new Error("No pudimos cargar la información de la tienda. Volvé a intentar en unos minutos.");
- return {settings:{...DEFAULT_SETTINGS,...s.data} as Settings,products:(p.data||[]) as Product[],categories:(c.data||[]) as Category[],zones:(z.data||[]) as ShippingZone[],banners:(b.data||[]) as Banner[],demo:false,checkoutEnabled:process.env.ENABLE_CHECKOUT==="true"&&connected()};
+ const rawSettings={...DEFAULT_SETTINGS,...s.data} as Settings;
+ const settings={...rawSettings,
+  address:publicCommercialAddress(rawSettings.address||DEFAULT_SETTINGS.address),
+  maps_url:/monte(?:%20|\+|\s)chingolo/i.test(rawSettings.maps_url||"")?DEFAULT_SETTINGS.maps_url:rawSettings.maps_url,
+ };
+ return {settings,products:(p.data||[]) as Product[],categories:(c.data||[]) as Category[],zones:(z.data||[]) as ShippingZone[],banners:(b.data||[]) as Banner[],demo:false,checkoutEnabled:process.env.ENABLE_CHECKOUT==="true"&&connected()};
 });
 
 export async function getProductBySlug(slug:string){
