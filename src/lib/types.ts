@@ -182,6 +182,14 @@ export const DEMO_PRODUCTS: Product[] = [
   },
 ];
 
+export const VIAGELATO_COMMERCIAL_ADDRESS = "Eva Perón 3050, Lanús Este";
+
+/** Normaliza la dirección histórica sin pisar otras direcciones configuradas. */
+export function publicCommercialAddress(value:string):string {
+  const address=value.trim();
+  return /\bEva\s+Per[oó]n\s+3050\b/i.test(address)?VIAGELATO_COMMERCIAL_ADDRESS:address;
+}
+
 export const DEFAULT_SETTINGS: Settings = {
   id: true,
   name: "Viagelato S.A.",
@@ -191,8 +199,8 @@ export const DEFAULT_SETTINGS: Settings = {
   whatsapp: "+5491140962202",
   phone: "11 4096-2202",
   instagram: "https://www.instagram.com/distribuidorviagelato/",
-  address: "Eva Perón 3050, Monte Chingolo, Lanús Este, Buenos Aires, Argentina",
-  maps_url: "https://www.google.com/maps/search/?api=1&query=Eva%20Per%C3%B3n%203050%2C%20Monte%20Chingolo%2C%20Lan%C3%BAs%20Este%2C%20Buenos%20Aires%2C%20Argentina",
+  address: VIAGELATO_COMMERCIAL_ADDRESS,
+  maps_url: "https://www.google.com/maps/search/?api=1&query=Eva%20Per%C3%B3n%203050%2C%20Lan%C3%BAs%20Este%2C%20Buenos%20Aires%2C%20Argentina",
   contact_email: "",
   hero_title: "Helados y congelados, directo a tu negocio.",
   hero_subtitle:
