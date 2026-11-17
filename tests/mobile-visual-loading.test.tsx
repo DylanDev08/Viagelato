@@ -8,13 +8,13 @@ describe("loading real y accesible",()=>{
   render(<SiteLoading/>);
   const state=screen.getByRole("status");
   expect(state).toHaveAttribute("aria-busy","true");
-  expect(state).toHaveTextContent("VIAGELATO");
-  expect(state).toHaveTextContent("Preparando algo fresco");
+  expect(state).toHaveAccessibleName("Cargando Viagelato");
+  expect(state).not.toHaveTextContent(/Preparando algo fresco|preview|demo|cargas? de prueba/i);
   expect(state).not.toHaveTextContent(/Cloudflare|Verificando navegador|100%/i);
  });
  it("diferencia el panel del catálogo sin retrasos falsos",()=>{
   render(<SiteLoading admin/>);
-  expect(screen.getByText("Preparando tu panel")).toBeInTheDocument();
+  expect(screen.getByRole("status")).toHaveAccessibleName("Cargando el panel de administración");
   const component=readFileSync("src/components/site-loading.tsx","utf8");
   expect(component).not.toMatch(/setTimeout|setInterval/);
  });
